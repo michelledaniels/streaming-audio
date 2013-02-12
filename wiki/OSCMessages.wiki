@@ -1,0 +1,40 @@
+#summary Communicating with SAM via OSC
+
+= SAM/Client Messages =
+
+
+
+
+= SAM/Renderer Messages =
+
+
+
+
+= SAM/UI Messages = 
+
+
+
+
+= Control Parameters =
+  * volume
+  * mute
+  * solo
+  * delay
+  * position
+  * type
+  * meter
+
+== Subscriptions == 
+===  Subscribing to Changes ===
+
+
+=== Unsubscribing from Changes ===
+
+== Setting Parameters ==
+
+== Getting Parameters ==
+
+==
+
+
+= Error Messages = 
