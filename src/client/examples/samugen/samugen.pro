@@ -27,8 +27,18 @@ CONFIG(release, debug|release) {
     DESTDIR = "$$ParentDirectory/bin"
 }
 
+# For version without JACK, uncomment the next line
+#DEFINES += SAC_NO_JACK
+contains(DEFINES, SAC_NO_JACK) {
+    message(samugen: SAC_NO_JACK defined: building without JACK...)
+}
+else {
+    message(samugen: building with JACK...)
+    LIBS += -ljack
+}
+
 SOURCES += main.cpp
 
 INCLUDEPATH += /usr/local/include $$ParentDirectory/src $$ParentDirectory/src/client
-LIBS += -L$$ParentDirectory/lib -lsac -ljack
+LIBS += -L$$ParentDirectory/lib -lsac
 QT += network
