@@ -36,7 +36,7 @@ FORMS += \
 
 TARGET = sam
 
-INCLUDEPATH += /usr/local/include $$ParentDirectory/src $$ParentDirectory/client
+INCLUDEPATH += /usr/local/include $$ParentDirectory/src $$ParentDirectory/src/client
 
 # For debugging, comment out
 CONFIG -= warn_on
