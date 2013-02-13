@@ -114,7 +114,7 @@ void RtcpHandler::sendReceiverReport(quint32 senderSsrc, qint64 firstSeqNumThisI
         qWarning("RtcpHandler::sendReceiverReport NOT sending RTCP receiver report: remote host is NULL!  ssrc = %u, local port = %u", m_ssrc, m_localPort);
         return;
     }
-    qDebug("RtcpHandler::sendReceiverReport SENDING RTCP RECEIVER REPORT");
+    //qDebug("RtcpHandler::sendReceiverReport SENDING RTCP RECEIVER REPORT");
     
     QByteArray data; // TODO: don't allocate this new each time?
     QDataStream stream(&data, QIODevice::WriteOnly);
@@ -144,12 +144,12 @@ void RtcpHandler::sendReceiverReport(quint32 senderSsrc, qint64 firstSeqNumThisI
     double lossFraction = (packetsExpectedThisInt == 0) ? 0 : packetsLostThisInt / (double)packetsExpectedThisInt;
     quint8 lossFractionFixed = (quint8)(lossFraction * 256.0);
     stream << lossFractionFixed;
-    qDebug() << "RtcpHandler::sendReceiverReport packets loss fraction = " << lossFraction << ", fixed point = " << lossFractionFixed;
+    //qDebug() << "RtcpHandler::sendReceiverReport packets loss fraction = " << lossFraction << ", fixed point = " << lossFractionFixed;
     
     // write cumulative packets lost (24 bits)
     qint64 packetsExpected = maxExtendedSeqNum - firstSeqNum;
     qint32 packetsLost = packetsExpected - packets;
-    qDebug() << "RtcpHandler::sendReceiverReport packets expected = " << packetsExpected << ", packets received = " << packets << ", packets lost = " << packetsLost;
+    //qDebug() << "RtcpHandler::sendReceiverReport packets expected = " << packetsExpected << ", packets received = " << packets << ", packets lost = " << packetsLost;
     packetsLost &= 0xffffff; // get lower 24 bits (will preserve sign due to two's complement notation?)
     uchar packetsLostBytes[4];
     qToBigEndian(packetsLost, packetsLostBytes); // convert to network byte order
@@ -164,7 +164,7 @@ void RtcpHandler::sendReceiverReport(quint32 senderSsrc, qint64 firstSeqNumThisI
     // write jitter
     stream << jitter;
     
-    qDebug("RtcpHandler::sendReceiverReport jitter = %u, max extended sequence number = %u", jitter, maxExtendedSeqNumTrunc);
+    //qDebug("RtcpHandler::sendReceiverReport jitter = %u, max extended sequence number = %u", jitter, maxExtendedSeqNumTrunc);
     
     // write last sender report timestamp
     stream << lastSenderTimestamp;
@@ -173,9 +173,9 @@ void RtcpHandler::sendReceiverReport(quint32 senderSsrc, qint64 firstSeqNumThisI
     quint32 lastSenderDelay = (delayMillis * 65536) / 1000; // units of 1/65536 seconds
     stream << lastSenderDelay;
     
-    qDebug() << "RtcpHandler::sendReceiverReport last sender timestamp = " << lastSenderTimestamp << ", last sender delay in millis = " << delayMillis << ", last sender delay = " << lastSenderDelay;
+    //qDebug() << "RtcpHandler::sendReceiverReport last sender timestamp = " << lastSenderTimestamp << ", last sender delay in millis = " << delayMillis << ", last sender delay = " << lastSenderDelay;
     
-    qDebug() << "RtcpHandler::sendReceiverReport sending packet with length " << data.length() << " bytes, to host " << m_remoteHost << ", port " << m_remotePort;
+    //qDebug() << "RtcpHandler::sendReceiverReport sending packet with length " << data.length() << " bytes, to host " << m_remoteHost << ", port " << m_remotePort;
     
     // send packet
     if (m_socket->writeDatagram(data, m_remoteHost, m_remotePort) < 0)
@@ -194,7 +194,7 @@ void RtcpHandler::readPendingDatagrams()
         quint16 senderPort;
         m_socket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
 
-        qDebug("\nDATAGRAM RECEIVED on RTCP port");
+        //qDebug("\nDATAGRAM RECEIVED on RTCP port");
         
         // TODO: validate RTCP packet
         QDataStream stream(&datagram, QIODevice::ReadOnly);
@@ -207,7 +207,7 @@ void RtcpHandler::readPendingDatagrams()
         quint8 padding = (versionByte & 32) >> 5; // padding flag is 3rd uppermost bit
         quint8 reportCount = versionByte & 31; // report count is lowest 5 bits
         
-        qDebug("RtcpHandler::readPendingDatagrams: version = %u, padding = %u, reportCount = %u", version, padding, reportCount);
+        //qDebug("RtcpHandler::readPendingDatagrams: version = %u, padding = %u, reportCount = %u", version, padding, reportCount);
         // TODO: handle padding and report count?
         
         if (version != 2)
@@ -223,11 +223,11 @@ void RtcpHandler::readPendingDatagrams()
         switch (typeByte)
         {
         case RTCP_RR_PACKET_TYPE:
-            qDebug("RtcpHandler::readPendingDatagrams: received RTCP RECEIVER REPORT");
+            //qDebug("RtcpHandler::readPendingDatagrams: received RTCP RECEIVER REPORT");
             read_receiver_report(stream);
             break;
         case RTCP_SR_PACKET_TYPE:
-            qDebug("RtcpHandler::readPendingDatagrams: received RTCP SENDER REPORT");
+            //qDebug("RtcpHandler::readPendingDatagrams: received RTCP SENDER REPORT");
             read_sender_report(stream);
             break;
         default:
@@ -317,17 +317,17 @@ void RtcpHandler::read_sender_report(QDataStream& stream)
 
     // read reporter ssrc
     stream >> m_senderReport.reporterSsrc;
-    qDebug("RtcpHandler::read_sender_report received sender report from SSRC %u, length = %u", m_senderReport.reporterSsrc, length);
+    //qDebug("RtcpHandler::read_sender_report received sender report from SSRC %u, length = %u", m_senderReport.reporterSsrc, length);
 
     // read NTP timestamp (64 bits)
     stream >> m_senderReport.ntpSeconds; 
     stream >> m_senderReport.ntpMillis;
     float ntpMillis = m_senderReport.ntpMillis / (float)4294967296.0f; // convert from [0 2^32]to [0.0, 1.0]
-    qDebug("RtcpHandler::read_sender_report NTP timestamp seconds = %u, millis float = %0.4f, fixed = %u", m_senderReport.ntpSeconds, ntpMillis, m_senderReport.ntpMillis);
+    //qDebug("RtcpHandler::read_sender_report NTP timestamp seconds = %u, millis float = %0.4f, fixed = %u", m_senderReport.ntpSeconds, ntpMillis, m_senderReport.ntpMillis);
 
     // read rtp timestamp (32 bits)
     stream >> m_senderReport.rtpTimestamp;
-    qDebug("RtcpHandler::read_sender_report RTP timestamp = %u", m_senderReport.rtpTimestamp);
+    //qDebug("RtcpHandler::read_sender_report RTP timestamp = %u", m_senderReport.rtpTimestamp);
 
     // read packets sent
     stream >> m_senderReport.packetsSent;
@@ -335,7 +335,7 @@ void RtcpHandler::read_sender_report(QDataStream& stream)
     // read octets sent
     stream >> m_senderReport.octetsSent;
 
-    qDebug("RtcpHandler::read_sender_report packets sent = %u, octets sent = %u", m_senderReport.packetsSent, m_senderReport.octetsSent);
+    //qDebug("RtcpHandler::read_sender_report packets sent = %u, octets sent = %u", m_senderReport.packetsSent, m_senderReport.octetsSent);
 
     quint32 lastSenderTimestamp = (( m_senderReport.ntpSeconds & 0xFF00) << 16) | ( m_senderReport.ntpMillis >> 16); // middle 32 bits from NTP timestamp
 
