@@ -1,8 +1,9 @@
 /**
  * @file osc.h
  * Interface for Open Sound Control (OSC) functionality
- * Michelle Daniels  May 2012
- * Copyright UCSD 2012
+ * @author Michelle Daniels
+ * @date May 2012
+ * @copyright UCSD 2012
  */
 
 #ifndef OSC_H
@@ -17,50 +18,50 @@
 #include <QVector>
 
 
-#define OSC_INT qint32
-#define OSC_TIME quint64
-#define OSC_FLOAT float
-#define OSC_STRING char*
-#define OSC_BLOB void*
+#define OSC_INT qint32      ///< An OSC integer type
+#define OSC_TIME quint64    ///< An OSC time type
+#define OSC_FLOAT float     ///< An OSC float type
+#define OSC_STRING char*    ///< An OSC string type
+#define OSC_BLOB void*      ///< An OSC blob type
 
-static const char SLIP_END = 192;
-static const char SLIP_ESC = 219;
-static const char SLIP_ESC_END[2] = {SLIP_ESC, 220};
-static const char SLIP_ESC_ESC[2] = {SLIP_ESC, 221};
+static const char SLIP_END = 192;                    ///< Signals the end of a SLIP-encoded sequence
+static const char SLIP_ESC = 219;                    ///< SLIP escape character
+static const char SLIP_ESC_END[2] = {SLIP_ESC, 220}; ///< the escaped SLIP end character
+static const char SLIP_ESC_ESC[2] = {SLIP_ESC, 221}; ///< the escaped SLIP escape character
 
 
 /**
  * @union OscArgVal
  * This union represents the value of an OSC argument.
  */
-typedef union osc_arg_val
+union OscArgVal
 {
     OSC_INT i;      ///< An OSC 32-bit integer type
     OSC_FLOAT f;    ///< An OSC 32-bit floating point type
     OSC_STRING s;   ///< An OSC string
-} OscArgVal;
+};
 
 
 /**
  * @struct OscArg
  * This struct represents an OSC argument.
  */
-typedef struct osc_arg
+struct OscArg
 {
     char type;      ///< The argument's type
     OscArgVal val;  ///< The argument's value
-} OscArg;
+};
 
 
 /**
  * @struct OscAddress
  * This struct represents an OSC address.
  */
-typedef struct osc_address
+struct OscAddress
 {
     QHostAddress host;  ///< The host address to connect to
     quint16 port;       ///< The OSC port on the remote host
-} OscAddress;
+};
 
 /**
  * @class OscMessage
@@ -104,8 +105,8 @@ public:
     /**
      * Initialize this OscMessage.
      * @param address the OSC address for this message
-     * @param types the OSC type string (NULL or empty signals no arguments)
-     * @param variable args a variable-length list of OSC arguments.
+     * @param types the NULL-terminated OSC type string (NULL signals no arguments)
+     * @param ... a variable-length list of OSC arguments.
      * The number of arguments must equal the length of the provided type string.
      * @return true on success, false on failure
      */
@@ -205,14 +206,8 @@ private:
 };
 
 /**
- * @class OscMessage
- * @author Michelle Daniels
- * @date 2012
- *
- * An OscMessage encapsulates data related to OSC messages (OSC address,
- * type string, and argument list), and functionality including reading
- * and writing messages to byte arrays.
- *
+ * @class OscClient
+ * An OscClient sends OSC messages using UDP or TCP.
  */
 class OscClient : public QObject
 {
@@ -296,6 +291,10 @@ private:
     QAbstractSocket* m_socket; ///< a TCP or UDP socket used to send messages
 };
 
+/**
+ * @class OscTcpSocketReader
+ * An OscTcpSocketReader reads OCS messages from a TCP socket.
+ */
 class OscTcpSocketReader : public QObject
 {
     Q_OBJECT
@@ -341,6 +340,10 @@ protected:
     QByteArray m_data;    ///< temporary storage for received data
 };
 
+/**
+ * @class OscServer
+ * An OscServer listens for OSC messages using both UDP and TCP.
+ */
 class OscServer : public QObject
 {
     Q_OBJECT

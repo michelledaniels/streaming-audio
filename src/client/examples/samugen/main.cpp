@@ -1,9 +1,9 @@
 /**
- * main.cpp
- * samugen
- * Command-line application for unit generators streaming to SAM
- * Michelle Daniels February 2013
- * Copyright UCSD 2013
+ * @file samugen/main.cpp
+ * samugen: command-line application for unit generators streaming to SAM
+ * @author Michelle Daniels
+ * @date February 2013
+ * @copyright UCSD 2013
  */
 
 #include <getopt.h>

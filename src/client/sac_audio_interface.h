@@ -1,8 +1,9 @@
 /**
- * sac_audio_interface.h
+ * @file sac_audio_interface.h
  * Interface for different audio interfaces for StreamingAudioClients
- * Michelle Daniels September 2012
- * Copyright UCSD 2012
+ * @author Michelle Daniels
+ * @date September 2012
+ * @copyright UCSD 2012
  */
 
 #ifndef SACAUDIOINTERFACE_H
@@ -47,7 +48,7 @@ class SacAudioInterface
 public:
     /**
      * SacAudioInterface constructor.
-     * @oaram channels number of output audio channels this interface will support
+     * @param channels number of output audio channels this interface will support
      * @param bufferSamples number of samples per audio buffer/clock tick
      * @param sampleRate sampling rate the interface will run at
      * @see ~SacAudioInterface
@@ -91,9 +92,9 @@ public:
     unsigned int getSampleRate() { return m_sampleRate; }
     
 protected:
-    unsigned int m_channels;
-    unsigned int m_bufferSamples;
-    unsigned int m_sampleRate;
+    unsigned int m_channels;       ///< number of input and output channels this interface supports
+    unsigned int m_bufferSamples;  ///< interface buffer size
+    unsigned int m_sampleRate;     ///< interface sampling rate
     
     // for audio callback
     AudioInterfaceCallback m_audioCallback; ///< the audio callback
@@ -114,7 +115,7 @@ class VirtualAudioInterface : public SacAudioInterface, public QThread
 public:
     /**
      * VirtualAudioInterface constructor.
-     * @oaram channels number of output audio channels this interface will support
+     * @param channels number of output audio channels this interface will support
      * @param bufferSamples number of samples per audio buffer/clock tick
      * @param sampleRate sampling rate the interface will run at
      * @see ~VirtualAudioInterface
@@ -156,11 +157,11 @@ public:
     
 protected:
    
-    QElapsedTimer m_timer;
-    double m_audioInterval;  // in millis
-    quint64 m_nextAudioTick; // in samples
+    QElapsedTimer m_timer;      ///< virtual clock
+    double m_audioInterval;     ///< time between clock ticks, in milliseconds
+    quint64 m_nextAudioTick;    ///< time of next clock tick, in samples
     
-    bool m_shouldQuit;
+    bool m_shouldQuit;          ///< flag: true if the interface thread should stop running
 };
 
 #ifndef SAC_NO_JACK
@@ -178,9 +179,10 @@ class JackAudioInterface : public SacAudioInterface
 public:
     /**
      * JackAudioInterface constructor.
-     * @oaram channels number of input and output audio channels this interface will support
+     * @param channels number of input and output audio channels this interface will support
      * @param bufferSamples number of samples per audio buffer/clock tick
      * @param sampleRate sampling rate the interface will run at
+     * @param clientName desired JACK client name
      * @see ~JackAudioInterface
      */
     JackAudioInterface(unsigned int channels, unsigned int bufferSamples, unsigned int sampleRate, const char* clientName);
@@ -311,7 +313,7 @@ protected:
     // for JACK
     jack_client_t* m_client;          ///< local JACK client
     jack_port_t** m_inputPorts;       ///< array of JACK input ports for this app
-    char* m_clientName;
+    char* m_clientName;               ///< JACK client name
    
 };
 #endif // SAC_NO_JACK

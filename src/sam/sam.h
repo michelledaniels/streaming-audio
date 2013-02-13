@@ -1,8 +1,9 @@
 /**
  * @file sam.h
- * Interface for Streaming Audio Manager (SAM) functionality
- * Michelle Daniels  September 2011
- * Copyright UCSD 2011-2013
+ * Streaming Audio Manager (SAM) interface
+ * @author Michelle Daniels
+ * @date September 2011
+ * @copyright UCSD 2011-2013
  */
 
 #ifndef SAM_H
@@ -21,12 +22,12 @@ static const int MAX_APPS = 100;
 static const int MAX_DELAY_MILLIS = 2000;
 
 /**
- * @mainpage
- * @author Michelle Daniels, UCSD CalIT2 Sonic Arts
- * @date 2012
- * @version 0.1.2
- * SAM Depends on the following third-party software: JACK Audio Connection Kit (LGPL), 
- * JackTrip (MIT License), and Qt (LGPL).
+ * @mainpage Streaming Audio Manager
+ * @author Michelle Daniels, Sonic Arts R&D at CalIT2 UCSD
+ * @date 2011-2013
+ * @version 0.3.0
+ * @section Dependencies
+ * SAM depends on the following third-party software: JACK Audio Connection Kit (LGPL) and Qt (LGPL).
  */
 
 
@@ -127,8 +128,8 @@ public:
     bool stop();
 
     /**
-     * Check if an app id/port is valid (in range and initialized).
-     * @param port the unique port number in question
+     * Check if an app id is valid (in range and initialized).
+     * @param id the unique id in question
      * @return true if valid, false otherwise
      */
     bool idIsValid(int id);
@@ -148,6 +149,7 @@ public:
      * @param width initial width of corresponding SAGE window
      * @param height initial height of corresponding SAGE window
      * @param depth initial depth of corresponding SAGE window
+     * @param type the app's streaming type
      * @param socket the TCP socket through which the app/client connected to SAM
      * @return unique port for this stream or -1 on error
      */

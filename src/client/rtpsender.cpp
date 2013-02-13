@@ -1,8 +1,8 @@
 /**
  * @file rtpsender.cpp
- * Implementation of RTP sender functionality
- * Michelle Daniels  June 2012
- * Copyright UCSD 2012
+ * RTP sender implementation
+ * @author Michelle Daniels
+ * @copyright UCSD 2012
  */
 
 #include <QDebug>
