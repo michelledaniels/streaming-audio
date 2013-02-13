@@ -1,9 +1,9 @@
 /**
- * main.cpp
- * saminput
- * Command-line application to allow streaming to SAM from a physical audio input
- * Michelle Daniels November 2012
- * Copyright UCSD 2012
+ * @file saminput/main.cpp
+ * saminput: command-line application to allow streaming to SAM from a physical audio input
+ * @author Michelle Daniels
+ * @date November 2012
+ * @copyright UCSD 2012
  */
 
 #include <getopt.h>

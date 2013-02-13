@@ -1,8 +1,9 @@
 /**
  * @file rtcp.cpp
  * Implementation of RTCP functionality
- * Michelle Daniels  June 2012
- * Copyright UCSD 2012
+ * @author Michelle Daniels
+ * @date June 2012
+ * @copyright UCSD 2012
  */
 
 #include <QDataStream>

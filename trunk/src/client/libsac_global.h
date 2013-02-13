@@ -1,3 +1,10 @@
+/**
+ * @file libsac_global.h
+ * SAM client library global defines
+ * @author Michelle Daniels
+ * @copyright UCSD 2012
+ */
+
 #ifndef LIBSAC_GLOBAL_H
 #define LIBSAC_GLOBAL_H
 

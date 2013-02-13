@@ -1,8 +1,9 @@
 /**
  * @file osc.cpp
  * Implementation of Open Sound Control (OSC) functionality
- * Michelle Daniels  May 2012
- * Copyright UCSD 2012
+ * @author Michelle Daniels
+ * @date May 2012
+ * @copyright UCSD 2012
  */
 
 #include <QDebug>

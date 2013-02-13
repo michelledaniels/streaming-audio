@@ -1,8 +1,9 @@
 /**
- * StreamingAudioManager.cpp
+ * @file sam.cpp
  * Implementation of Streaming Audio Manager (SAM) functionality
- * Michelle Daniels  September 2011
- * Copyright UCSD 2011-2013
+ * @author Michelle Daniels
+ * @date September 2011
+ * @copyright UCSD 2011-2013
  */
 
 #include <errno.h>

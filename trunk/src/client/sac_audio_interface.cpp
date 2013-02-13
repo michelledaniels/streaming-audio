@@ -1,8 +1,9 @@
 /**
- * sac_audio_interface.cpp
+ * @file sac_audio_interface.cpp
  * Implementation of different audio interfaces for SacAudioInterfaces
- * Michelle Daniels September 2012
- * Copyright UCSD 2012
+ * @author Michelle Daniels
+ * @date September 2012
+ * @copyright UCSD 2012
  */
 
 #include <QCoreApplication>

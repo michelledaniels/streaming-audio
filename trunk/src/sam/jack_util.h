@@ -1,8 +1,9 @@
 /**
  * @file jack_util.h
  * Shared JACK-related functionality
- * Michelle Daniels  November 2011
- * Copyright UCSD 2011
+ * @author Michelle Daniels
+ * @date November 2011
+ * @copyright UCSD 2011
  */
 
 #ifndef JACK_UTIL_H

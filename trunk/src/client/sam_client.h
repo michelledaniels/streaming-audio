@@ -1,8 +1,9 @@
 /**
- * sam_client.h
+ * @file sam_client.h
  * Interface for applications connecting to the Streaming Audio Manager
- * Michelle Daniels January 2012
- * Copyright UCSD 2012
+ * @author Michelle Daniels
+ * @date January 2012
+ * @copyright UCSD 2012
  */
 
 #ifndef SAM_CLIENT_H
@@ -13,6 +14,10 @@
 #include "rtpsender.h"
 #include "sac_audio_interface.h"
 
+/**
+ * @namespace sam
+ * Namespace for SAM-related functionality.
+ */
 namespace sam
 {
     
@@ -242,6 +247,11 @@ public:
     bool isRunning() { return (m_port >= 0); }
 
 public slots:
+    /**
+     * Handle an incoming OSC message
+     * @param msg the message to handle
+     * @param sender sender IP address/hostname
+     */
     void handleOscMessage(OscMessage* msg, const char* sender);
 
 private:

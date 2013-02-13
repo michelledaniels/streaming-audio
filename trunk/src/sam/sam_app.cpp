@@ -1,8 +1,9 @@
 /**
- * StreamingAudioApp.cpp
- * Implementation of functionality related to related to audio for a single SAGE application
- * Michelle Daniels September 2011
- * Copyright UCSD 2011-2012
+ * @file sam_app.cpp
+ * Implementation of functionality related to related to audio for a single client application
+ * @author Michelle Daniels
+ * @date September 2011
+ * @copyright UCSD 2011-2012
  */
 
 #include <math.h>

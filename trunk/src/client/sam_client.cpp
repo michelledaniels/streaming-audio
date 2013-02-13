@@ -1,8 +1,9 @@
 /**
- * sam_client.cpp
+ * @file sam_client.cpp
  * Implementation for applications connecting to the Streaming Audio Manager
- * Michelle Daniels January 2012
- * Copyright UCSD 2012
+ * @author Michelle Daniels
+ * @date January 2012
+ * @copyright UCSD 2012
  */
 
 #include <QCoreApplication>

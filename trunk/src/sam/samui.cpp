@@ -1,3 +1,9 @@
+/**
+ * @file samui.cpp
+ * SAM GUI implementation
+ * @author Michelle Daniels
+ * @copyright UCSD 2012
+ */
 
 #include <QMessageBox>
 

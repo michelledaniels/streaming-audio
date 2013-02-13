@@ -1,8 +1,9 @@
 /**
- * sam_app.h
- * Interface for functionality related to audio for a single application
- * Michelle Daniels September 2011
- * Copyright UCSD 2011-2012
+ * @file sam_app.h
+ * Interface for functionality related to audio for a single client application
+ * @author Michelle Daniels
+ * @date September 2011
+ * @copyright UCSD 2011-2012
  */
 
 #ifndef SAM_APP_H
@@ -346,17 +347,20 @@ public:
     static bool unsubscribe(QVector<OscAddress*> &subscribers, const char* host, quint16 port);
 
     /**
-      * Flag this app for deletion.
-      */
+     * Flag this app for deletion.
+     */
     void flagForDelete() { qDebug("StreamingAudioApp::flagForDelete app %d", m_port); m_deleteMe = true; }
 
     /**
-      * Query if this app is flagged for deletion.
-      * @return true if flagged for deletion, false otherwise
-      */
+     * Query if this app is flagged for deletion.
+     * @return true if flagged for deletion, false otherwise
+     */
     bool shouldDelete() const { return m_deleteMe; }
     
 signals:
+    /**
+     * Signals when an app is disconnected.
+     */
     void appDisconnected(int);
 
     /**
@@ -367,17 +371,20 @@ signals:
     void appClosed(int port, int type);
 
 public slots:
+    /**
+     * Shutdown a client because its TCP connection with SAM has been disconnected.
+     */
     void disconnectApp();
     
 private:
 
-    char* m_name;                               ///< the name of this app, to be used for UI displays
-    int m_port;                                 ///< the port (offset from default 4464) to be used for jacktrip (also serves as unique ID)
-    int m_channels;                             ///< number of audio channels
-    int m_sampleRate;
-    SamAppPosition m_position;                 ///< app window position
-    StreamingAudioType m_type;                  ///< audio type
-    bool m_deleteMe;                            ///< indicates whether this app is ready to be deleted
+    char* m_name;               ///< the name of this app, to be used for UI displays
+    int m_port;                 ///< the port (offset from default 4464) to be used for jacktrip (also serves as unique ID)
+    int m_channels;             ///< number of audio channels
+    int m_sampleRate;           ///< audio sample rate
+    SamAppPosition m_position;  ///< app window position
+    StreamingAudioType m_type;  ///< audio type
+    bool m_deleteMe;            ///< indicates whether this app is ready to be deleted
 
     // JACK ports, etc.
     int* m_channelAssign;        ///< channel assignments (which physical output channels this app will be connected to)
@@ -403,21 +410,21 @@ private:
     float* m_peakIn;        ///< input peak levels for metering (per channel)
 
     // subscribers
-    QVector<OscAddress*> m_volumeSubscribers;
-    QVector<OscAddress*> m_muteSubscribers;
-    QVector<OscAddress*> m_soloSubscribers;
-    QVector<OscAddress*> m_delaySubscribers;
-    QVector<OscAddress*> m_positionSubscribers;
-    QVector<OscAddress*> m_typeSubscribers;
-    QVector<OscAddress*> m_meterSubscribers;
+    QVector<OscAddress*> m_volumeSubscribers;   ///< OSC addresses subscribed to volume changes
+    QVector<OscAddress*> m_muteSubscribers;     ///< OSC addresses subscribed to mute changes
+    QVector<OscAddress*> m_soloSubscribers;     ///< OSC addresses subscribed to solo changes
+    QVector<OscAddress*> m_delaySubscribers;    ///< OSC addresses subscribed to delay changes
+    QVector<OscAddress*> m_positionSubscribers; ///< OSC addresses subscribed to position changes
+    QVector<OscAddress*> m_typeSubscribers;     ///< OSC addresses subscribed to type changes
+    QVector<OscAddress*> m_meterSubscribers;    ///< OSC addresses subscribed to meter updates
     
     // RTP-related parameters
-    RtpReceiver* m_receiver;
-    float** m_audioData;
-    quint16 m_rtpBasePort;
+    RtpReceiver* m_receiver;    ///< RTP receiver for this app/client
+    float** m_audioData;        ///< temp buffer for received audio data
+    quint16 m_rtpBasePort;      ///< base RTP and RTCP port for this app/client
     
     // For OSC
-    QTcpSocket* m_socket;
+    QTcpSocket* m_socket;       ///< TCP socket for sending and listening to OSC messages to/from this app/client
 };
 
 #endif // SAM_APP_H
