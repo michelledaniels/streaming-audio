@@ -2,8 +2,30 @@
 
 = User's Guide =
 == Using SAM ==
+SAM is a highly-configurable console application.  Parameters can be specified in a file called sam.conf, which should be located in whatever directory SAM is run from.  Some parameters can be overridden on the command line, but it is recommended that you use the config file whenever possible.
 
 
+
+
+=== Config File Parameters ===
+
+=== Command Line Parameters ===
+
+|| Short || Long || Description ||
+|| -n || --numchannels || number of basic output channels ||
+|| -r || --samplerate || sample rate ||
+|| -p || --period || audio period/buffer size ||
+|| -d || --driver || driver to use for JACK (coreaudio, alsa, etc.) ||
+|| -o || --oscport  || port where SAM listen for OSC messages ||
+|| -j || --jtport || base RTP port ||
+|| -f || --outoffset || output port offset ||
+|| -m || --maxout || maximum number of output channels to use, including basic channels ||
+|| -h|| --help|| print help info and exit ||
+
+Linux example usage:
+<code>sam -n 2 -r 48000 -p 256 -d alsa -o 7770 -j 4464 -f 0 -m 2</code>
+
+OS X example usage:
+<code>sam -n 2 -r 48000 -p 256 -d coreaudio -o 7770 -j 4464 -f 0 -m 2</code>
 
 == Using Clients ==
-
