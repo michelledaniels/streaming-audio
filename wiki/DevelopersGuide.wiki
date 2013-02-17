@@ -1,3 +1,12 @@
 #summary Developer's Guide
 
-=  Developing SAM Clients =
+= Developer's Guide =
+<wiki:toc max_depth="3" />
+
+[OSCMessages Comprehensive List of OSC Messages]
+
+== Developing Clients ==
+
+== Developing Renderers ==
+
+== Developing UIs ==
