@@ -1,6 +1,6 @@
 #summary User's Guide
-
 = User's Guide =
+<wiki:toc max_depth="3" />
 == Using SAM ==
 SAM is a highly-configurable console application.  Parameters can be specified in a file called sam.conf, which should be located in whatever directory SAM is run from.  Some parameters can be overridden on the command line, but the config file will provide more flexibility.
 
