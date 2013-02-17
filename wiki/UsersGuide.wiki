@@ -8,19 +8,19 @@ SAM is a highly-configurable console application.  Parameters can be specified i
 === Config File Parameters ===
 
 || Parameter || Description || Possible Values ||
-|| NumBasicChannels || number of basic output channels || >= 0 ||
-|| SampleRate || audio sample rate || 44100, 48000, other values supported by your sound card ||
-|| BufferSize|| audio buffer size || 16, 32, 64, 128, 256, 512, 1024, other sizes supported by your sound card ||
-|| JackDriver || JACK driver || alsa, coreaudio, etc. (see JACK documentation) ||
-|| OscPort|| port where SAM will listen for OSC messages ||  1024 to 49151 ||
-|| RtpPort|| base port for RTP streaming || 1024 to 49151 (max depends on how many clients you wish to stream simultaneously) ||
-|| OutputPortOffset || output port offset || >= 0 ||
-|| MaxOutputChannels || maximum number of output channels to use, including basic channels || >= 1 ||
-|| Volume || initial global volume level || 0.0 to 1.0 ||
-|| DelayMillis || initial global delay in milliseconds || >= 0 ||
-|| MaxDelayMillis || maximum possible delay in milliseconds || >= 0 ||
-|| RenderHost || host name/IP address of rendering machine for automatic connection on startup || "" or "host"||
-|| RenderPort|| port where renderer will listen to OSC messages || 1024 to 49151 ||
+|| `NumBasicChannels` || number of basic output channels || >= 0 ||
+|| `SampleRate` || audio sample rate || 44100, 48000, other values supported by your sound card ||
+|| `BufferSize` || audio buffer size || 16, 32, 64, 128, 256, 512, 1024, other sizes supported by your sound card ||
+|| `JackDriver` || JACK driver || alsa, coreaudio, etc. (see JACK documentation) ||
+|| `OscPort` || port where SAM will listen for OSC messages ||  1024 to 49151 ||
+|| `RtpPort` || base port for RTP streaming || 1024 to 49151 (max depends on how many clients you wish to stream simultaneously) ||
+|| `OutputPortOffset` || output port offset || >= 0 ||
+|| `MaxOutputChannels` || maximum number of output channels to use, including basic channels || >= 1 ||
+|| `Volume` || initial global volume level || 0.0 to 1.0 ||
+|| `DelayMillis` || initial global delay in milliseconds || >= 0 ||
+|| `MaxDelayMillis` || maximum possible delay in milliseconds || >= 0 ||
+|| `RenderHost` || host name/IP address of rendering machine for automatic connection on startup || "" or "host"||
+|| `RenderPort` || port where renderer will listen to OSC messages || 1024 to 49151 ||
 
 Example sam.conf contents:
 <code>
@@ -43,15 +43,15 @@ RenderPort=7778
 === Command Line Parameters ===
 
 || Short || Long || Description ||
-|| -n || --numchannels || number of basic output channels ||
-|| -r || --samplerate || sample rate ||
-|| -p || --period || audio period/buffer size ||
-|| -d || --driver || driver to use for JACK (coreaudio, alsa, etc.) ||
-|| -o || --oscport  || port where SAM listen for OSC messages ||
-|| -j || --jtport || base RTP port ||
-|| -f || --outoffset || output port offset ||
-|| -m || --maxout || maximum number of output channels to use, including basic channels ||
-|| -h|| --help|| print help info and exit ||
+|| `-n` || `--numchannels` || number of basic output channels ||
+|| `-r` || `--samplerate` || sample rate ||
+|| `-p` || `--period` || audio period/buffer size ||
+|| `-d` || `--driver` || driver to use for JACK (coreaudio, alsa, etc.) ||
+|| `-o` || `--oscport`  || port where SAM listen for OSC messages ||
+|| `-j` || `--jtport` || base RTP port ||
+|| `-f` || `--outoffset` || output port offset ||
+|| `-m` || `--maxout` || maximum number of output channels to use, including basic channels ||
+|| `-h` || `--help` || print help info and exit ||
 
 Linux example usage:
 <code>sam -n 2 -r 48000 -p 256 -d alsa -o 7770 -j 4464 -f 0 -m 2</code>
@@ -63,19 +63,19 @@ OS X example usage:
 === saminput ===
 Required parameters:
 || Short || Long || Description ||
-|| -n || --name || client name ||
-|| -i || --ip || SAM ip address ||
-|| -p || --port || SAM OSC port ||
-|| -c || --channels || string containing list of input channels to use, in the form "1-2,4,7-10" ||
-|| -t || --type || type of SAM stream to use (basic = 0) ||
+|| `-n` || `--name` || client name ||
+|| `-i` || `--ip` || SAM ip address ||
+|| `-p` || `--port` || SAM OSC port ||
+|| `-c` || `--channels` || string containing list of input channels to use, in the form "1-2,4,7-10" ||
+|| `-t` || `--type` || type of SAM stream to use (basic = 0) ||
 
 Optional parameters:
 || Short || Long || Description ||
-|| -x || --x || initial x position ||
-|| -y || --y || initial y position ||
-|| -w || --width || initial width ||
-|| -h || --height || initial height ||
-|| -d || --depth || initial depth ||
+|| `-x` || `--x` || initial x position ||
+|| `-y` || `--y` || initial y position ||
+|| `-w` || `--width` || initial width ||
+|| `-h` || `--height` || initial height ||
+|| `-d` || `--depth` || initial depth ||
 
 Example saminput usage:
 <code>saminput -n "Example Client" -i "127.0.0.1" -p 7770 -c "1-2" -t 0</code>
@@ -83,19 +83,19 @@ Example saminput usage:
 === samugen ===
 Required parameters:
 || Short || Long || Description ||
-|| -n || --name || client name ||
-|| -i || --ip || SAM ip address ||
-|| -p || --port || SAM OSC port ||
-|| -c || --channels || number of channels to stream ||
-|| -t || --type || type of SAM stream to use (basic = 0) ||
+|| `-n` || `--name` || client name ||
+|| `-i` || `--ip` || SAM ip address ||
+|| `-p` || `--port` || SAM OSC port ||
+|| `-c` || `--channels` || number of channels to stream ||
+|| `-t` || `--type` || type of SAM stream to use (basic = 0) ||
 
 Optional parameters:
 || Short || Long || Description ||
-|| -x || --x || initial x position ||
-|| -y || --y || initial y position ||
-|| -w || --width || initial width ||
-|| -h || --height || initial height ||
-|| -d || --depth || initial depth ||
+|| `-x` || `--x` || initial x position ||
+|| `-y` || `--y` || initial y position ||
+|| `-w` || `--width` || initial width ||
+|| `-h` || `--height` || initial height ||
+|| `-d` || `--depth` || initial depth ||
 
 Example samugen usage:
 <code>samugen -n "Example Client" -i "127.0.0.1" -p 7770 -c 2 -t 0</code>
