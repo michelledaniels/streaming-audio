@@ -59,3 +59,5 @@ linux-g++-64 {
 
 target.path = /usr/local/bin
 INSTALLS += target
+
+message(sam.pro complete)
