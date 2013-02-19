@@ -42,3 +42,5 @@ SOURCES += main.cpp
 INCLUDEPATH += /usr/local/include $$ParentDirectory/src $$ParentDirectory/src/client
 LIBS += -L$$ParentDirectory/lib -lsac
 QT += network
+
+message(samugen.pro complete)

@@ -32,3 +32,5 @@ SOURCES += main.cpp
 INCLUDEPATH += /usr/local/include $$ParentDirectory/src $$ParentDirectory/src/client
 LIBS += -L$$ParentDirectory/lib -lsac -ljack
 QT += network
+
+message(saminput.pro complete)
