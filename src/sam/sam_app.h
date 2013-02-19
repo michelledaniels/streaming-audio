@@ -30,7 +30,7 @@ public:
 
     /** Constructor.
      */
-    StreamingAudioApp(const char* name, int port, int channels, const SamAppPosition& pos, StreamingAudioType type, jack_client_t* client, QTcpSocket* socket, quint16 rtpBasePort, int maxDelay, QObject* parent = 0);
+    StreamingAudioApp(const char* name, int port, int channels, const SamAppPosition& pos, StreamingAudioType type, jack_client_t* client, QTcpSocket* socket, quint16 rtpBasePort, int maxDelay, quint32 m_packetQueueSize, QObject* parent = 0);
 
     /**
      * Destructor.
@@ -422,7 +422,8 @@ private:
     RtpReceiver* m_receiver;    ///< RTP receiver for this app/client
     float** m_audioData;        ///< temp buffer for received audio data
     quint16 m_rtpBasePort;      ///< base RTP and RTCP port for this app/client
-    
+    quint32 m_packetQueueSize;   ///< packet queue size
+
     // For OSC
     QTcpSocket* m_socket;       ///< TCP socket for sending and listening to OSC messages to/from this app/client
 };

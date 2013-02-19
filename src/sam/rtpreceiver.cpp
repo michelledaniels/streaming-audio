@@ -18,10 +18,9 @@ static const quint16 MAX_MISORDER = 100;
 static const quint16 MAX_LATE = 200;
 
 static const int MAX_PORT_NAME = 64;
-static const quint32 PLAYQUEUE_SIZE = 4;
 static const int JITTER_ADJUST_FACTOR = 3;
 
-RtpReceiver::RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, quint32 reportInterval, quint32 ssrc, qint32 sampleRate, qint32 bufferSize, QObject *parent) :
+RtpReceiver::RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, quint32 reportInterval, quint32 ssrc, qint32 sampleRate, qint32 bufferSize, quint32 packetQueueSize, QObject *parent) :
     QObject(parent),
     m_socketRtp(NULL),
     m_portRtp(portRtp),
@@ -39,6 +38,7 @@ RtpReceiver::RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtc
     m_numMissed(0),
     m_packetQueue(NULL),
     m_bufferSamples(bufferSize),
+    m_packetQueueSize(packetQueueSize),
     m_clockFirstTime(true),
     m_clockDelayEstimate(0),
     m_clockActiveDelay(0),
@@ -459,7 +459,7 @@ qint32 RtpReceiver::adjust_for_jitter(RtpPacket* packet)
 
     //qDebug("RtpReceiver::adjust_for_jitter: transit time = %u, diff = %d, diff2 = %d, diff3 = %d, jitter = %u", transitTime, diff, diff2, diff3, m_jitter);
 
-    quint32 adjustment = PLAYQUEUE_SIZE * m_bufferSamples;
+    quint32 adjustment = m_packetQueueSize * m_bufferSamples;
     //quint32 tempDiff1 = adjustment - (m_jitter * JITTER_ADJUST_FACTOR);
     //quint32 tempDiff2 = tempDiff1 & 0x80000000;
     //qDebug("RtpReceiver::adjust_for_jitter: tempDiff1 = %u, tempDiff2 = %u", tempDiff1, tempDiff2);
@@ -497,7 +497,7 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
         {
             qWarning("RtpReceiver::receiveAudio NO AVAILABLE PACKETS: playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_playtime, m_ssrc, m_portRtp);
         }
-        else if (packetQueue && m_packetsReceived > PLAYQUEUE_SIZE) // TODO: how to handle warning if the first couple of packets arrive but not enough to fill queue, then stop??
+        else if (packetQueue && m_packetsReceived > m_packetQueueSize) // TODO: how to handle warning if the first couple of packets arrive but not enough to fill queue, then stop??
         {
             if (m_numMissed < 10)
             {

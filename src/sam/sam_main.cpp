@@ -143,6 +143,7 @@ int main(int argc, char* argv[])
     QByteArray renderHostBytes = renderHost.toAscii();
     params.renderHost = renderHostBytes.data();
     params.renderPort = settings.value("RenderPort", 0).toInt();
+    params.packetQueueSize = settings.value("PacketQueueSize", 4).toInt();
 
     bool useGui = settings.value("UseGui", false).toBool();
 
@@ -262,6 +263,7 @@ int main(int argc, char* argv[])
     printf("Max delay in millis: %f\n", params.maxDelayMillis);
     printf("Render host: %s\n", params.renderHost);
     printf("Render OSC port: %u\n", params.renderPort);
+    printf("Packet queue size: %u\n", params.packetQueueSize);
 
     // TODO: check that all arguments are valid, non-null??
     if (useGui) // run in GUI mode
