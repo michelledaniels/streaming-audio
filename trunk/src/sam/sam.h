@@ -22,16 +22,6 @@ static const int MAX_APPS = 100;
 static const int MAX_DELAY_MILLIS = 2000;
 
 /**
- * @mainpage Streaming Audio Manager
- * @author Michelle Daniels, Sonic Arts R&D at CalIT2 UCSD
- * @date 2011-2013
- * @version 0.3.0
- * @section Dependencies
- * SAM depends on the following third-party software: JACK Audio Connection Kit (LGPL) and Qt (LGPL).
- */
-
-
-/**
  * @struct SamParams
  * This struct contains the parameters needed to intialize SAM
  */
