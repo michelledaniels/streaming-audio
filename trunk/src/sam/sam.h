@@ -40,6 +40,7 @@ struct SamParams
     float maxDelayMillis;  ///< maximum delay in milliseconds (half allocated for global delay, half for per-clientd delay)
     char* renderHost;      ///< host for the renderer
     quint16 renderPort;    ///< port for the renderer
+    quint32 packetQueueSize; ///< default client packet queue size
 };
 
 /**
@@ -558,7 +559,8 @@ private:
     int* m_outputUsed;                ///< which physical output ports are in use (by which app)
     quint16 m_rtpPort;                ///< base port to use for RTP streaming
     int m_outputPortOffset;           ///< the first channel will be offset by this amount
-    
+    quint32 m_packetQueueSize;        ///< default client packet queue size
+
     // subscribers
     QVector<OscAddress*> m_uiSubscribers;   ///< list of subscribers to UI parameters
     OscAddress* m_renderer;                 ///< external audio renderer

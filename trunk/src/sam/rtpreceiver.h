@@ -31,7 +31,7 @@ public:
     /**
      * Constructor.
      */
-    RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, quint32 reportInterval, quint32 ssrc, qint32 sampleRate, qint32 bufferSize, QObject *parent = 0);
+    RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, quint32 reportInterval, quint32 ssrc, qint32 sampleRate, qint32 bufferSize, quint32 playqueueSize, QObject *parent = 0);
 
     /**
      * Destructor.
@@ -182,6 +182,7 @@ protected:
     RtpPacket* m_packetQueue;       ///< linked list/queue of packets received
 
     qint32 m_bufferSamples;         ///< audio buffer size for playback
+    quint32 m_packetQueueSize;      ///< size of packet queue
 
     // for clock skew estimates
     bool m_clockFirstTime;          ///< flag: true if this is the initial estimate, false otherwise
