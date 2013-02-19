@@ -1,8 +1,8 @@
 ParentDirectory = ../../
 
-UI_DIR = "$$ParentDirectory/build"
-MOC_DIR = "$$ParentDirectory/build"
-OBJECTS_DIR = "$$ParentDirectory/build"
+UI_DIR = "$$ParentDirectory/build/sam"
+MOC_DIR = "$$ParentDirectory/build/sam"
+OBJECTS_DIR = "$$ParentDirectory/build/sam"
 
 CONFIG(debug, debug|release) {
     DESTDIR = "$$ParentDirectory/bin/debug"

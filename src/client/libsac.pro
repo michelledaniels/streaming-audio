@@ -13,9 +13,9 @@ TEMPLATE = lib
 
 ParentDirectory = ../..
 
-UI_DIR = "$$ParentDirectory/build"
-MOC_DIR = "$$ParentDirectory/build"
-OBJECTS_DIR = "$$ParentDirectory/build"
+UI_DIR = "$$ParentDirectory/build/libsac"
+MOC_DIR = "$$ParentDirectory/build/libsac"
+OBJECTS_DIR = "$$ParentDirectory/build/libsac"
 
 CONFIG(debug, debug|release) {
     DESTDIR = "$$ParentDirectory/lib/debug"

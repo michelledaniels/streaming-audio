@@ -3,22 +3,27 @@
 ret=$PWD
 
 # configure sam
+mkdir build/sam
 cd ./src/sam && qmake && make clean
 cd $ret
 
 # configure samtester
+mkdir build/samtest
 cd ./src/sam/test && qmake && make clean
 cd $ret
 
 # configure libsac
+mkdir build/libsac
 cd ./src/client && qmake && make clean
 cd $ret
 
 # configure saminput client
+mkdir build/saminput
 cd ./src/client/examples/saminput && qmake && make clean
 cd $ret
 
 # configure samugen client
+mkdir build/samugen
 cd ./src/client/examples/samugen && qmake && make clean
 cd $ret
 
