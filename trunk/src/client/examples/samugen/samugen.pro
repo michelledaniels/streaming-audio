@@ -16,9 +16,9 @@ TEMPLATE = app
 
 ParentDirectory = ../../../..
 
-UI_DIR = "$$ParentDirectory/build"
-MOC_DIR = "$$ParentDirectory/build"
-OBJECTS_DIR = "$$ParentDirectory/build"
+UI_DIR = "$$ParentDirectory/build/samugen"
+MOC_DIR = "$$ParentDirectory/build/samugen"
+OBJECTS_DIR = "$$ParentDirectory/build/samugen"
 
 CONFIG(debug, debug|release) {
     DESTDIR = "$$ParentDirectory/bin/debug"
