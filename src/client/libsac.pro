@@ -60,7 +60,7 @@ HEADERS +=\
 
 INCLUDEPATH += /usr/local/include ../
 
-target.path = /usr/local/lib
-INSTALLS += target
+#target.path = /usr/local/lib
+#INSTALLS += target
 
 message(libsac.pro complete)
