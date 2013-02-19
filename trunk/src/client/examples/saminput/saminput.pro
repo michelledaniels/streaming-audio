@@ -33,4 +33,7 @@ INCLUDEPATH += /usr/local/include $$ParentDirectory/src $$ParentDirectory/src/cl
 LIBS += -L$$ParentDirectory/lib -lsac -ljack
 QT += network
 
+target.path = /usr/local/bin
+INSTALLS += target
+
 message(saminput.pro complete)
