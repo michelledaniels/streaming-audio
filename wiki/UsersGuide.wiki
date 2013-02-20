@@ -11,6 +11,7 @@ To build the code, you will need the following third-party libraries:
   * [http://jackaudio.org JACK Audio Connection Kit] (if running on a Mac, refer to [http://www.jackosx.com Jack OS X])
   * [http://qt-project.org Qt 4] (minimum version 4.7)
 Next, build and install using the following commands:
+(WARNING: this automatic build process is under development, so your safest bet is to build each project separately)
 
 <code>
 ./configure
