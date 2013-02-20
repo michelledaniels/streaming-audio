@@ -11,7 +11,6 @@ To build the code, you will need the following third-party libraries:
   * [http://jackaudio.org JACK Audio Connection Kit] (if running on a Mac, refer to [http://www.jackosx.com Jack OS X])
   * [http://qt-project.org Qt 4] (minimum version 4.7)
 Next, build and install using the following commands:
-(WARNING: this automatic build process is under development, so your safest bet is to build each project separately)
 
 <code>
 ./configure
@@ -21,7 +20,7 @@ make install
 
 This will install the `sam`, `saminput`, and `samugen` console applications in `/usr/local/bin`.
 
-NOTE: if you are running Linux, you may need to replace `qmake` with `qmake-qt4` in the configure script, as `qmake` often refers to Qt 3.  In the future this should be automated.
+NOTE: if you are running Linux, depending on your distribution you may need to replace `qmake` with `qmake-qt4` in the configure script, as `qmake` often refers to Qt 3.  In the future this should be automated.
 
 == Using SAM ==
 SAM is a highly-configurable console application.  Parameters can be specified in a file called sam.conf, which should be located in whatever directory SAM is run from.  Some parameters can be overridden on the command line, but the config file will provide more flexibility.
