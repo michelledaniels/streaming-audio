@@ -7,6 +7,7 @@
  */
 
 #include <getopt.h>
+#include <signal.h>
 
 #include <QtCore/QCoreApplication>
 
