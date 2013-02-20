@@ -15,7 +15,7 @@ fi
 
 # Set qmake command name
 if [[ $platform == 'linux' ]]; then
-    QMAKE=qmake-qt4
+    QMAKE=qmake
     QSPEC=linux-g++
 elif [[ $platform == 'macosx' ]]; then
     QMAKE=qmake
