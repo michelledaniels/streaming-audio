@@ -1138,6 +1138,11 @@ void StreamingAudioManager::handle_subscribe_message(const char* address, OscMes
         printf("Subscribing host %s, port %d to mute for app %d\n\n", sender, replyPort, port);
         m_apps[port]->subscribeMute(sender, replyPort);
     }
+    else if (qstrcmp(address, "/solo") == 0) // /sam/subscribe/solo
+    {
+        printf("Subscribing host %s, port %d to solo for app %d\n\n", sender, replyPort, port);
+        m_apps[port]->subscribeSolo(sender, replyPort);
+    }
     else if (qstrcmp(address, "/delay") == 0) // /sam/subscribe/delay
     {
         printf("Subscribing host %s, port %d to delay for app %d\n\n", sender, replyPort, port);
@@ -1152,6 +1157,11 @@ void StreamingAudioManager::handle_subscribe_message(const char* address, OscMes
     {
         printf("Subscribing host %s, port %d to type for app %d\n\n", sender, replyPort, port);
         m_apps[port]->subscribeType(sender, replyPort);
+    }
+    else if (qstrcmp(address, "/meter") == 0) // /sam/subscribe/meter
+    {
+        printf("Subscribing host %s, port %d to meter for app %d\n\n", sender, replyPort, port);
+        m_apps[port]->subscribeMeter(sender, replyPort);
     }
     else if (qstrcmp(address, "/all") == 0) // /sam/subscribe/all
     {
@@ -1199,6 +1209,11 @@ void StreamingAudioManager::handle_unsubscribe_message(const char* address, OscM
         printf("Unsubscribing host %s, port %d from mute for app %d\n\n", sender, replyPort, port);
         m_apps[port]->unsubscribeMute(sender, replyPort);
     }
+    else if (qstrcmp(address, "/solo") == 0) // /sam/subscribe/solo
+    {
+        printf("Unsubscribing host %s, port %d from solo for app %d\n\n", sender, replyPort, port);
+        m_apps[port]->unsubscribeSolo(sender, replyPort);
+    }
     else if (qstrcmp(address, "/delay") == 0) // /sam/subscribe/delay
     {
         printf("Unsubscribing host %s, port %d from delay for app %d\n\n", sender, replyPort, port);
@@ -1213,6 +1228,11 @@ void StreamingAudioManager::handle_unsubscribe_message(const char* address, OscM
     {
         printf("Unsubscribing host %s, port %d from type for app %d\n\n", sender, replyPort, port);
         m_apps[port]->unsubscribeType(sender, replyPort);
+    }
+    else if (qstrcmp(address, "/meter") == 0) // /sam/subscribe/meter
+    {
+        printf("Unsubscribing host %s, port %d from meter for app %d\n\n", sender, replyPort, port);
+        m_apps[port]->unsubscribeMeter(sender, replyPort);
     }
     else if (qstrcmp(address, "/all") == 0) // /sam/subscribe/all
     {
