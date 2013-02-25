@@ -207,6 +207,8 @@ protected:
     RtcpHandler* m_rtcpHandler;         ///< RTCP handler
     
     QMutex m_queueMutex;                ///< mutex for safely adding/removing/playing from packet queue
+
+    quint32 m_audioTimestamp;           ///< timestamp based on audio clock
 };
 
 #endif // RTPRECEIVER_H

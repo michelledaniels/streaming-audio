@@ -20,6 +20,8 @@ static const quint16 MAX_LATE = 200;
 static const int MAX_PORT_NAME = 64;
 static const int JITTER_ADJUST_FACTOR = 3;
 
+static const bool USE_AUDIO_TIMESTAMP = true;
+
 RtpReceiver::RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, quint32 reportInterval, quint32 ssrc, qint32 sampleRate, qint32 bufferSize, quint32 packetQueueSize, QObject *parent) :
     QObject(parent),
     m_socketRtp(NULL),
@@ -53,7 +55,8 @@ RtpReceiver::RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtc
     m_packetsReceivedThisInt(0),
     m_reportInterval(reportInterval),
     m_lastSenderTimestamp(0),
-    m_rtcpHandler(NULL)
+    m_rtcpHandler(NULL),
+    m_audioTimestamp(0)
 {
     // init RTP socket
     m_socketRtp = new QUdpSocket(this);
@@ -220,8 +223,15 @@ RtpPacket* RtpReceiver::read_datagram()
     quint32 elapsedSamples = (timeElapsed / 1000.0) * m_sampleRate; // + 4294900000; // TODO: eventually this will wrap?
     //qDebug() << "\nDATAGRAM RECEIVED on RTP port: time elapsed = " << timeElapsed << "ms, " << elapsedSamples << "samples";
     
-    packet->read(datagram, elapsedSamples); // TODO: this should return false if not valid RTP packet
-    m_packetsReceived++; 
+    if (USE_AUDIO_TIMESTAMP)
+    {
+        packet->read(datagram, m_audioTimestamp); // TODO: this should return false if not valid RTP packet
+    }
+    else
+    {
+        packet->read(datagram, elapsedSamples); // TODO: this should return false if not valid RTP packet
+    }
+    m_packetsReceived++;
     m_packetsReceivedThisInt++; // includes late or duplicated packets
     
     // TODO: check that this is a valid packet, if not valid, return NULL
@@ -411,8 +421,9 @@ qint32 RtpReceiver::adjust_for_clock_skew(RtpPacket* packet)
     }
 
     qint32 delayDiff = m_clockActiveDelay - m_clockDelayEstimate;
-    //qWarning("RtpReceiver::adjust_for_clock_skew: m_clockActiveDelay = %u, m_clockDelayEstimate = %u, delayDiff = %d", m_clockActiveDelay, m_clockDelayEstimate, delayDiff);
-    if (delayDiff > m_bufferSamples)
+    qDebug("RtpReceiver::adjust_for_clock_skew: m_clockActiveDelay = %u, m_clockDelayEstimate = %u, delayDiff = %d", m_clockActiveDelay, m_clockDelayEstimate, delayDiff);
+    qint32 threshold = USE_AUDIO_TIMESTAMP ? m_bufferSamples * 2 : m_bufferSamples;
+    if (delayDiff > threshold)
     {
         // sender is fast compared to receiver
         QDateTime currentTime = QDateTime::currentDateTime();
@@ -568,6 +579,7 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
     }
 
     m_playtime += frames;
+    m_audioTimestamp += frames;
 
     return 0;
 }
