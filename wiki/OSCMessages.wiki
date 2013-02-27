@@ -5,7 +5,7 @@ SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol fo
 
 == SAM/Client Messages ==
 
-|| OSC Address Pattern || OSC Type Tag String || OSC Arguments || Response || Comments ||
+|| *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
 || `/sam/app/register` || `siiiiiiii` || `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type`, `replyPort` || `/sam/app/regconfirm` or `/sam/app/regdeny` || ||
 || `/sam/app/regconfirm` || `iii` || `id`, `sampleRate`, `bufferSize`, `rtpBasePort` || none || ||
 || `/sam/app/regdeny` || `i`|| `errorCode` || none || error codes TBD ||
@@ -14,8 +14,11 @@ SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol fo
 
 == SAM/Renderer Messages ==
 
-
-
+|| *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
+|| `/sam/stream/add` || `iii`(+) || `id`, `type`, `channels`, followed by a list of all channels (type `i`) || none || Sent by SAM to the renderer when a new stream is added (app registered).  Specifies the output channels that stream is using. ||
+|| `/sam/stream/remove` || `i` || `id` || none || Sent by SAM when a stream is removed (app unregistered). ||
+||`/sam/render/register` || `i` || `replyPort` || `/sam/render/regconfirm`, followed by `/sam/stream/add` for each app already registered with SAM or `/sam/render/regdeny`, `i`, `errorCode` (error codes TBD) || || 
+||`/sam/render/unregister` || none  || none || none || ||
 
 == SAM/UI Messages == 
 
