@@ -15,7 +15,7 @@ SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol fo
 == SAM/Renderer Messages ==
 
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
-|| `/sam/stream/add` || `iii`(+) || `id`, `type`, `channels`, followed by a list of all channels (type `i`) || none || Sent by SAM to the renderer when a new stream is added (app registered).  Specifies the output channels that stream is using. ||
+|| `/sam/stream/add` || `iii...` || `id`, `type`, `channels`, followed by a list of all channels (type `i`) || none || Sent by SAM to the renderer when a new stream is added (app registered).  Specifies the output channels that stream is using. ||
 || `/sam/stream/remove` || `i` || `id` || none || Sent by SAM when a stream is removed (app unregistered). ||
 ||`/sam/render/register` || `i` || `replyPort` || `/sam/render/regconfirm`, followed by `/sam/stream/add` for each app already registered with SAM or `/sam/render/regdeny`, `i`, `errorCode` (error codes TBD) || || 
 ||`/sam/render/unregister` || none  || none || none || ||
@@ -23,11 +23,12 @@ SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol fo
 == SAM/UI Messages == 
 
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
-|| `/sam/ui/register` || `i` || `replyPort` || `/sam/ui/regconfirm` followed by `/sam/appregistered` for each app already registered with SAM, or `/sam/ui/regdeny`|| ||
+|| `/sam/ui/register` || `i` || `replyPort` || `/sam/ui/regconfirm` followed by `/sam/app/registered` for each app already registered with SAM, or `/sam/ui/regdeny`|| ||
 || `/sam/ui/regconfirm` || `iif` ||| `currentNumApps`, `globalMute`, `globalVolume`|| none || ||
 ||`/sam/ui/regdeny` || `i` || `errorCode` || none || error codes TBD ||
 ||`/sam/ui/unregister` || `i` ||| `replyPort` || none || ||
-
+||`/sam/app/registered` || `isiiiiiii` || `id`, `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type` || none || ||
+|| `/sam/app/unregistered` || `i`, `id` || none || ||
 
 == Control Messages ==
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
@@ -59,10 +60,22 @@ SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol fo
 || `/sam/val/position` || `iiiiii` || `id`, `x`, `y`, `width`, `height`, `depth` || none || ||
 || `/sam/get/type` || `ii` || `id`, `replyPort` || `/sam/val/type` || ||
 || `/sam/val/type` || `ii` || `id`, `type` || none || ||
-
+|| `/sam/get/meter` || `ii` || `id`, `replyPort` || `/sam/val/meter` || ||
+|| `/sam/val/meter` || `iiffff...` || `id`, number of channels to follow, input rms level for ch1, input peak for ch1,  output rms level for ch1, output peak for ch1, repeated for all channels... || none ||
+this is a variable-length message depending on the number of channels ||
 
 == Subscriptions == 
 ===  Subscribing to Changes ===
+|| *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
+|| `/sam/subscribe/volume` || `ii` || `id`, `replyPort` || none || `/sam/val/volume` messages will be sent when volume changes, `id` of `-1` subscribes to the global volume parameter ||
+|| `/sam/subscribe/mute` || `ii` || `id`, `replyPort` || none || `/sam/val/mute` messages will be sent when mute status changes, `id` of `-1` subscribes to the global mute parameter ||
+|| `/sam/subscribe/solo` || `ii` || `id`, `replyPort` || none || `/sam/val/solo` messages will be sent when solo status changes ||
+|| `/sam/subscribe/delay` || `ii` || `id`, `replyPort` || none || `/sam/val/delay` messages will be sent when delay changes, `id` of `-1` subscribes to the global delay parameter ||
+|| `/sam/subscribe/position` || `ii` || `id`, `replyPort` || none || `/sam/val/position` messages will be sent when position changes ||
+|| `/sam/subscribe/type` || `ii` || `id`, `replyPort` || none || `/sam/val/type` messages will be sent when type changes ||
+|| `/sam/subscribe/meter` || `ii` || `id`, `replyPort` || none || `/sam/val/meter` messages will be sent at regular intervals ||
+|| `/sam/subscribe/all` || `ii` || `id`, `replyPort` || none || subscribes to all parameters (volume, mute, solo, delay, position, type, and meter ||
+
 
 
 === Unsubscribing from Changes ===
