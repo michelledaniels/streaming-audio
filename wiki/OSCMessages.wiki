@@ -76,9 +76,16 @@ this is a variable-length message depending on the number of channels ||
 || `/sam/subscribe/meter` || `ii` || `id`, `replyPort` || none || `/sam/val/meter` messages will be sent at regular intervals ||
 || `/sam/subscribe/all` || `ii` || `id`, `replyPort` || none || subscribes to all parameters (volume, mute, solo, delay, position, type, and meter ||
 
-
-
 === Unsubscribing from Changes ===
+|| *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
+|| `/sam/unsubscribe/volume` || `ii` || `id`, `replyPort` || none || `id` of `-1` unsubscribes from the global volume parameter ||
+|| `/sam/unsubscribe/mute` || `ii` || `id`, `replyPort` || none || `id` of `-1` unsubscribes from the global mute parameter ||
+|| `/sam/unsubscribe/solo` || `ii` || `id`, `replyPort` || none ||  ||
+|| `/sam/unsubscribe/delay` || `ii` || `id`, `replyPort` || none || `id` of `-1` unsubscribes from the global delay parameter ||
+|| `/sam/unsubscribe/position` || `ii` || `id`, `replyPort` || none ||  ||
+|| `/sam/unsubscribe/type` || `ii` || `id`, `replyPort` || none ||  ||
+|| `/sam/unsubscribe/meter` || `ii` || `id`, `replyPort` || none ||  ||
+|| `/sam/unsubscribe/all` || `ii` || `id`, `replyPort` || none || unsubscribes from all parameters (volume, mute, solo, delay, position, type, and meter ||
 
 == Setting Parameters ==
 
