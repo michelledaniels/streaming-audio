@@ -22,17 +22,44 @@ SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol fo
 
 == SAM/UI Messages == 
 
+|| *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
+|| `/sam/ui/register` || `i` || `replyPort` || `/sam/ui/regconfirm` followed by `/sam/appregistered` for each app already registered with SAM, or `/sam/ui/regdeny`|| ||
+|| `/sam/ui/regconfirm` || `iif` ||| `currentNumApps`, `globalMute`, `globalVolume`|| none || ||
+||`/sam/ui/regdeny` || `i` || `errorCode` || none || error codes TBD ||
+||`/sam/ui/unregister` || `i` ||| `replyPort` || none || ||
 
 
+== Control Messages ==
+|| *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
+|| `/sam/quit` || || || none || tells SAM to quit ||
+|| `/sam/err/idinvalid` || `i` || `id` || none ||sent by SAM in response to a message with an unknown/invalid id ||
 
-== Control Parameters ==
-  * volume
-  * mute
-  * solo
-  * delay
-  * position
-  * type
-  * meter
+=== Setting Parameters ===
+|| *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
+|| `/sam/set/volume` || `if` || `id`, `volume` || none || `volume` must be in the range `[0.0, 1.0]`, `id` of `-1` sets the global SAM volume ||
+|| `/sam/set/mute` || `ii` || `id`, `mute` || none || `mute` should be `1` to mute, `0` to unmute, `id` of `-1` mutes or unmutes SAM globally ||
+|| `/sam/set/solo` || `ii` || `id`, `solo` || none || `solo` should be `1` to solo a client, `0` to un-solo ||
+|| `/sam/set/delay` || `if` || `id`, `delay` || none || `delay` is specified in milliseconds and should be greater than 0 and less than or equal to the maximum delay specified in the SAM config file, `id` of `-1` sets the global delay (which is added to the per-client delay) ||
+|| `/sam/set/position` || `iiiiii` || `id`, `x`, `y`, `width`, `height`, `depth` || none ||  ||
+|| `/sam/set/type` ||  `iii` || `id`, `type`, `replyPort` || `sam/type/confirm` if able to change type or `/sam/type/deny` if unable to change type || ||
+|| `sam/type/confirm` || `i` || `type` || none || ||
+|| `/sam/type/deny` || `i` || `errorCode` || none || error codes TBD ||
+
+=== Getting Parameters ===
+|| *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
+|| `/sam/get/volume` || `ii` || `id`, `replyPort` || `/sam/val/volume` || `id` of `-1` gets the global SAM volume ||
+|| `/sam/val/volume` || `if` || `id`, `volume` || none || `volume` will be in the range `[0.0, 1.0]` || 
+|| `/sam/get/mute` || `ii` || `id`, `replyPort` || `/sam/val/mute` || `id` of `-1` gets the global SAM mute status ||
+|| `/sam/val/mute` || `ii` || `id`, `mute` || none || `mute` will be `0` if muted, `1` if not muted ||
+|| `/sam/get/solo` || `ii` || `id`, `replyPort` || `/sam/val/solo` || ||
+|| `/sam/val/solo` || `ii` || `id`, `solo` || none || `solo` will be `0` if soloed, `1` if not soloed ||
+|| `/sam/get/delay` || `ii` || `id`, `replyPort` || `/sam/val/delay` || ||
+|| `/sam/val/delay` || `if` || `id`, `delay` || none || `delay` is specified in milliseconds ||
+|| `/sam/get/position` || `ii` || `id`, `replyPort` || `/sam/val/position` || ||
+|| `/sam/val/position` || `iiiiii` || `id`, `x`, `y`, `width`, `height`, `depth` || none || ||
+|| `/sam/get/type` || `ii` || `id`, `replyPort` || `/sam/val/type` || ||
+|| `/sam/val/type` || `ii` || `id`, `type` || none || ||
+
 
 == Subscriptions == 
 ===  Subscribing to Changes ===
