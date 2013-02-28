@@ -1,10 +1,14 @@
 #summary Communicating with SAM via OSC
 
 = Communicating with SAM via OSC =
-SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol for communicating with clients, renderers, and UIs.
+SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol for communicating with clients, renderers, and UIs.  
 
 <wiki:toc max_depth="3" />
+
 == SAM/Client Messages ==
+
+In the following messages, the word `app` refers to a SAM client.  When a client registers with SAM, it is assigned a unique identifier (non-negative integer), called `id` in the remainder of this document.
+
 
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
 || `/sam/app/register` || `siiiiiiii` || `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type`, `replyPort` || `/sam/app/regconfirm` or `/sam/app/regdeny` || ||
@@ -16,10 +20,12 @@ SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol fo
 == SAM/Renderer Messages ==
 
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
-|| `/sam/stream/add` || `iii...` || `id`, `type`, `channels`, followed by a list of all channels (type `i`) || none || Sent by SAM to the renderer when a new stream is added (app registered).  Specifies the output channels that stream is using. ||
-|| `/sam/stream/remove` || `i` || `id` || none || Sent by SAM when a stream is removed (app unregistered). ||
-||`/sam/render/register` || `i` || `replyPort` || `/sam/render/regconfirm`, followed by `/sam/stream/add` for each app already registered with SAM or `/sam/render/regdeny`, `i`, `errorCode` (error codes TBD) || || 
+||`/sam/render/register` || `i` || `replyPort` || `/sam/render/regconfirm`, followed by `/sam/stream/add` for each app already registered with SAM, or `/sam/render/regdeny`||  ||
+|| `/sam/render/regconfirm`|| || || || ||
+|| `/sam/render/regdeny` || `i` || `errorCode` || none || error codes TBD ||
 ||`/sam/render/unregister` || none  || none || none || ||
+|| `/sam/stream/add` || `iii...` || `id`, `type`, `channels`, followed by a list of all channels (type `i`) || none || Sent by SAM to the renderer when a new stream is added (app registered).  Specifies the output channels that stream is using. This is a variable-length message depending on the number of channels. ||
+|| `/sam/stream/remove` || `i` || `id` || none || Sent by SAM when a stream is removed (app unregistered). ||
 
 == SAM/UI Messages == 
 
@@ -62,8 +68,7 @@ SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol fo
 || `/sam/get/type` || `ii` || `id`, `replyPort` || `/sam/val/type` || ||
 || `/sam/val/type` || `ii` || `id`, `type` || none || ||
 || `/sam/get/meter` || `ii` || `id`, `replyPort` || `/sam/val/meter` || ||
-|| `/sam/val/meter` || `iiffff...` || `id`, number of channels to follow, input rms level for ch1, input peak for ch1,  output rms level for ch1, output peak for ch1, repeated for all channels... || none ||
-this is a variable-length message depending on the number of channels ||
+|| `/sam/val/meter` || `iiffff...` || `id`, number of channels to follow, input rms level for ch1, input peak for ch1,  output rms level for ch1, output peak for ch1, repeated for all channels... || none || This is a variable-length message depending on the number of channels. ||
 
 == Subscriptions == 
 ===  Subscribing to Changes ===
@@ -78,6 +83,7 @@ this is a variable-length message depending on the number of channels ||
 || `/sam/subscribe/all` || `ii` || `id`, `replyPort` || none || subscribes to all parameters (volume, mute, solo, delay, position, type, and meter ||
 
 === Unsubscribing from Changes ===
+
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
 || `/sam/unsubscribe/volume` || `ii` || `id`, `replyPort` || none || `id` of `-1` unsubscribes from the global volume parameter ||
 || `/sam/unsubscribe/mute` || `ii` || `id`, `replyPort` || none || `id` of `-1` unsubscribes from the global mute parameter ||
