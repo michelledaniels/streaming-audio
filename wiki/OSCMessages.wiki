@@ -1,8 +1,9 @@
 #summary Communicating with SAM via OSC
 
-= Communicating with SAM via OSC ==
+= Communicating with SAM via OSC =
 SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol for communicating with clients, renderers, and UIs.
 
+<wiki:toc max_depth="3" />
 == SAM/Client Messages ==
 
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
@@ -86,9 +87,3 @@ this is a variable-length message depending on the number of channels ||
 || `/sam/unsubscribe/type` || `ii` || `id`, `replyPort` || none ||  ||
 || `/sam/unsubscribe/meter` || `ii` || `id`, `replyPort` || none ||  ||
 || `/sam/unsubscribe/all` || `ii` || `id`, `replyPort` || none || unsubscribes from all parameters (volume, mute, solo, delay, position, type, and meter ||
-
-== Setting Parameters ==
-
-== Getting Parameters ==
-
-== Error Messages ==
