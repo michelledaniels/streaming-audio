@@ -25,6 +25,11 @@ NOTE: if you are running Linux, depending on your distribution you may need to r
 == Using SAM ==
 SAM is a highly-configurable console application.  Parameters can be specified in a file called sam.conf, which should be located in whatever directory SAM is run from.  Some parameters can be overridden on the command line, but the config file will provide more flexibility.
 
+=== SAM and JACK ===
+In order to run SAM, you must also run JACK to give SAM access to your audio hardware.  If JACK is not already running when SAM starts, SAM will attempt to start JACK using the buffer size, sample rate, and driver specified in sam.conf or on the command line.  However, this approach does not allow advanced configuration of JACK.  To specify more JACK parameters, such as a specific audio device for JACK to use, it is best to start JACK yourself and then start SAM.  If SAM detects that JACK is already running, it will use that instance, assuming that the sample rate and buffer size are what SAM expects.  When SAM starts JACK itself, it will also kill JACK when it quits, assuming that SAM is shutdown cleanly.  If SAM did not start JACK, then it will not attempt to stop JACK when exiting.
+
+Note: On most Linux systems some configuration is necessary to allow JACK to run with realtime priority etc.  The JACK website gives guidelines for this configuration.  If you are new to JACK on Linux, the [http://jackaudio.org/faq JACK FAQ page] is a good resource.
+
 
 === Config File Parameters ===
 
