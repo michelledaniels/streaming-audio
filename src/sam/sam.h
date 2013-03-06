@@ -41,6 +41,8 @@ struct SamParams
     char* renderHost;      ///< host for the renderer
     quint16 renderPort;    ///< port for the renderer
     quint32 packetQueueSize; ///< default client packet queue size
+    char* outputJackClientName; ///< jack client name to which SAM will connect outputs
+    char* outputJackPortBase;   ///< base jack port name to which SAM will connect outputs
 };
 
 /**
@@ -559,6 +561,8 @@ private:
     int* m_outputUsed;                ///< which physical output ports are in use (by which app)
     quint16 m_rtpPort;                ///< base port to use for RTP streaming
     int m_outputPortOffset;           ///< the first channel will be offset by this amount
+    char* m_outputJackClientName;     ///< jack client name to which SAM will connect outputs
+    char* m_outputJackPortBase;       ///< base jack port name to which SAM will connect outputs
     quint32 m_packetQueueSize;        ///< default client packet queue size
 
     // subscribers
