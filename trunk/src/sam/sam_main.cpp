@@ -144,6 +144,12 @@ int main(int argc, char* argv[])
     params.renderHost = renderHostBytes.data();
     params.renderPort = settings.value("RenderPort", 0).toInt();
     params.packetQueueSize = settings.value("PacketQueueSize", 4).toInt();
+    QString outputJackClientName = settings.value("OutputJackClientName", "system").toString();
+    QByteArray outputJackClientBytes = outputJackClientName.toAscii();
+    params.outputJackClientName = outputJackClientBytes.data();
+    QString outputJackPortBase = settings.value("OutputJackPortBase", "playback_").toString();
+    QByteArray outputJackPortBytes = outputJackPortBase.toAscii();
+    params.outputJackPortBase = outputJackPortBytes.data();
 
     bool useGui = settings.value("UseGui", false).toBool();
 
@@ -264,6 +270,8 @@ int main(int argc, char* argv[])
     printf("Render host: %s\n", params.renderHost);
     printf("Render OSC port: %u\n", params.renderPort);
     printf("Packet queue size: %u\n", params.packetQueueSize);
+    printf("Output JACK client name: %s\n", params.outputJackClientName);
+    printf("OutputJackPortBase: %s\n", params.outputJackPortBase);
 
     // TODO: check that all arguments are valid, non-null??
     if (useGui) // run in GUI mode
@@ -301,6 +309,8 @@ int main(int argc, char* argv[])
 
         app.exec();
     }
+
+    // TODO: free char* data from params struct??
 
     exit(EXIT_SUCCESS);
 }

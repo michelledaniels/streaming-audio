@@ -45,6 +45,8 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_outputUsed(NULL),
     m_rtpPort(params.rtpPort),
     m_outputPortOffset(params.outputPortOffset),
+    m_outputJackClientName(NULL),
+    m_outputJackPortBase(NULL),
     m_packetQueueSize(params.packetQueueSize),
     m_renderer(NULL),
     m_meterInterval(0),
@@ -69,6 +71,14 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     int len = strlen(params.jackDriver);
     m_jackDriver = new char[len + 1];
     strncpy(m_jackDriver, params.jackDriver, len + 1);
+
+    len = strlen(params.outputJackClientName);
+    m_outputJackClientName = new char[len + 1];
+    strncpy(m_outputJackClientName, params.outputJackClientName, len + 1);
+
+    len = strlen(params.outputJackPortBase);
+    m_outputJackPortBase = new char[len + 1];
+    strncpy(m_outputJackPortBase, params.outputJackPortBase, len + 1);
 
     m_delayMax = int(m_sampleRate * (MAX_DELAY_MILLIS / 2000.0f)); // allocate half of max available delay for apps, half for global delay
     setDelay(params.delayMillis);
@@ -1708,6 +1718,12 @@ bool StreamingAudioManager::connect_app_ports(int port, const int* outputPorts)
 {
     qDebug("StreamingAudioManager::connect_app_ports starting");
     
+    if (!m_outputJackClientName || !m_outputJackPortBase)
+    {
+        qWarning("StreamingAudioManager::connect_app_ports JACK client or port to connect to was unspecified");
+        return false;
+    }
+
     int channels = m_apps[port]->getNumChannels();
     for (int ch = 0; ch < channels; ch++)
     {
@@ -1716,7 +1732,7 @@ bool StreamingAudioManager::connect_app_ports(int port, const int* outputPorts)
 
         // connect the app's output port to the specified physical output
         char systemOut[MAX_PORT_NAME];
-        snprintf(systemOut, MAX_PORT_NAME, "system:playback_%d", outputPorts[ch] + 1 + m_outputPortOffset);
+        snprintf(systemOut, MAX_PORT_NAME, "%s:%s%d", m_outputJackClientName, m_outputJackPortBase, outputPorts[ch] + 1 + m_outputPortOffset);
         // TODO: handle case where system ports have non-standard names (is this possible?)?
         const char* appPortName = m_apps[port]->getOutputPortName(ch);
         if (!appPortName) return false;
