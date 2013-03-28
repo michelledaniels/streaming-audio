@@ -20,9 +20,9 @@ static const quint16 MAX_LATE = 200;
 static const int MAX_PORT_NAME = 64;
 static const int JITTER_ADJUST_FACTOR = 3;
 
-static const bool USE_AUDIO_TIMESTAMP = true;
+static const bool USE_AUDIO_TIMESTAMP = false;
 
-RtpReceiver::RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, quint32 reportInterval, quint32 ssrc, qint32 sampleRate, qint32 bufferSize, quint32 packetQueueSize, QObject *parent) :
+RtpReceiver::RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, quint32 reportInterval, quint32 ssrc, qint32 sampleRate, qint32 bufferSize, quint32 packetQueueSize, jack_client_t* jackClient, QObject *parent) :
     QObject(parent),
     m_socketRtp(NULL),
     m_portRtp(portRtp),
@@ -56,7 +56,8 @@ RtpReceiver::RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtc
     m_reportInterval(reportInterval),
     m_lastSenderTimestamp(0),
     m_rtcpHandler(NULL),
-    m_audioTimestamp(0)
+    m_audioTimestamp(0),
+    m_jackClient(jackClient)
 {
     // init RTP socket
     m_socketRtp = new QUdpSocket(this);
@@ -143,7 +144,7 @@ void RtpReceiver::readPendingDatagramsRtp()
         qint32 clockOffset = adjust_for_clock_skew(packet);
         qint32 jitterOffset = adjust_for_jitter(packet);
         packet->m_playoutTime = basePlayoutTime + clockOffset + jitterOffset; // TODO: make sure this can't try to go negative??
-        //qWarning("RtpReceiver::readPendingDatagramsRtp received packet with sequence number %u, timestamp %u, set playtime to %u, clockOffset = %d, jitterOffset = %d", packet->m_sequenceNum, packet->m_timestamp, packet->m_playoutTime, clockOffset, jitterOffset);
+        //qWarning("RtpReceiver::readPendingDatagramsRtp received packet with sequence number %u, timestamp %u, set playtime to %u, clockOffset = %d, jitterOffset = %d, current playtime = %u", packet->m_sequenceNum, packet->m_timestamp, packet->m_playoutTime, clockOffset, jitterOffset, m_playtime);
 
         
         // filter out late packets (take into account wrapping of playtime
@@ -220,7 +221,11 @@ RtpPacket* RtpReceiver::read_datagram()
     // handle RTP packet
     RtpPacket* packet = new RtpPacket();
     qint64 timeElapsed = m_timer.elapsed();
-    quint32 elapsedSamples = (timeElapsed / 1000.0) * m_sampleRate; // + 4294900000; // TODO: eventually this will wrap?
+    //quint32 elapsedSamples = (timeElapsed / 1000.0) * m_sampleRate; // + 4294900000; // TODO: eventually this will wrap?
+
+    // TODO: verify that m_jackClient is not NULL?
+    jack_nframes_t elapsedSamples = jack_frame_time(m_jackClient);
+
     //qDebug() << "\nDATAGRAM RECEIVED on RTP port: time elapsed = " << timeElapsed << "ms, " << elapsedSamples << "samples";
     
     if (USE_AUDIO_TIMESTAMP)
@@ -578,7 +583,8 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
         }
     }
 
-    m_playtime += frames;
+    //m_playtime += frames;
+    m_playtime = jack_last_frame_time(m_jackClient);
     m_audioTimestamp += frames;
 
     return 0;

@@ -31,7 +31,7 @@ public:
     /**
      * Constructor.
      */
-    RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, quint32 reportInterval, quint32 ssrc, qint32 sampleRate, qint32 bufferSize, quint32 playqueueSize, QObject *parent = 0);
+    RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, quint32 reportInterval, quint32 ssrc, qint32 sampleRate, qint32 bufferSize, quint32 playqueueSize, jack_client_t* jackClient, QObject *parent = 0);
 
     /**
      * Destructor.
@@ -209,6 +209,8 @@ protected:
     QMutex m_queueMutex;                ///< mutex for safely adding/removing/playing from packet queue
 
     quint32 m_audioTimestamp;           ///< timestamp based on audio clock
+
+    jack_client_t* m_jackClient;        ///< pointer to parent's JACK client (do not delete!)
 };
 
 #endif // RTPRECEIVER_H
