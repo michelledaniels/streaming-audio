@@ -276,11 +276,17 @@ public:
      */
     static int jackProcess(jack_nframes_t nframes, void* sam);
 
-     /**
+    /**
      * JACK sample rate changed callback.
      * JACK will call this callback if the system sample rate changes.
      */
     static int jackSampleRateChanged(jack_nframes_t nframes, void* sam);
+
+    /**
+     * JACK xrun callback.
+     * JACK will call this callback if an xrun occurs.
+     */
+    static int jackXrun(void* sam);
 
     /**
      * JACK shutdown callback.
