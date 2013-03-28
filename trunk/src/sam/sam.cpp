@@ -180,6 +180,7 @@ bool StreamingAudioManager::start()
     jack_set_buffer_size_callback(m_client, StreamingAudioManager::jackBufferSizeChanged, this);
     jack_set_process_callback(m_client, StreamingAudioManager::jackProcess, this);
     jack_set_sample_rate_callback(m_client, StreamingAudioManager::jackSampleRateChanged, this);
+    jack_set_xrun_callback(m_client, StreamingAudioManager::jackXrun, this);
     jack_on_shutdown(m_client, StreamingAudioManager::jackShutdown, this);
 
     // activate client (starts processing)
@@ -709,6 +710,13 @@ int StreamingAudioManager::jackProcess(jack_nframes_t nframes, void* sam)
 int StreamingAudioManager::jackSampleRateChanged(jack_nframes_t nframes, void*)
 {
     qWarning("WARNING: JACK sample rate changed to %d/sec", nframes);
+    return 0;
+}
+
+int StreamingAudioManager::jackXrun(void* sam)
+{
+    qWarning("WARNING: JACK xrun");
+    // TODO: notify SAM of xrun and have SAM notify RTP receivers
     return 0;
 }
 
