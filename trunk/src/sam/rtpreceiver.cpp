@@ -250,10 +250,10 @@ quint32 RtpReceiver::update_timestamp_offset(RtpPacket* packet)
     quint32 offsetDiff = currentOffset - m_timestampOffset;
     if ((offsetDiff & 0x80000000) != 0) // is offset < m_timestampOffset with unsigned comparison
     {
-        /*qDebug("RtpReceiver::update_timestamp_offset: timestamp offset UPDATED: previous offset = %u, new offset = %u", m_timestampOffset, currentOffset);
+        qDebug("RtpReceiver::update_timestamp_offset: timestamp offset UPDATED: previous offset = %u, new offset = %u, ssrc = %u, RTP port = %d", m_timestampOffset, currentOffset, m_ssrc, m_portRtp);
         m_timestampOffset = currentOffset;
-        qDebug("RtpReceiver::update_timestamp_offset: previous playtime = %u, new playtime = %u, offset difference = %u", m_playtime, m_playtime + offsetDiff, offsetDiff);
-        m_playtime += offsetDiff;*/ // also update playtime
+        qDebug("RtpReceiver::update_timestamp_offset: previous playtime = %u, new playtime = %u, offset difference = %u, ssrc = %u, RTP port = %d", m_playtime, m_playtime + offsetDiff, offsetDiff, m_ssrc, m_portRtp);
+        m_playtime += offsetDiff; // also update playtime
         //qDebug("RtpReceiver::update_timestamp_offset: timestamp offset BYPASSING UPDATE: offset = %u, new offset should be = %u", m_timestampOffset, currentOffset);
     }
     
