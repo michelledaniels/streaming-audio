@@ -426,7 +426,7 @@ qint32 RtpReceiver::adjust_for_clock_skew(RtpPacket* packet)
     }
 
     qint32 delayDiff = m_clockActiveDelay - m_clockDelayEstimate;
-    qDebug("RtpReceiver::adjust_for_clock_skew: m_clockActiveDelay = %u, m_clockDelayEstimate = %u, delayDiff = %d", m_clockActiveDelay, m_clockDelayEstimate, delayDiff);
+    //qWarning("RtpReceiver::adjust_for_clock_skew: m_clockActiveDelay = %u, m_clockDelayEstimate = %u, delayDiff = %d, ssrc = %u, RTP port = %u, packet queue length = %d", m_clockActiveDelay, m_clockDelayEstimate, delayDiff, m_ssrc, m_portRtp, packet_queue_length());
     qint32 threshold = USE_AUDIO_TIMESTAMP ? m_bufferSamples * 2 : m_bufferSamples;
     if (delayDiff > threshold)
     {
@@ -434,7 +434,7 @@ qint32 RtpReceiver::adjust_for_clock_skew(RtpPacket* packet)
         QDateTime currentTime = QDateTime::currentDateTime();
         QString currentTimeString = currentTime.toString();
         QByteArray currentTimeAscii = currentTimeString.toAscii();
-        qWarning("[%s] Receiver is slower than sender: compensating for clock skew! ssrc = %u, RTP port = %u, system playtime = %u", currentTimeAscii.data(), m_ssrc, m_portRtp, m_playtime);
+        qWarning("[%s] Receiver is slower than sender: compensating for clock skew! ssrc = %u, RTP port = %u, system playtime = %u, packet queue length = %d", currentTimeAscii.data(), m_ssrc, m_portRtp, m_playtime, packet_queue_length());
         //reset_timestamp_offset(m_bufferSamples);
         m_timestampOffset -= m_bufferSamples;
         m_clockActiveDelay = m_clockDelayEstimate;
@@ -446,7 +446,7 @@ qint32 RtpReceiver::adjust_for_clock_skew(RtpPacket* packet)
         QDateTime currentTime = QDateTime::currentDateTime();
         QString currentTimeString = currentTime.toString();
         QByteArray currentTimeAscii = currentTimeString.toAscii();
-        qWarning("[%s] Receiver is faster than sender: compensating for clock skew! ssrc = %u, RTP port = %u, system playtime = %u", currentTimeAscii.data(), m_ssrc, m_portRtp, m_playtime);
+        qWarning("[%s] Receiver is faster than sender: compensating for clock skew! ssrc = %u, RTP port = %u, system playtime = %u, packet queue length = %d", currentTimeAscii.data(), m_ssrc, m_portRtp, m_playtime, packet_queue_length());
         //reset_timestamp_offset(-m_bufferSamples);
         //qWarning("Old timestamp offset = %u", m_timestampOffset);
         //m_timestampOffset = packet->m_arrivalTime - packet->m_timestamp;
@@ -457,6 +457,26 @@ qint32 RtpReceiver::adjust_for_clock_skew(RtpPacket* packet)
     }
 
     return 0;
+}
+
+qint32 RtpReceiver::packet_queue_length()
+{
+    RtpPacket* currentPacket = m_packetQueue;
+    // skip any used packets from the beginning of the queue
+    while (currentPacket && currentPacket->m_used)
+    {
+        currentPacket = currentPacket->m_next;
+    }
+
+    qint32 length = 0;
+    while (currentPacket)
+    {
+        length++;
+        currentPacket = currentPacket->m_next;
+
+    }
+
+    return length;
 }
 
 qint32 RtpReceiver::adjust_for_jitter(RtpPacket* packet)
@@ -509,6 +529,7 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
     // TODO: handle case where number of samples in a packet is not the same as JACK buffer size
     if (!packetQueue || (((qint32)m_playtime - (qint32)(packetQueue->m_playoutTime) < 0)))
     {
+        m_numMissed++;
         if (!packetQueue && !m_firstPacket)
         {
             qWarning("RtpReceiver::receiveAudio NO AVAILABLE PACKETS: playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_playtime, m_ssrc, m_portRtp);
@@ -517,10 +538,9 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
         {
             if (m_numMissed < 10)
             {
-                qWarning("RtpReceiver::receiveAudio %lld MISSING PACKETS: playing silence: playtime = %u, next packet playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, packetQueue->m_playoutTime, m_ssrc, m_portRtp);
+                qWarning("RtpReceiver::receiveAudio %lld MISSING PACKET(S): playing silence: playtime = %u, next packet playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, packetQueue->m_playoutTime, m_ssrc, m_portRtp);
             }
         }
-        m_numMissed++;
 
         if ((m_numMissed % 200) == 0)
         {

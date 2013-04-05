@@ -153,6 +153,13 @@ protected:
     qint32 adjust_for_clock_skew(RtpPacket* packet);
 
     /**
+     * Count unused packets in the packet queue.
+     * Must only be called from the event thread unless the queue mutex is used
+     * @return number of unused packets in the packet queue
+     */
+    qint32 packet_queue_length();
+
+    /**
      * Adjust play time based on jitter estimate.
      * @param packet current packet
      * @return amount of play time adjustment needed
