@@ -428,7 +428,7 @@ qint32 RtpReceiver::adjust_for_clock_skew(RtpPacket* packet)
     qint32 delayDiff = m_clockActiveDelay - m_clockDelayEstimate;
     //qWarning("RtpReceiver::adjust_for_clock_skew: m_clockActiveDelay = %u, m_clockDelayEstimate = %u, delayDiff = %d, ssrc = %u, RTP port = %u, packet queue length = %d", m_clockActiveDelay, m_clockDelayEstimate, delayDiff, m_ssrc, m_portRtp, packet_queue_length());
     qint32 threshold = USE_AUDIO_TIMESTAMP ? m_bufferSamples * 2 : m_bufferSamples;
-    if (delayDiff > threshold)
+    if (delayDiff >= threshold)
     {
         // sender is fast compared to receiver
         QDateTime currentTime = QDateTime::currentDateTime();
@@ -440,7 +440,7 @@ qint32 RtpReceiver::adjust_for_clock_skew(RtpPacket* packet)
         m_clockActiveDelay = m_clockDelayEstimate;
         return -m_bufferSamples;
     }
-    else if (delayDiff < -m_bufferSamples)
+    else if (delayDiff <= -m_bufferSamples)
     {
         // sender is slow compared to receiver
         QDateTime currentTime = QDateTime::currentDateTime();
