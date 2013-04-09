@@ -361,7 +361,7 @@ void RtpReceiver::insert_packet_in_queue(RtpPacket* packet)
     {
         // queue is empty - start new one
         m_packetQueue = packet;
-        qDebug("RtpReceiver::insert_packet_in_queue INSERTED PACKET in empty queue: sequence number = %u, playtime = %u", packet->m_sequenceNum, packet->m_playoutTime);
+        //qDebug("RtpReceiver::insert_packet_in_queue INSERTED PACKET in empty queue: sequence number = %u, playtime = %u", packet->m_sequenceNum, packet->m_playoutTime);
         return;
     }
     
@@ -382,7 +382,7 @@ void RtpReceiver::insert_packet_in_queue(RtpPacket* packet)
             // insert packet before current packet
             packet->m_next = currentPacket;
             if (previousPacket) previousPacket->m_next = packet;
-            qDebug("RtpReceiver::insert_packet_in_queue INSERTED PACKET before current packet: sequence number = %u, playtime = %u", packet->m_sequenceNum, packet->m_playoutTime);
+            //qDebug("RtpReceiver::insert_packet_in_queue INSERTED PACKET before current packet: sequence number = %u, playtime = %u", packet->m_sequenceNum, packet->m_playoutTime);
             break;
         }
         else
@@ -398,7 +398,7 @@ void RtpReceiver::insert_packet_in_queue(RtpPacket* packet)
                 // add the packet to the end of the queue
                 packet->m_next = NULL;
                 currentPacket->m_next = packet;
-                qDebug("RtpReceiver::insert_packet_in_queue INSERTED PACKET at end of queue: sequence number = %u, playtime = %u", packet->m_sequenceNum, packet->m_playoutTime);
+                //qDebug("RtpReceiver::insert_packet_in_queue INSERTED PACKET at end of queue: sequence number = %u, playtime = %u", packet->m_sequenceNum, packet->m_playoutTime);
                 break;
             }
         }
