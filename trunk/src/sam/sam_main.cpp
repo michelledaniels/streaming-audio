@@ -61,7 +61,7 @@ void signalhandler(int sig)
     }
 }
 
-bool parse_channels(QList<unsigned int>& channels, QString& channelString)
+bool parse_channels(QList<unsigned int>& channels, QString& channelString, unsigned int channelMax)
 {
     QStringList channelSplit = channelString.split(',');
     QStringList::iterator it = channelSplit.begin();
@@ -78,7 +78,14 @@ bool parse_channels(QList<unsigned int>& channels, QString& channelString)
                 qWarning("Could not parse channels");
                 return false;
             }
-            channels.append(ch);
+            if (ch <= channelMax)
+            {
+                channels.append(ch);
+            }
+            else
+            {
+                qWarning("ignoring channel %u which exceeds max channels (%u)", ch, channelMax);
+            }
         }
         else
         {
@@ -103,7 +110,14 @@ bool parse_channels(QList<unsigned int>& channels, QString& channelString)
             }
             for (unsigned int ch = start; ch <= stop; ch++)
             {
-                channels.append(ch);
+                if (ch <= channelMax)
+                {
+                    channels.append(ch);
+                }
+                else
+                {
+                    qWarning("ignoring channel %u which exceeds max channels (%u)", ch, channelMax);
+                }
             }
         }
         ++it;
@@ -154,6 +168,7 @@ int main(int argc, char* argv[])
     bool useGui = settings.value("UseGui", false).toBool();
 
     // parse command-line parameters which will override config file settings
+    bool basicChOverride = false;
     while (true)
     {
         static struct option long_options[] = {
@@ -185,6 +200,7 @@ int main(int argc, char* argv[])
         {
         case 'n':
             params.numBasicChannels = atoi(optarg);
+            basicChOverride = true;
             break;
 
         case 'r':
@@ -228,35 +244,50 @@ int main(int argc, char* argv[])
         }
     }
 
-    /*QString basicChannelString = settings.value("BasicChannels", "").toString();
-    qDebug() << "basic channel string: " << basicChannelString;
-    QList<unsigned int> basicChannelList;
-    if (!parse_channels(basicChannelList, basicChannelString) || basicChannelList.isEmpty())
+    if (basicChOverride)
     {
-        qWarning("Couldn't parse basic channel string from config file");
+        // populate channel list based on numBasicChannels and outputPortOffset
+        unsigned int maxChannel = params.maxOutputChannels > params.outputPortOffset + params.numBasicChannels ? params.outputPortOffset + params.numBasicChannels : params.maxOutputChannels;
+        for (unsigned int ch = params.outputPortOffset + 1; ch <= maxChannel; ch++)
+        {
+            params.basicChannels.append(ch);
+        }
     }
-    // TODO: populate channel list based on numBasicChannels and outputPortOffset
-    for (int i = 0; i < basicChannelList.size(); i++)
+    else
     {
-        qWarning("Configuring with basic channel %u", basicChannelList[i]);
+        // populate channel list from config file
+        QString basicChannelString = settings.value("BasicChannels", "").toString();
+        qDebug() << "basic channel string: " << basicChannelString;
+        if (!parse_channels(params.basicChannels, basicChannelString, params.maxOutputChannels))
+        {
+            qWarning("Couldn't parse basic channel string from config file");
+        }
+    }
+    for (int i = 0; i < params.basicChannels.size(); i++)
+    {
+        qWarning("Configuring with basic channel %u", params.basicChannels[i]);
     }
 
     QString discreteChannelString = settings.value("DiscreteChannels", "").toString();
     qDebug() << "discrete channel string: " << discreteChannelString;
-    QList<unsigned int> discreteChannelList;
-    if (!parse_channels(discreteChannelList, discreteChannelString) || discreteChannelList.isEmpty())
+    if (!parse_channels(params.discreteChannels, discreteChannelString, params.maxOutputChannels))
     {
         qWarning("Couldn't parse discrete channel string from config file");
+
+        // populate channel list based on numBasicChannels, outputPortOffset, and maxOutputChannels
+        for (unsigned int ch = params.outputPortOffset + params.numBasicChannels + 1; ch <= params.maxOutputChannels; ch++)
+        {
+            params.discreteChannels.append(ch);
+        }
     }
 
-    // TODO: populate channel list based on numBasicChannels, outputPortOffset, and maxOutputChannels
-    for (int i = 0; i < discreteChannelList.size(); i++)
+    for (int i = 0; i < params.discreteChannels.size(); i++)
     {
-        qWarning("Configuring with discrete channel %u", discreteChannelList[i]);
-    }*/
+        qWarning("Configuring with discrete channel %u", params.discreteChannels[i]);
+    }
 
     // print params
-    printf("Number of basic channels: %d\n", params.numBasicChannels);
+    if (basicChOverride) printf("Number of basic channels: %d\n", params.numBasicChannels);
     printf("Sample rate: %d\n", params.sampleRate);
     printf("JACK period (buffer size): %d\n", params.bufferSize);
     printf("JACK driver: %s\n", params.jackDriver);

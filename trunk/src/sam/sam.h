@@ -43,6 +43,8 @@ struct SamParams
     quint32 packetQueueSize; ///< default client packet queue size
     char* outputJackClientName; ///< jack client name to which SAM will connect outputs
     char* outputJackPortBase;   ///< base jack port name to which SAM will connect outputs
+    QList<unsigned int> basicChannels; ///< list of basic channels to use
+    QList<unsigned int> discreteChannels; ///< list of discrete channels to use
 };
 
 /**
@@ -494,13 +496,6 @@ private:
     void osc_set_type(OscMessage* msg, const char* sender, QAbstractSocket* socket);
 
     /**
-     * Handle requests to set outputs enabled/disabled
-     * @param msg the OSC message to handle
-     * @param sender the name of the host that sent the message
-     */
-    void osc_set_outenabled(OscMessage* msg, const char* sender);
-
-    /**
      * Handle /sam/register OSC message.
      * @param msg the OSC message to handle
      * @param sender the name of the host that sent the message
@@ -562,6 +557,8 @@ private:
     StreamingAudioApp* m_apps[MAX_APPS];   ///< pointers to active StreamingAudioApps
     SamAppState m_appState[MAX_APPS]; ///< the state for all StreamingAudioApps in m_apps
     bool m_isRunning;                 ///< flag to see if SAM is running
+    QList<unsigned int> m_basicChannels; ///< list of basic channels to use
+    QList<unsigned int> m_discreteChannels; ///< list of discrete channels to use
 
     int m_numPhysicalPortsOut;        ///< number of physical output ports
     int* m_outputUsed;                ///< which physical output ports are in use (by which app)
