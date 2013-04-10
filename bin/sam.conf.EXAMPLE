@@ -1,12 +1,9 @@
 [General]
-NumBasicChannels=2
 SampleRate=48000
 BufferSize=256
 JackDriver=coreaudio
 OscPort=7770
 RtpPort=4464
-OutputPortOffset=0
-MaxOutputChannels=2
 UseGui=false
 Volume=1.0
 DelayMillis=0
