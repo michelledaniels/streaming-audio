@@ -1,0 +1,53 @@
+#!/bin/sh
+
+ret=$PWD
+
+# Check for Platform
+platform='unknown'
+unamestr=`uname`
+if [[ "$unamestr" == 'Linux' ]]; then
+    echo "Configuring on Linux"
+    platform='linux'
+elif [[ "$unamestr" == 'Darwin' ]]; then
+    echo "Configuring on Mac OS X"
+    platform='macosx'
+fi
+
+# Set qmake command name
+if [[ $platform == 'linux' ]]; then
+    QMAKE=qmake
+    QSPEC=linux-g++
+elif [[ $platform == 'macosx' ]]; then
+    QMAKE=qmake
+    QSPEC=macx-g++
+fi
+
+# configure sam
+mkdir build/sam
+cd ./src/sam && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
+# configure samtester
+mkdir build/samtest
+cd ./src/sam/test && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
+# configure libsac
+mkdir build/libsac
+cd ./src/client && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
+# configure saminput client
+mkdir build/saminput
+cd ./src/client/examples/saminput && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
+# configure samugen client
+mkdir build/samugen
+cd ./src/client/examples/samugen && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
+echo ""
+echo "Done"
+echo ""
+
