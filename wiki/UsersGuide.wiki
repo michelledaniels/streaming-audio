@@ -33,37 +33,40 @@ Note: On most Linux systems some configuration is necessary to allow JACK to run
 
 === Config File Parameters ===
 
-|| Parameter || Description || Possible Values ||
-|| `NumBasicChannels` || number of basic output channels || >= 0 ||
-|| `SampleRate` || audio sample rate || 44100, 48000, other values supported by your sound card ||
-|| `BufferSize` || audio buffer size || 16, 32, 64, 128, 256, 512, 1024, other sizes supported by your sound card ||
-|| `JackDriver` || JACK driver || alsa, coreaudio, etc. (see JACK documentation) ||
-|| `OscPort` || port where SAM will listen for OSC messages ||  1024 to 49151 ||
-|| `RtpPort` || base port for RTP streaming || 1024 to 49151 (max depends on how many clients you wish to stream simultaneously) ||
-|| `OutputPortOffset` || output port offset || >= 0 ||
-|| `MaxOutputChannels` || maximum number of output channels to use, including basic channels || >= 1 ||
-|| `Volume` || initial global volume level || 0.0 to 1.0 ||
-|| `DelayMillis` || initial global delay in milliseconds || >= 0 ||
-|| `MaxDelayMillis` || maximum possible delay in milliseconds || >= 0 ||
-|| `RenderHost` || host name/IP address of rendering machine for automatic connection on startup || "" or "host"||
-|| `RenderPort` || port where renderer will listen to OSC messages || 1024 to 49151 ||
+|| Parameter || Description || Possible Values || Comments || 
+|| `NumBasicChannels` || number of basic output channels || >= 0 || deprecated: use `BasicChannels` instead ||
+|| `SampleRate` || audio sample rate || 44100, 48000, other values supported by your sound card || ||
+|| `BufferSize` || audio buffer size || 16, 32, 64, 128, 256, 512, 1024, other sizes supported by your sound card || ||
+|| `JackDriver` || JACK driver || alsa, coreaudio, etc. (see JACK documentation) || ||
+|| `OscPort` || port where SAM will listen for OSC messages ||  1024 to 49151 || ||
+|| `RtpPort` || base port for RTP streaming || 1024 to 49151 (max depends on how many clients you wish to stream simultaneously) || ||
+|| `OutputPortOffset` || output port offset || >= 0 || deprecated: use `BasicChannels` and `DiscreteChannels` instead ||
+|| `MaxOutputChannels` || maximum number of output channels to use, including basic channels || >= 1 || deprecated: use `BasicChannels` and `DiscreteChannels` instead ||
+|| `Volume` || initial global volume level || 0.0 to 1.0 || ||
+|| `DelayMillis` || initial global delay in milliseconds || >= 0 || ||
+|| `MaxDelayMillis` || maximum possible delay in milliseconds || >= 0 || ||
+|| `RenderHost` || host name/IP address of rendering machine for automatic connection on startup || "" or "host"|| ||
+|| `RenderPort` || port where renderer will listen to OSC messages || 1024 to 49151 || ||
+|| `PacketQueueSize` || length (in number of packets) of receiving packet queues in SAM || >= 1 || Increase this number to help mitigate jitter, but remember that latency will also increase ||
+|| `BasicChannels` || string specifying which channels to use for basic output || format: "1-2,4,6-8,10-16" etc. || ||
+|| `DiscreteChannels` || string specifying which channels to use for discrete output || format: "1-2,4,6-8,10-16" etc. || ||
 
 Example sam.conf contents:
 <code>
 [General]  
-NumBasicChannels=2
 SampleRate=48000
 BufferSize=256
 JackDriver=coreaudio
 OscPort=7770
 RtpPort=4464
-OutputPortOffset=0
-MaxOutputChannels=2
 Volume=1.0
 DelayMillis=0
 MaxDelayMillis=2000
 RenderHost=127.0.0.1
 RenderPort=7778
+PacketQueueSize=4
+BasicChannels="1-2"
+DiscreteChannels="3-8"
 </code>
 
 === Command Line Parameters ===
