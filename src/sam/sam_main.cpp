@@ -75,7 +75,7 @@ bool parse_channels(QList<unsigned int>& channels, QString& channelString, unsig
             unsigned int ch = channelElem.toUInt(&ok);
             if (!ok)
             {
-                qWarning("Could not parse channels");
+                //qWarning("Could not parse channels");
                 return false;
             }
             if (ch <= channelMax)
@@ -92,20 +92,20 @@ bool parse_channels(QList<unsigned int>& channels, QString& channelString, unsig
             QStringList channelRange = channelElem.split('-');
             if (channelRange.length() != 2)
             {
-                qWarning("Could not parse channels");
+                //qWarning("Could not parse channels");
                  return false;
             }
             bool ok = 0;
             unsigned int start = channelRange[0].toUInt(&ok);
             if (!ok)
             {
-                qWarning("Could not parse channels");
+                //qWarning("Could not parse channels");
                 return false;
             }
             unsigned int stop = channelRange[1].toUInt(&ok);
             if (!ok)
             {
-                qWarning("Could not parse channels");
+                //qWarning("Could not parse channels");
                 return false;
             }
             for (unsigned int ch = start; ch <= stop; ch++)
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
     // TODO: add jackd command/path parameter
     // set parameter defaults
     SamParams params;
-    params.numBasicChannels = settings.value("NumBasicChannels", 2).toInt();
+    params.numBasicChannels = settings.value("NumBasicChannels", 0).toInt();
     params.sampleRate = settings.value("SampleRate", 48000).toInt();
     params.bufferSize = settings.value("BufferSize", 256).toInt();
 #if defined __APPLE__
@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (basicChOverride)
+    if (basicChOverride || !settings.contains("BasicChannels"))
     {
         // populate channel list based on numBasicChannels and outputPortOffset
         unsigned int maxChannel = params.maxOutputChannels > params.outputPortOffset + params.numBasicChannels ? params.outputPortOffset + params.numBasicChannels : params.maxOutputChannels;
@@ -258,9 +258,10 @@ int main(int argc, char* argv[])
         // populate channel list from config file
         QString basicChannelString = settings.value("BasicChannels", "").toString();
         qDebug() << "basic channel string: " << basicChannelString;
-        if (!parse_channels(params.basicChannels, basicChannelString, params.maxOutputChannels))
+        if (!basicChannelString.isEmpty() && !parse_channels(params.basicChannels, basicChannelString, params.maxOutputChannels))
         {
-            qWarning("Couldn't parse basic channel string from config file");
+            qWarning("Error: couldn't parse basic channel string from config file");
+            exit(EXIT_FAILURE);
         }
     }
     for (int i = 0; i < params.basicChannels.size(); i++)
@@ -268,21 +269,32 @@ int main(int argc, char* argv[])
         qWarning("Configuring with basic channel %u", params.basicChannels[i]);
     }
 
-    QString discreteChannelString = settings.value("DiscreteChannels", "").toString();
-    qDebug() << "discrete channel string: " << discreteChannelString;
-    if (!parse_channels(params.discreteChannels, discreteChannelString, params.maxOutputChannels))
+    if (!settings.contains("DiscreteChannels"))
     {
-        qWarning("Couldn't parse discrete channel string from config file");
-
         // populate channel list based on numBasicChannels, outputPortOffset, and maxOutputChannels
         for (unsigned int ch = params.outputPortOffset + params.numBasicChannels + 1; ch <= params.maxOutputChannels; ch++)
         {
             params.discreteChannels.append(ch);
         }
     }
-
+    else
+    {
+        // populate discrete channel list from config file
+        QString discreteChannelString = settings.value("DiscreteChannels", "").toString();
+        qDebug() << "discrete channel string: " << discreteChannelString;
+        if (!discreteChannelString.isEmpty() && !parse_channels(params.discreteChannels, discreteChannelString, params.maxOutputChannels))
+        {
+            qWarning("Error: couldn't parse discrete channel string from config file");
+            exit(EXIT_FAILURE);
+        }
+    }
     for (int i = 0; i < params.discreteChannels.size(); i++)
     {
+        if (params.basicChannels.contains(params.discreteChannels[i]))
+        {
+            qWarning("Error: channel %d can't be both basic and discrete", params.discreteChannels[i]);
+            exit(EXIT_FAILURE);
+        }
         qWarning("Configuring with discrete channel %u", params.discreteChannels[i]);
     }
 
