@@ -26,7 +26,7 @@ void print_info()
 {
     printf("\n");
     printf("--------------------------------------\n");
-    printf("Streaming Audio Manager version %s\n", sam::VERSION_STRING);
+    printf("Streaming Audio Manager version %d.%d.%d\n", sam::VERSION_MAJOR, sam::VERSION_MINOR, sam::VERSION_PATCH);
     printf("Built on %s at %s\n", __DATE__, __TIME__);
     printf("Copyright UCSD 2011-2013\n");
     printf("--------------------------------------\n\n");
