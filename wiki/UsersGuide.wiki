@@ -41,7 +41,7 @@ Note: On most Linux systems some configuration is necessary to allow JACK to run
 || `OscPort` || port where SAM will listen for OSC messages ||  1024 to 49151 || ||
 || `RtpPort` || base port for RTP streaming || 1024 to 49151 (max depends on how many clients you wish to stream simultaneously) || ||
 || `OutputPortOffset` || output port offset || >= 0 || deprecated: use `BasicChannels` and `DiscreteChannels` instead ||
-|| `MaxOutputChannels` || maximum number of output channels to use, including basic channels || >= 1 || deprecated: use `BasicChannels` and `DiscreteChannels` instead ||
+|| `MaxOutputChannels` || maximum number of output channels to use, including basic channels || >= 1 ||  ||
 || `Volume` || initial global volume level || 0.0 to 1.0 || ||
 || `DelayMillis` || initial global delay in milliseconds || >= 0 || ||
 || `MaxDelayMillis` || maximum possible delay in milliseconds || >= 0 || ||
