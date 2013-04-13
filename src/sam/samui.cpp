@@ -77,11 +77,7 @@ void SamUI::on_actionAbout_triggered()
 {
     QMessageBox msgBox;
     QString about("Streaming Audio Manager version ");
-    about.append(sam::VERSION_MAJOR);
-    about.append(".");
-    about.append(sam::VERSION_MINOR);
-    about.append(".");
-    about.append(sam::VERSION_PATCH);
+    about.append(sam::VERSION_STRING);
     about.append("\nBuilt on ");
     about.append(__DATE__);
     about.append(" at ");
