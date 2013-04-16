@@ -1,4 +1,4 @@
-#summary Communicating with SAM via OSC
+#summary Communicating with SAM (0.4 branch) via OSC
 
 = Communicating with SAM (0.4 branch) via OSC =
 SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol for communicating with clients, renderers, and UIs.  
