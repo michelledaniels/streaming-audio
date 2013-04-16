@@ -11,7 +11,7 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 
 
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
-|| `/sam/app/register` || `siiiiiiii` || `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type`, `replyPort` || `/sam/app/regconfirm` or `/sam/app/regdeny` || ||
+|| `/sam/app/register` || `siiiiiiiiiii` || `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type`, `major version`, `minor version`, `patch version`, `replyPort` || `/sam/app/regconfirm` or `/sam/app/regdeny` || ||
 || `/sam/app/regconfirm` || `iii` || `id`, `sampleRate`, `bufferSize`, `rtpBasePort` || none || ||
 || `/sam/app/regdeny` || `i`|| `errorCode` || none || error codes TBD ||
 || `/sam/app/unregister` || `i` || `id` || none || sending an `id` of `-1` tells SAM to unregister all clients ||
