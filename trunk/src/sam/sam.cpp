@@ -793,7 +793,7 @@ void StreamingAudioManager::handle_app_message(const char* address, OscMessage* 
             return;
         }
     
-        if (msg->typeMatches("siiiiiiii"))
+        if (msg->typeMatches("siiiiiiiiiii"))
         {
             // register
             osc_register(msg, dynamic_cast<QTcpSocket*>(socket));
@@ -1474,9 +1474,26 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
     msg->getArg(7, arg);
     StreamingAudioType type = (StreamingAudioType)arg.val.i;
     msg->getArg(8, arg);
+    int majorVersion = arg.val.i;
+    msg->getArg(9, arg);
+    int minorVersion = arg.val.i;
+    msg->getArg(10, arg);
+    int patchVersion = arg.val.i;
+    msg->getArg(11, arg);
     quint16 replyPort = arg.val.i;
-    printf("Registering app at hostname %s, port %d with name %s, %d channel(s), position [%d %d %d %d %d], type = %d\n\n", socket->peerAddress().toString().toAscii().data(), replyPort, name, channels, x, y, width, height, depth, type);
-    int port = registerApp(name, channels, x, y, width, height, depth, type, socket);
+
+    int port = -1;
+    // register if version matches
+    if (majorVersion == sam::VERSION_MAJOR && minorVersion == sam::VERSION_MINOR && patchVersion == sam::VERSION_PATCH)
+    {
+        printf("Registering app at hostname %s, port %d with name %s, %d channel(s), position [%d %d %d %d %d], type = %d\n\n", socket->peerAddress().toString().toAscii().data(), replyPort, name, channels, x, y, width, height, depth, type);
+        port = registerApp(name, channels, x, y, width, height, depth, type, socket);
+    }
+    else
+    {
+        qWarning("Denying app registration due to client version mismatch: SAM is version %d.%d.%d, client is %d.%d.%d",
+                 sam::VERSION_MAJOR, sam::VERSION_MINOR, sam::VERSION_PATCH, majorVersion, minorVersion, patchVersion);
+    }
 
     // send response
     if (port < 0)
