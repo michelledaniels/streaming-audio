@@ -3,7 +3,9 @@
 = Developer's Guide =
 <wiki:toc max_depth="3" />
 
-[OSCMessages Comprehensive List of OSC Messages]
+[OSCMessages_0_4 Comprehensive List of OSC Messages (0.4 branch)]
+
+[OSCMessages Comprehensive List of OSC Messages (trunk)]
 
 == Developing Clients ==
 
