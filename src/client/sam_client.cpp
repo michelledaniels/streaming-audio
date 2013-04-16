@@ -182,13 +182,16 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
     qDebug("StreamingAudioClient::start() Sending register message to SAM: name = %s, channels = %d, position = [%d, %d, %d, %d, %d], type = %d", m_name, m_channels, x, y, width, height, depth, m_type);
 
     OscMessage msg;
-    msg.init("/sam/app/register", "siiiiiiii", m_name, m_channels,
+    msg.init("/sam/app/register", "siiiiiiiiiii", m_name, m_channels,
                                                        x,
                                                        y,
                                                        width,
                                                        height,
                                                        depth,
                                                        m_type,
+                                                       VERSION_MAJOR,
+                                                       VERSION_MINOR,
+                                                       VERSION_PATCH,
                                                        m_replyPort);
     if (!OscClient::sendFromSocket(&msg, &m_socket))
     {
