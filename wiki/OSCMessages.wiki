@@ -1,6 +1,6 @@
-#summary Communicating with SAM via OSC
+#summary Communicating with SAM (trunk) via OSC
 
-= Communicating with SAM via OSC =
+= Communicating with SAM (trunk) via OSC =
 SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol for communicating with clients, renderers, and UIs.  
 
 <wiki:toc max_depth="3" />
