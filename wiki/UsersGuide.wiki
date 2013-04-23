@@ -37,7 +37,7 @@ Note: On most Linux systems some configuration is necessary to allow JACK to run
 || `NumBasicChannels` || number of basic output channels || >= 0 || deprecated: use `BasicChannels` instead ||
 || `SampleRate` || audio sample rate || 44100, 48000, other values supported by your sound card || ||
 || `BufferSize` || audio buffer size || 16, 32, 64, 128, 256, 512, 1024, other sizes supported by your sound card || ||
-|| `JackDriver` || JACK driver || alsa, coreaudio, etc. (see JACK documentation) || ||
+|| `JackDriver` || JACK driver || `alsa`, `coreaudio`, etc. (see JACK documentation) || ||
 || `OscPort` || port where SAM will listen for OSC messages ||  1024 to 49151 || ||
 || `RtpPort` || base port for RTP streaming || 1024 to 49151 (max depends on how many clients you wish to stream simultaneously) || ||
 || `OutputPortOffset` || output port offset || >= 0 || deprecated: use `BasicChannels` and `DiscreteChannels` instead ||
@@ -50,6 +50,9 @@ Note: On most Linux systems some configuration is necessary to allow JACK to run
 || `PacketQueueSize` || length (in number of packets) of receiving packet queues in SAM || >= 1 || Increase this number to help mitigate jitter, but remember that latency will also increase ||
 || `BasicChannels` || string specifying which channels to use for basic output || format: "1-2,4,6-8,10-16" etc. || ||
 || `DiscreteChannels` || string specifying which channels to use for discrete output || format: "1-2,4,6-8,10-16" etc. || ||
+|| `OutputJackClientName` || name of the JACK client to which SAM will send output audio || ex: `system` || this parameter should only be necessary if you want SAM to output to something other than system outputs (eg max, pd etc.) ||
+|| `OutputJackPortBase` || base name of JACK client ports to which SAM will connect for output || ex: `playback_` ||  this parameter should only be necessary if you want SAM to output to something other than system outputs (eg max, pd etc.)  ||
+
 
 Example sam.conf contents:
 <code>
@@ -67,6 +70,8 @@ RenderPort=7778
 PacketQueueSize=4
 BasicChannels="1-2"
 DiscreteChannels="3-8"
+OutputJackClientName="system"
+OutputJackPortBase="playback_"
 </code>
 
 === Command Line Parameters ===
