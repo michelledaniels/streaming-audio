@@ -747,6 +747,12 @@ void StreamingAudioManager::handleOscMessage(OscMessage* msg, const char* sender
         qDebug("Received /sam/quit message");
         QCoreApplication::quit();
     }
+    else if (qstrncmp(address + prefixLen, "debug", 5) == 0)
+    {
+        // print debug info to console
+        qWarning("Received /sam/debug message");
+        print_debug();
+    }
     else if (qstrncmp(address + prefixLen, "app", 3) == 0)
     {
         handle_app_message(address + prefixLen + 3, msg, sender, socket);
@@ -1923,4 +1929,58 @@ void StreamingAudioManager::notifyMeter()
             m_apps[i]->notifyMeter();
         }
     }
+}
+
+void StreamingAudioManager::print_debug()
+{
+    qWarning("\n--PRINTING DEBUG INFO--");
+
+    if (!m_client)
+    {
+        qWarning("JACK client is NULL, no ports to display");
+    }
+
+    // get all jack ports that correspond to physical outputs
+    const char** portNames = jack_get_ports(m_client, NULL, NULL, 0);
+
+    if (!portNames)
+    {
+        qWarning("no JACK ports detected");
+        return;
+    }
+
+    const char** currentName = portNames;
+    while (*currentName != NULL)
+    {
+        // find all ports connected to this one
+        jack_port_t* port = jack_port_by_name(m_client, *currentName);
+        if (!port)
+        {
+            qWarning("Couldn't get JACK port by name %s", *currentName);
+            currentName++;
+            continue;
+        }
+
+        const char** connPorts = jack_port_get_connections(port);
+
+        if (!connPorts)
+        {
+            qWarning("JACK port %s has no connections", *currentName);
+            currentName++;
+            continue;
+        }
+
+        const char** currentPort = connPorts;
+        while (*currentPort != NULL)
+        {
+            qWarning("JACK port %s connected to %s", *currentName, *currentPort);
+            currentPort++;
+        }
+
+        jack_free(connPorts);
+        currentName++;
+    }
+    jack_free(portNames);
+
+    qWarning("--END PRINTING DEBUG INFO--\n");
 }

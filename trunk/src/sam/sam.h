@@ -546,6 +546,11 @@ private:
      * @return true on success, false on failure
      */
     bool disconnect_app_ports(int port);
+
+    /**
+     * Print debug info to console
+     */
+    void print_debug();
     
     int m_sampleRate;                 ///< sample rate for JACK
     int m_bufferSize;                 ///< buffer size for JACK
