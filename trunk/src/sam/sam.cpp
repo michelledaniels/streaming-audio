@@ -1935,6 +1935,9 @@ void StreamingAudioManager::print_debug()
 {
     qWarning("\n--PRINTING DEBUG INFO--");
 
+    qWarning("SAM global volume %f, mute %d, delay %f", m_volumeNext, m_muteNext, m_delayNext);
+
+    qWarning("\nJACK port connections:");
     if (!m_client)
     {
         qWarning("JACK client is NULL, no ports to display");
@@ -1982,5 +1985,28 @@ void StreamingAudioManager::print_debug()
     }
     jack_free(portNames);
 
+    qWarning("\nSAM clients:");
+    for (int i = 0; i < MAX_APPS; i++)
+    {
+        if (m_apps[i])
+        {
+            SamAppPosition pos = m_apps[i]->getPosition();
+            qWarning("Client %d has id %d, name \"%s\", %d channels, position [%d, %d, %d, %d, %d], type %d, volume %f, mute %d, solo %d, delay %f",
+                                                        i,
+                                                        m_apps[i]->getPort(),
+                                                        m_apps[i]->getName(),
+                                                        m_apps[i]->getNumChannels(),
+                                                        pos.x,
+                                                        pos.y,
+                                                        pos.width,
+                                                        pos.height,
+                                                        pos.depth,
+                                                        m_apps[i]->getType(),
+                                                        m_apps[i]->getVolume(),
+                                                        m_apps[i]->getMute(),
+                                                        m_apps[i]->getSolo(),
+                                                        m_apps[i]->getDelay());
+        }
+    }
     qWarning("--END PRINTING DEBUG INFO--\n");
 }
