@@ -21,8 +21,8 @@
 namespace sam
 {
     
-static const char* VERSION_STRING = "0.4.0";
-static const unsigned int SAC_DEFAULT_TIMEOUT = 10; // in seconds
+static const char* VERSION_STRING = "0.4.1";
+static const unsigned int SAC_DEFAULT_TIMEOUT = 10000; // in milliseconds
 
 /**
  * @enum StreamingAudioType
