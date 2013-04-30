@@ -1935,7 +1935,7 @@ void StreamingAudioManager::print_debug()
 {
     qWarning("\n--PRINTING DEBUG INFO--");
 
-    qWarning("SAM global volume %f, mute %d, delay %f", m_volumeNext, m_muteNext, m_delayNext);
+    qWarning("SAM global volume %f, mute %d, delay %d", m_volumeNext, m_muteNext, m_delayNext);
 
     qWarning("\nJACK port connections:");
     if (!m_client)
