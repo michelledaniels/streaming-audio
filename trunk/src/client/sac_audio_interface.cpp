@@ -6,6 +6,8 @@
  * @copyright UCSD 2012
  */
 
+#include <unistd.h>
+
 #include <QCoreApplication>
 #include <QDebug>
 
