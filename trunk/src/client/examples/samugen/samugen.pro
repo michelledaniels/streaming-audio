@@ -27,6 +27,8 @@ CONFIG(release, debug|release) {
     DESTDIR = "$$ParentDirectory/bin"
 }
 
+LIBS += -L$$ParentDirectory/lib -lsac
+
 # For version without JACK, uncomment the next line
 #DEFINES += SAC_NO_JACK
 contains(DEFINES, SAC_NO_JACK) {
@@ -40,7 +42,6 @@ else {
 SOURCES += main.cpp
 
 INCLUDEPATH += /usr/local/include $$ParentDirectory/src $$ParentDirectory/src/client
-LIBS += -L$$ParentDirectory/lib -lsac
 QT += network
 
 target.path = /usr/local/bin
