@@ -12,7 +12,7 @@ elif test x$unamestr = xDarwin ; then
     echo "Configuring on Mac OS X"
     platform='macosx'
 else
-    echo unkonwn platform: $unamestr
+    echo unknown platform: $unamestr
     exit 1
 fi
 
@@ -21,7 +21,7 @@ if test $platform = linux ; then
     if test -e /usr/bin/qmake-qt4 ; then
         QMAKE=qmake-qt4
     else
-        echo warning: not sure how to invoke qmake ... hoping for the best
+        echo warning: "qmake-qt4 not found.  Assuming quake is the correct qt4 command for your platform (not qt3)."
         QMAKE=qmake
     fi
     QSPEC=linux-g++
@@ -29,7 +29,7 @@ elif test $platform = macosx ; then
     QMAKE=qmake
     QSPEC=macx-g++
 else
-    echo unkonwn platform: $platform
+    echo unknown platform: $platform
     exit 1
 fi
 
