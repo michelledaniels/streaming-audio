@@ -27,6 +27,15 @@ CONFIG(release, debug|release) {
     DESTDIR = "$$ParentDirectory/bin"
 }
 
+SOURCES += main.cpp
+
+INCLUDEPATH += /usr/local/include $$ParentDirectory/src $$ParentDirectory/src/client
+LIBS += -L$$ParentDirectory/lib -lsac
+QT += network
+
+target.path = /usr/local/bin
+INSTALLS += target
+
 # For version without JACK, uncomment the next line
 #DEFINES += SAC_NO_JACK
 contains(DEFINES, SAC_NO_JACK) {
@@ -37,13 +46,5 @@ else {
     LIBS += -ljack
 }
 
-SOURCES += main.cpp
-
-INCLUDEPATH += /usr/local/include $$ParentDirectory/src $$ParentDirectory/src/client
-LIBS += -L$$ParentDirectory/lib -lsac
-QT += network
-
-target.path = /usr/local/bin
-INSTALLS += target
 
 message(samugen.pro complete)
