@@ -5,21 +5,32 @@ ret=$PWD
 # Check for Platform
 platform='unknown'
 unamestr=`uname`
-if [[ "$unamestr" == 'Linux' ]]; then
+if test x$unamestr = xLinux ; then
     echo "Configuring on Linux"
     platform='linux'
-elif [[ "$unamestr" == 'Darwin' ]]; then
+elif test x$unamestr = xDarwin ; then
     echo "Configuring on Mac OS X"
     platform='macosx'
+else
+    echo unknown platform: $unamestr
+    exit 1
 fi
 
 # Set qmake command name
-if [[ $platform == 'linux' ]]; then
-    QMAKE=qmake
+if test $platform = linux ; then
+    if test -e /usr/bin/qmake-qt4 ; then
+        QMAKE=qmake-qt4
+    else
+        echo warning: "qmake-qt4 not found.  Assuming quake is the correct qt4 command for your platform (not qt3)."
+        QMAKE=qmake
+    fi
     QSPEC=linux-g++
-elif [[ $platform == 'macosx' ]]; then
+elif test $platform = macosx ; then
     QMAKE=qmake
     QSPEC=macx-g++
+else
+    echo unknown platform: $platform
+    exit 1
 fi
 
 # configure sam

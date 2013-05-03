@@ -21,7 +21,7 @@
 namespace sam
 {
     
-static const char* VERSION_STRING = "0.4.1";
+static const char* VERSION_STRING = "0.4.2";
 static const unsigned int SAC_DEFAULT_TIMEOUT = 10000; // in milliseconds
 
 /**
@@ -132,7 +132,7 @@ public:
      * @param width the initial width of the app window
      * @param height the initial height of the app window
      * @param depth the initial depth of the app window
-     * @param timeout response timeout time in seconds
+     * @param timeout response timeout time in milliseconds
      * @return 0 on success, a non-zero SACReturn code on failure
      */
     int start(int x, int y, int width, int height, int depth, unsigned int timeout = SAC_DEFAULT_TIMEOUT);
@@ -178,7 +178,7 @@ public:
     /**
      * Tell SAM the audio type for this client and block until a response is received.
      * @param type the type of audio stream this client will send
-     * @param timeout the timeout time in seconds after which this method will return false if no
+     * @param timeout the timeout time in milliseconds after which this method will return false if no
      * response has been received from SAM.
      * @return 0 on success, a non-zero SACReturn code on failure
      */

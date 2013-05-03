@@ -8,6 +8,7 @@
 
 #include <QCoreApplication>
 #include <QDebug>
+#include <unistd.h>
 
 #include "sac_audio_interface.h"
 
