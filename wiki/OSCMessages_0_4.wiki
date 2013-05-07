@@ -35,7 +35,7 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 ||`/sam/ui/regdeny` || `i` || `errorCode` || none || error codes TBD ||
 ||`/sam/ui/unregister` || `i` ||| `replyPort` || none || ||
 ||`/sam/app/registered` || `isiiiiiii` || `id`, `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type` || none || ||
-|| `/sam/app/unregistered` || `i`, `id` || none || ||
+|| `/sam/app/unregistered` || `i` || `id` || none || ||
 
 == Control Messages ==
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
@@ -50,7 +50,7 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 || `/sam/set/delay` || `if` || `id`, `delay` || none || `delay` is specified in milliseconds and should be greater than 0 and less than or equal to the maximum delay specified in the SAM config file, `id` of `-1` sets the global delay (which is added to the per-client delay) ||
 || `/sam/set/position` || `iiiiii` || `id`, `x`, `y`, `width`, `height`, `depth` || none ||  ||
 || `/sam/set/type` ||  `iii` || `id`, `type`, `replyPort` || `sam/type/confirm` if able to change type or `/sam/type/deny` if unable to change type || ||
-|| `sam/type/confirm` || `i` || `type` || none || ||
+|| `/sam/type/confirm` || `i` || `type` || none || ||
 || `/sam/type/deny` || `i` || `errorCode` || none || error codes TBD ||
 
 === Getting Parameters ===
