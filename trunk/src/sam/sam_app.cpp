@@ -617,8 +617,12 @@ bool StreamingAudioApp::subscribeMeter(const char* host, quint16 port)
         replyMsg.init("/sam/val/meter", "ii", m_port, m_channels);
         for (int ch = 0; ch < m_channels; ch++)
         {
+            replyMsg.addFloatArg(m_rmsIn[ch]);
+            replyMsg.addFloatArg(sqrt(m_peakIn[ch])); // only take square root when peak is sent, not each time it changes, for efficiency
             replyMsg.addFloatArg(m_rmsOut[ch]);
-            replyMsg.addFloatArg(m_peakOut[ch]);
+            replyMsg.addFloatArg(sqrt(m_peakOut[ch])); // only take square root when peak is sent, not each time it changes, for efficiency
+            m_peakIn[ch] = 0.0f; // reset peak levels for next interval
+            m_peakOut[ch] = 0.0f; // reset peak levels for next interval
         }
         OscAddress replyAddress;
         replyAddress.host.setAddress(host);
