@@ -316,8 +316,7 @@ private:
     
     // for RTP
     RtpSender* m_sender;              ///< RTP streamer
-    quint16 m_rtpBasePort;            ///< base port for RTP streaming (actual ports used are offsets from this determined by app id/port)
-    
+
     // for audio callback
     SACAudioCallback m_audioCallback; ///< the audio callback
     void* m_audioCallbackArg;         ///< user-supplied data for audio callback

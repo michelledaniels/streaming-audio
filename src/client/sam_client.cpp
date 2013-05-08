@@ -29,7 +29,6 @@ StreamingAudioClient::StreamingAudioClient() :
     m_replyPort(0),
     m_interface(NULL),
     m_sender(NULL),
-    m_rtpBasePort(0),
     m_audioCallback(NULL),
     m_audioCallbackArg(NULL),
     m_audioOut(NULL)
@@ -479,7 +478,7 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender)
 
 void StreamingAudioClient::handle_regconfirm(int port, unsigned int sampleRate, unsigned int bufferSize, quint16 rtpBasePort)
 {
-    printf("StreamingAudioClient registration confirmed: unique id = %d", port);
+    printf("StreamingAudioClient registration confirmed: unique id = %d, rtpBasePort = %d", port, rtpBasePort);
     
     // init RTP
     quint16 portOffset = port * 4;
@@ -506,7 +505,7 @@ void StreamingAudioClient::handle_regconfirm(int port, unsigned int sampleRate, 
 #else
     // write the JACK client name
     char clientName[MAX_CLIENT_NAME];
-    snprintf(clientName, MAX_CLIENT_NAME, "SAC-client%d", port);
+    snprintf(clientName, MAX_CLIENT_NAME, "SAC-client%d-%d", rtpBasePort, port);
     
     m_interface = new JackAudioInterface(m_channels, bufferSize, sampleRate, clientName);
 #endif
