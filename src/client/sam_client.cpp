@@ -26,6 +26,7 @@ StreamingAudioClient::StreamingAudioClient() :
     m_name(NULL),
     m_samIP(NULL),
     m_samPort(0),
+    m_payloadType(PAYLOAD_PCM_16),
     m_replyPort(0),
     m_interface(NULL),
     m_sender(NULL),
@@ -35,7 +36,7 @@ StreamingAudioClient::StreamingAudioClient() :
 {
 }
 
-StreamingAudioClient::StreamingAudioClient(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort) :
+StreamingAudioClient::StreamingAudioClient(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort, quint8 payloadType) :
     QObject(),
     m_channels(numChannels),
     m_type(type),
@@ -43,6 +44,7 @@ StreamingAudioClient::StreamingAudioClient(unsigned int numChannels, StreamingAu
     m_name(NULL),
     m_samIP(NULL),
     m_samPort(samPort),
+    m_payloadType(payloadType),
     m_replyPort(replyPort),
     m_interface(NULL),
     m_sender(NULL),
@@ -482,7 +484,7 @@ void StreamingAudioClient::handle_regconfirm(int port, unsigned int sampleRate, 
     
     // init RTP
     quint16 portOffset = port * 4;
-    m_sender = new RtpSender(m_samIP, portOffset + rtpBasePort, portOffset + rtpBasePort + 3, portOffset + rtpBasePort + 1, REPORT_INTERVAL_MILLIS, sampleRate, m_channels, bufferSize, port, PAYLOAD_PCM_16);
+    m_sender = new RtpSender(m_samIP, portOffset + rtpBasePort, portOffset + rtpBasePort + 3, portOffset + rtpBasePort + 1, REPORT_INTERVAL_MILLIS, sampleRate, m_channels, bufferSize, port, m_payloadType);
     if (!m_sender->init())
     {
         qWarning("StreamingAudioClient::handle_regconfirm couldn't initialize RtpSender: unregistering with SAM");
