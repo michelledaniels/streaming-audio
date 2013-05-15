@@ -18,9 +18,6 @@
 #include "sam_client.h"
 #include "osc.h"
 
-static const int MAX_APPS = 100;
-static const int MAX_DELAY_MILLIS = 2000;
-
 /**
  * @struct SamParams
  * This struct contains the parameters needed to intialize SAM
@@ -45,6 +42,7 @@ struct SamParams
     char* outputJackPortBase;   ///< base jack port name to which SAM will connect outputs
     QList<unsigned int> basicChannels; ///< list of basic channels to use
     QList<unsigned int> discreteChannels; ///< list of discrete channels to use
+    int maxClients;        ///< maximum number of clients that can be connected simultaneously
 };
 
 /**
@@ -559,8 +557,9 @@ private:
     char* m_jackDriver;               ///< driver for JACK to use
     pid_t m_jackPID;                  ///< PID for the jackd process
     jack_client_t* m_client;          ///< local JACK client
-    StreamingAudioApp* m_apps[MAX_APPS];   ///< pointers to active StreamingAudioApps
-    SamAppState m_appState[MAX_APPS]; ///< the state for all StreamingAudioApps in m_apps
+    int m_maxClients;                 ///< max number of clients that can simultaneously connect
+    StreamingAudioApp** m_apps;       ///< pointers to active StreamingAudioApps
+    SamAppState* m_appState;          ///< the state for all StreamingAudioApps in m_apps
     bool m_isRunning;                 ///< flag to see if SAM is running
     QList<unsigned int> m_basicChannels; ///< list of basic channels to use
     QList<unsigned int> m_discreteChannels; ///< list of discrete channels to use
