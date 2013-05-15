@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
     params.maxOutputChannels = settings.value("MaxOutputChannels", 32768).toInt();
     params.volume = settings.value("Volume", 1.0f).toFloat();
     params.delayMillis = settings.value("DelayMillis", 0.0f).toFloat();
-    params.maxDelayMillis = settings.value("MaxDelayMillis", MAX_DELAY_MILLIS).toFloat();
+    params.maxDelayMillis = settings.value("MaxDelayMillis", 2000).toFloat();
     QString renderHost =  settings.value("RenderHost", "").toString();
     QByteArray renderHostBytes = renderHost.toAscii();
     params.renderHost = renderHostBytes.data();
@@ -164,6 +164,13 @@ int main(int argc, char* argv[])
     QString outputJackPortBase = settings.value("OutputJackPortBase", "playback_").toString();
     QByteArray outputJackPortBytes = outputJackPortBase.toAscii();
     params.outputJackPortBase = outputJackPortBytes.data();
+    params.maxClients = settings.value("MaxClients", 100).toInt();
+
+    if (params.maxClients <= 0)
+    {
+        qWarning("ERROR: MaxClients parameter must be at least 1");
+        exit(EXIT_FAILURE);
+    }
 
     bool useGui = settings.value("UseGui", false).toBool();
 
@@ -315,6 +322,7 @@ int main(int argc, char* argv[])
     printf("Packet queue size: %u\n", params.packetQueueSize);
     printf("Output JACK client name: %s\n", params.outputJackClientName);
     printf("OutputJackPortBase: %s\n", params.outputJackPortBase);
+    printf("Max clients: %d\n", params.maxClients);
 
     // TODO: check that all arguments are valid, non-null??
     if (useGui) // run in GUI mode

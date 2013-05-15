@@ -41,6 +41,9 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_jackDriver(NULL),
     m_jackPID(-1),
     m_client(NULL),
+    m_maxClients(params.maxClients),
+    m_apps(NULL),
+    m_appState(NULL),
     m_isRunning(false),
     m_numPhysicalPortsOut(0),
     m_outputUsed(NULL),
@@ -63,7 +66,9 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_delayMax(0),
     m_oscServerPort(params.oscPort)
 {
-    for (int i = 0; i < MAX_APPS; i++)
+    m_apps = new StreamingAudioApp*[m_maxClients];
+    m_appState = new SamAppState[m_maxClients];
+    for (int i = 0; i < m_maxClients; i++)
     {
         m_apps[i] = NULL;
         m_appState[i] = AVAILABLE;
@@ -81,7 +86,7 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_outputJackPortBase = new char[len + 1];
     strncpy(m_outputJackPortBase, params.outputJackPortBase, len + 1);
 
-    m_delayMax = int(m_sampleRate * (MAX_DELAY_MILLIS / 2000.0f)); // allocate half of max available delay for apps, half for global delay
+    m_delayMax = int(m_sampleRate * (params.maxDelayMillis / 2000.0f)); // allocate half of max available delay for apps, half for global delay
     setDelay(params.delayMillis);
 
     m_meterInterval = int(m_sampleRate * (METER_INTERVAL_MILLIS / 1000.0f));
@@ -119,6 +124,18 @@ StreamingAudioManager::~StreamingAudioManager()
     {
         delete[] m_jackDriver;
         m_jackDriver = NULL;
+    }
+
+    if (m_apps)
+    {
+        delete[] m_apps;
+        m_apps = NULL;
+    }
+
+    if (m_appState)
+    {
+        delete[] m_appState;
+        m_appState = NULL;
     }
 }
 
@@ -205,7 +222,7 @@ bool StreamingAudioManager::stop()
 
     if (!m_isRunning) return false;
 
-    for (int i = 0; i < MAX_APPS; i++)
+    for (int i = 0; i < m_maxClients; i++)
     {
         if (m_apps[i])
         {
@@ -242,7 +259,7 @@ bool StreamingAudioManager::stop()
 bool StreamingAudioManager::idIsValid(int id)
 {
     // check for out of range id
-    if (id < 0 || id >= MAX_APPS)
+    if (id < 0 || id >= m_maxClients)
     {
         qDebug("StreamingAudioManager::idIsValid received out of range ID: %d", id);
         return false;
@@ -261,7 +278,7 @@ bool StreamingAudioManager::idIsValid(int id)
 int StreamingAudioManager::getNumApps()
 {
     int count = 0;
-    for (int i = 0; i < MAX_APPS; i++)
+    for (int i = 0; i < m_maxClients; i++)
     {
         if (m_apps[i] != NULL) count++;
     }
@@ -274,7 +291,7 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
     
     // find an available port
     int port = -1;
-    for (int i = 0; i < MAX_APPS; i++)
+    for (int i = 0; i < m_maxClients; i++)
     {
         if (m_appState[i] == AVAILABLE)
         {
@@ -286,7 +303,7 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
     if (port < 0)
     {
         // error: all ports in use
-        qWarning("StreamingAudioManager::registerApp error: no available ports!");
+        qWarning("StreamingAudioManager::registerApp error: max clients already in use!");
         return -1;
     }
     
@@ -359,7 +376,7 @@ bool StreamingAudioManager::unregisterApp(int port)
     {
         // unregister all apps
         bool success = true;
-        for (int i = 0; i < MAX_APPS; i++)
+        for (int i = 0; i < m_maxClients; i++)
         {
             if (m_apps[i])
             {
@@ -398,7 +415,7 @@ bool StreamingAudioManager::registerUI(const char* host, quint16 port)
     }
     
     // send app/registered messages to UI for all currently-registered apps
-    for (int i = 0; i < MAX_APPS; i++)
+    for (int i = 0; i < m_maxClients; i++)
     {
         if (m_apps[i])
         {
@@ -426,7 +443,7 @@ bool StreamingAudioManager::registerUI(const char* host, quint16 port)
 bool StreamingAudioManager::unregisterUI(const char* host, quint16 port)
 {
     // unsubscribe the UI from all apps
-    for (int i = 0; i < MAX_APPS; i++)
+    for (int i = 0; i < m_maxClients; i++)
     {
         if (m_apps[i])
         {
@@ -459,7 +476,7 @@ bool StreamingAudioManager::registerRenderer(const char* hostname, quint16 port)
     }
     
     // send /sam/stream/add messages to renderer for all currently-registered apps
-    for (int i = 0; i < MAX_APPS; i++)
+    for (int i = 0; i < m_maxClients; i++)
     {
         if (m_apps[i])
         {
@@ -1533,7 +1550,7 @@ int StreamingAudioManager::jack_process(jack_nframes_t nframes)
     // check if any app is solo'd (TODO: store this info so we don't have to iterate every time??)
     // also check for any apps that should be deleted
     bool soloNext = false;
-    for (int i = 0; i < MAX_APPS; i++)
+    for (int i = 0; i < m_maxClients; i++)
     {
         if (m_apps[i])
         {
@@ -1551,7 +1568,7 @@ int StreamingAudioManager::jack_process(jack_nframes_t nframes)
     }
     
     // have all apps do their own processing
-    for (int i = 0; i < MAX_APPS; i++)
+    for (int i = 0; i < m_maxClients; i++)
     {
         if (m_apps[i] && m_appState[i] == ACTIVE) // TODO: maybe only need to check app state? but this is safer...
         {
@@ -1922,7 +1939,7 @@ void StreamingAudioManager::cleanupApp(int port, int type)
 
 void StreamingAudioManager::notifyMeter()
 {
-    for (int i = 0; i < MAX_APPS; i++)
+    for (int i = 0; i < m_maxClients; i++)
     {
         if (m_apps[i])
         {
@@ -1986,7 +2003,7 @@ void StreamingAudioManager::print_debug()
     jack_free(portNames);
 
     qWarning("\nSAM clients:");
-    for (int i = 0; i < MAX_APPS; i++)
+    for (int i = 0; i < m_maxClients; i++)
     {
         if (m_apps[i])
         {
