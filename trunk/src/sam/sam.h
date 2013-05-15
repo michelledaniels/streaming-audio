@@ -43,6 +43,7 @@ struct SamParams
     QList<unsigned int> basicChannels; ///< list of basic channels to use
     QList<unsigned int> discreteChannels; ///< list of discrete channels to use
     int maxClients;        ///< maximum number of clients that can be connected simultaneously
+    float meterIntervalMillis; ///< milliseconds between meter broadcasts to subscribers
 };
 
 /**

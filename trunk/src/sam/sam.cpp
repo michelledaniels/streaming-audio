@@ -28,8 +28,6 @@ static const int OUTPUT_ENABLED_BASIC = -1;
 static const int OUTPUT_ENABLED_DISCRETE = -2;
 static const int OUTPUT_DISABLED = -3;
 
-static const float METER_INTERVAL_MILLIS = 1000;
-
 using sam::StreamingAudioType;
 
 StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
@@ -89,7 +87,7 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_delayMax = int(m_sampleRate * (params.maxDelayMillis / 2000.0f)); // allocate half of max available delay for apps, half for global delay
     setDelay(params.delayMillis);
 
-    m_meterInterval = int(m_sampleRate * (METER_INTERVAL_MILLIS / 1000.0f));
+    m_meterInterval = int(m_sampleRate * (params.meterIntervalMillis / 1000.0f));
 
     connect(this, SIGNAL(meterTick()), this, SLOT(notifyMeter()));
     connect(&m_udpSocket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
