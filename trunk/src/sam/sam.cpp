@@ -100,6 +100,7 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
         address->host.setAddress(params.renderHost);
         address->port = params.renderPort;
         m_renderer = address;
+        qWarning("Auto-registered renderer at host %s, port %u", params.renderHost, params.renderPort);
     }
 
     m_basicChannels.append(params.basicChannels);
@@ -1695,7 +1696,7 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
             if (!appPortName) return false;
 
             // connect the port to the next available output
-            m_apps[port]->setChannelAssignment(ch, m_basicChannels[ch] - 1);
+            m_apps[port]->setChannelAssignment(ch, m_basicChannels[ch]);
         }
         // any additional app channels won't be connected to anything
         for (int ch = numChannels; ch < channels; ch++)
@@ -1722,7 +1723,7 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
             {
                 qDebug("StreamingAudioManager::allocate_output_ports m_outputUsed[%d] = %d", k, m_outputUsed[k]);
                 if (m_outputUsed[k] != OUTPUT_ENABLED_DISCRETE) continue;
-                m_apps[port]->setChannelAssignment(ch, k);
+                m_apps[port]->setChannelAssignment(ch, k + 1);
                 m_outputUsed[k] = port;
                 nextFreeOutput = k + 1; // for the next port don't search the slots we already searched
                 portFound = true;
@@ -1765,11 +1766,11 @@ bool StreamingAudioManager::connect_app_ports(int port, const int* outputPorts)
     for (int ch = 0; ch < channels; ch++)
     {
         // check that this channel should be connected
-        if (outputPorts[ch] < 0) continue;
+        if (outputPorts[ch] <= 0) continue;
 
         // connect the app's output port to the specified physical output
         char systemOut[MAX_PORT_NAME];
-        snprintf(systemOut, MAX_PORT_NAME, "%s:%s%d", m_outputJackClientName, m_outputJackPortBase, outputPorts[ch] + 1 + m_outputPortOffset);
+        snprintf(systemOut, MAX_PORT_NAME, "%s:%s%d", m_outputJackClientName, m_outputJackPortBase, outputPorts[ch] + m_outputPortOffset);
         // TODO: handle case where system ports have non-standard names (is this possible?)?
         const char* appPortName = m_apps[port]->getOutputPortName(ch);
         if (!appPortName) return false;
