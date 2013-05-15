@@ -95,9 +95,10 @@ public:
      * @param samIP the IP address of SAM
      * @param samPort SAM's OSC port
      * @param replyPort this client's port to listen on (if NULL, a port will be randomly chosen)
+     * @param payloadType PAYLOAD_PCM_16, PAYLOAD_PCM_24, or PAYLOAD_PCM_32
      * @see ~StreamingAudioClient
      */
-    StreamingAudioClient(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort = 0);
+    StreamingAudioClient(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort = 0, quint8 payloadType = PAYLOAD_PCM_16);
     
     /**
      * StreamingAudioClient destructor.
@@ -305,6 +306,7 @@ private:
     char* m_name;
     char* m_samIP;
     quint16 m_samPort;
+    quint8 m_payloadType;
 
     // for OSC
     quint16 m_replyPort;              ///< OSC port for this client
