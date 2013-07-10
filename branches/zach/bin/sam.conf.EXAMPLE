@@ -1,0 +1,15 @@
+[General]
+SampleRate=48000
+BufferSize=256
+JackDriver=coreaudio
+OscPort=7770
+RtpPort=4464
+UseGui=false
+Volume=1.0
+DelayMillis=0
+MaxDelayMillis=2000
+RenderHost=127.0.0.1
+RenderPort=7778
+PacketQueueSize=4
+BasicChannels="1-2"
+DiscreteChannels="3,4-7,8-10,11,12"
