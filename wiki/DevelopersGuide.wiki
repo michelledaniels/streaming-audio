@@ -7,22 +7,35 @@
 
 [OSCMessages Comprehensive List of OSC Messages (trunk)]
 
-The following documentation refers to the current release of SAM and the SAM client library (version 0.4).
-
 == Developing Clients ==
 
 == Developing Renderers ==
+Renderers provide advanced rendering modes to extend SAM functionality. For example, when using SAM to provide audio for large-scale tiled display environments such as SAGE, a renderer can be used to spatially align audio with a client's visual image.  
+
+Internally, SAM understands two types of output: basic and discrete.  Clients using basic output (always rendering type 0) are all mixed down to the basic output channels specified in the SAM config file (typically two channels).  Clients using discrete output (non-zero rendering type) are allocated output channels and sent discretely to the renderer with no mixing in SAM.
+In this version of SAM (v0.4), only one renderer may be registered with SAM at any given time.  However, that renderer is allowed to support different rendering modes/types.
+
+=== Connecting SAM and a Renderer ===
+The renderer may run on a separate machine from SAM, in which case the two machines must be connected by physical audio interfaces and cables, and the number of clients which can use discrete rendering is limited by the number of physical channels connecting the two machines.  Alternatively, the renderer may run on the same machine as SAM.  In this case, routing between SAM and the renderer is performed using JACK.  The renderer should be running before SAM in this case, and the SAM config file must specify the renderer's JACK client name and how it names its ports.  
+
+=== Registering a Renderer ===
+The renderer must register with SAM in order to receive notifications of clients added or removed.  The OSC messages used for SAM/renderer communication can be found [OSCMessages_0_4#SAM/Renderer_Messages here].  SAM can auto-register an already-running renderer at startup time if the renderer's IP address and OSC listening port are specified in the SAM config file.  If a renderer receives a `/sam/render/regdeny` message when attempting to register, you should confirm that the SAM config file does not specify a renderer for auto-registration, since only one renderer can be registered at a time. 
+
+=== Adding a Client ===
+When a new client registers with SAM, SAM notifies the renderer and tells the renderer what type of rendering the client has requested and what output channels SAM has allocated for that client (note that the client's allocated channels can be non-consecutive).  The renderer must know how SAM's output channels are connected to its own input channels so it knows what input channels that client's audio will arrive on.  The renderer is then responsible for rendering the client audio in the requested manner.
+
 
 == Developing User Interfaces ==
-SAM UIs communicate with SAM using Open Sound Control (OSC) messages.  OSC messages can be sent to SAM over UDP or over TCP using SLIP encoding.  Currently, all OSC messages sent from SAM to a UI use UDP.
+SAM UIs communicate with SAM using Open Sound Control (OSC) messages.  OSC messages can be sent over UDP or over TCP using SLIP encoding.  
 
 === Registering a UI with SAM ===
 A UI must register with SAM in order to receive notifications of clients being added or removed as well as global parameter updates (volume changed etc.).  The format of the OSC messages for registering and unregistering a UI can be found [OSCMessages_0_4#SAM/UI_Messages here].
 
 === Subscribing to Parameter Changes ===
-When a client is added, SAM notifies all registered UIs and provides a unique ID for the client.  If a UI wishes to receive notifications when that client's parameters change, the UI must subscribe to the parameters of interest using the OSC messages listed [OSCMessages_0_4#Subscribing_to_Changes here].  All subscription messages require the unique ID for the client to which the UI wishes to subscribe.  
+When a client is added, SAM notifies all registered UIs and provides a unique ID for the client. If a UI wishes to receive notifications when that client's parameters change, the UI must subscribe to the parameters of interest using the OSC messages listed [OSCMessages_0_4#Subscribing_to_Changes here]. All subscription messages require the unique ID for the client to which the UI wishes to subscribe.
 
-Subscribers are notified when a parameter has changed using `/sam/val` messages described [OSCMessages_0_4#Getting_Parameters here].  To request the current value of a parameter at other times, the `/sam/get` messages listed [OSCMessages_0_4#Getting_Parameters here] can also be used.  Metering updates are broadcast once per second.  UIs can unsubscribe from parameter notifications using the messages [OSCMessages_0_4#Unsubscribing_from_Changes here].
+Subscribers are notified when a parameter has changed using `/sam/val` messages described [OSCMessages_0_4#Getting_Parameters here]. To request the current value of a parameter at other times, the `/sam/get` messages listed [OSCMessages_0_4#Getting_Parameters here] can also be used. Metering updates are broadcast once per second. UIs can unsubscribe from parameter notifications using the messages [OSCMessages_0_4#Unsubscribing_from_Changes here].
+
 
 === Setting Parameter Values ===
-The `/sam/set` messages listed [OSCMessages_0_4#Setting_Parameters here] can be used to set the value of a parameter.  Global parameters are set by using an id of -1, while client parameters are set using the unique client ID provided to the UI when the client was added.
+The `/sam/set` messages listed [OSCMessages_0_4#Setting_Parameters here] can be used to set the value of a parameter. Global parameters are set by using an id of -1, while client parameters are set using the unique client ID provided to the UI when the client was added.
