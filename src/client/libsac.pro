@@ -31,14 +31,20 @@ CONFIG += staticlib
 CONFIG -= warn_on
 DEFINES += QT_NO_DEBUG_OUTPUT
 
-# For version without JACK, uncomment the next line
-#DEFINES += SAC_NO_JACK
-contains(DEFINES, SAC_NO_JACK) {
-    message(libsac: SAC_NO_JACK defined: building without JACK...)
+# For version without JACK, uncomment the next two lines
+DEFINES += SAC_MAX_PD
+DEFINES += SAC_NO_JACK
+contains(DEFINES, SAC_MAX_PD) {
+    message(libsac: SAC_MAX_PD defined: building without JACK...)
 }
 else {
-    message(libsac: building with JACK...)
-    LIBS += -ljack
+    contains(DEFINES, SAC_NO_JACK) {
+         message(libsac: SAC_NO_JACK defined: building without JACK...)
+    }
+    else {
+        message(libsac: building with JACK...)
+        LIBS += -ljack
+    }
 }
 
 SOURCES += \

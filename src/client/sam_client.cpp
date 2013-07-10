@@ -144,6 +144,7 @@ int StreamingAudioClient::init(unsigned int numChannels, StreamingAudioType type
     m_samIP = new char[len + 1];
     strncpy(m_samIP, samIP, len + 1);
 
+    #ifndef SAC_MAX_PD
     // need an instance of QCoreApplication for the event loop to run - check if one already exists
     if (!qApp)
     {
@@ -152,6 +153,7 @@ int StreamingAudioClient::init(unsigned int numChannels, StreamingAudioType type
         (void) new QCoreApplication(argc, argv);
         qDebug("Instantiated QCoreApplication for event loop");
     }
+    #endif
     return SAC_SUCCESS;
 }
 
@@ -215,7 +217,31 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
     }
     
     return ((m_port >= 0) ? SAC_SUCCESS : SAC_REQUEST_DENIED);
-}       
+}
+    
+int StreamingAudioClient::stop()
+{
+    // unregister with SAM
+    if (m_port >= 0)
+    {
+        OscMessage msg;
+        msg.init("/sam/app/unregister", "i", m_port);
+        if (!OscClient::sendFromSocket(&msg, &m_socket))
+        {
+            qWarning("StreamingAudioClient::~StreamingAudioClient() Couldn't send OSC message");
+        }
+        m_port = -1;
+    }
+    
+    m_socket.disconnect();
+    
+    if (m_interface) // stop interface
+    {
+        m_interface->stop();
+    }
+    
+    return ((m_port == -1) ? SAC_SUCCESS : SAC_REQUEST_DENIED);
+}
 
 int StreamingAudioClient::setMute(bool isMuted)
 {
@@ -357,7 +383,9 @@ int StreamingAudioClient::setPhysicalInputs(unsigned int* inputChannels)
     
     if (!m_interface) return SAC_ERROR;
     
-#ifdef SAC_NO_JACK
+#ifdef SAC_MAX_PD
+    return SAC_ERROR; // physical inputs not supported
+#elif defined SAC_NO_JACK
     return SAC_ERROR; // physical inputs not supported
 #else
     // TODO: handle this casting better, or eliminate it??
@@ -502,7 +530,9 @@ void StreamingAudioClient::handle_regconfirm(int port, unsigned int sampleRate, 
     
     
     // init audio interface
-#ifdef SAC_NO_JACK
+#ifdef SAC_MAX_PD
+    m_interface = new MaxPdAudioInterface(m_channels, bufferSize, sampleRate);
+#elif defined SAC_NO_JACK
     m_interface = new VirtualAudioInterface(m_channels, bufferSize, sampleRate);
 #else
     // write the JACK client name

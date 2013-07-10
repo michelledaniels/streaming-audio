@@ -83,6 +83,71 @@ bool SacAudioInterface::setAudioCallback(AudioInterfaceCallback callback, void* 
     return true;
 }
 
+#ifdef SAC_MAX_PD
+// ------------------- MaxPdAudioInterface implementation -------------------
+
+MaxPdAudioInterface::MaxPdAudioInterface(unsigned int channels, unsigned int bufferSamples, unsigned int sampleRate) :
+SacAudioInterface(channels, bufferSamples, sampleRate),
+m_shouldQuit(false)
+{
+    
+}
+
+MaxPdAudioInterface::~MaxPdAudioInterface()
+{
+    stop();
+}
+
+bool MaxPdAudioInterface::go()
+{
+    m_shouldQuit = false;
+    return true;
+}
+
+bool MaxPdAudioInterface::stop()
+{
+    if (m_shouldQuit) return true; // already stopped?
+    
+    m_shouldQuit = true;
+    qDebug("MaxAudioInterface::stop requested stop");
+    return true;
+}
+
+int MaxPdAudioInterface::process_audio(unsigned int nframes, float** maxpd_audioIn, bool dspState)
+{
+    // grab input audio from Max/Pd external
+    for (unsigned int ch = 0; ch < m_channels; ch++)
+    {
+        if (dspState)
+        {
+            float* in = maxpd_audioIn[ch];
+            for (unsigned int n = 0; n < nframes; n++)
+            {
+                m_audioIn[ch][n] = in[n];
+            }
+        }
+        else
+        {
+            qDebug("MaxPdAudioInterface::process_audio input buffer was null!");
+            // use zeros if an error occurred
+            // TODO: handle this error differently??
+            for (unsigned int ch = 0; ch < m_channels; ch++)
+            {
+                memset(m_audioIn[ch], 0, nframes * sizeof(float));
+            }
+        }
+    }
+    
+    // call registered callback with input data
+    if (!m_audioCallback(m_channels, nframes, m_audioIn, NULL, m_audioCallbackArg))
+    {
+        qDebug("MaxPdAudioInterface::process_audio error occurred calling registered audio callback with input data");
+    }
+    
+    return 0;
+}
+
+#elif defined SAC_NO_JACK
 // ------------------- VirtualAudioInterface implementation -------------------
 
 VirtualAudioInterface::VirtualAudioInterface(unsigned int channels, unsigned int bufferSamples, unsigned int sampleRate) :
@@ -147,8 +212,9 @@ bool VirtualAudioInterface::stop()
     
     return true;
 }
+    
 
-#ifndef SAC_NO_JACK
+#else
 // ------------------- JackAudioInterface implementation -------------------
 
 JackAudioInterface::JackAudioInterface(unsigned int channels, unsigned int bufferSamples, unsigned int sampleRate, const char* clientName) :
@@ -526,6 +592,6 @@ void JackAudioInterface::jack_shutdown(void*)
     // TODO: pass this error along to parent app?
 }
 
-#endif // SAC_NO_JACK
+#endif // SAC_MAX_PD, SAC_NO_JACK
 
 } // end of namespace sam
