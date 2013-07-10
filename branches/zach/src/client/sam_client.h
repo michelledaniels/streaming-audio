@@ -141,6 +141,12 @@ public:
     int start(int x, int y, int width, int height, int depth, unsigned int timeout = SAC_DEFAULT_TIMEOUT);
     
     /**
+     * Unregister this client with SAM and stop sending audio.
+     * @return 0 on success, a non-zero SACReturn code on failure
+     */
+    int stop();
+    
+    /**
      * Find out how many channels of physical audio inputs are available to this client.
      * @return the number of physical audio inputs available
      */
@@ -249,6 +255,12 @@ public:
      */
     bool isRunning() { return (m_port >= 0); }
 
+    /**
+     * Get audio interface.
+     * @return the audio interface or NULL if uninitialized
+     */
+    SacAudioInterface* getAudioInterface() { if (m_interface) return m_interface; else return NULL; }
+    
 public slots:
     /**
      * Handle an incoming OSC message

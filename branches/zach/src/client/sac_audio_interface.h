@@ -14,8 +14,10 @@
 #include <errno.h>
 #endif
 
+#ifndef SAC_MAX_PD
 #include <QElapsedTimer>
 #include <QThread>
+#endif
 
 namespace sam
 {
@@ -103,6 +105,67 @@ protected:
     float** m_audioOut;                     ///< output audio buffer
 };
 
+#ifdef SAC_MAX_PD
+/**
+ * @class MaxPdAudioInterface
+ * @author Zachary Seldess
+ * @date 2013
+ *
+ * This SacAudioInterface encapsulates Max/Pd DSP routine functionality to drive audio.
+ */
+class MaxPdAudioInterface : public SacAudioInterface
+{
+public:
+    /**
+     * MaxPdAudioInterface constructor.
+     * @param channels number of output audio channels this interface will support
+     * @param bufferSamples number of samples per audio buffer/clock tick
+     * @param sampleRate sampling rate the interface will run at
+     * @see ~MaxPdAudioInterface
+     */
+    MaxPdAudioInterface(unsigned int channels, unsigned int bufferSamples, unsigned int sampleRate);
+    
+    /**
+     * MAxAudioInterface destructor.
+     * @see MaxAudioInterface
+     */
+    virtual ~MaxPdAudioInterface();
+    
+    /**
+     * Copy constructor (not used).
+     */
+    MaxPdAudioInterface(const MaxPdAudioInterface&);
+    
+    /**
+     * Assignment operator (not used).
+     */
+    MaxPdAudioInterface& operator=(const MaxPdAudioInterface);
+    
+    /**
+     * Start running this interface.
+     * @return true on success, false on failure
+     */
+    virtual bool go();
+    
+    /**
+     * Stop running this interface.
+     * @return true on success, false on failure
+     */
+    virtual bool stop();
+    
+    /**
+     * Max/Pd process callback
+     * @param maxpd_audioIn 2D poiner array to input channels
+     * @return 0 on success, non-zero on failure
+     */
+    int process_audio(unsigned int nframes, float** maxpd_audioIn, bool dspState);
+    
+protected:
+    
+    bool m_shouldQuit;          ///< flag: true if the interface thread should stop running
+};
+
+#elif defined SAC_NO_JACK
 /**
  * @class VirtualAudioInterface
  * @author Michelle Daniels
@@ -163,9 +226,8 @@ protected:
     
     bool m_shouldQuit;          ///< flag: true if the interface thread should stop running
 };
-
-#ifndef SAC_NO_JACK
-
+    
+#else
 /**
  * @class JackAudioInterface
  * @author Michelle Daniels
@@ -316,8 +378,8 @@ protected:
     char* m_clientName;               ///< JACK client name
    
 };
-#endif // SAC_NO_JACK
-
+#endif // SAC_MAX_PD, SAC_NO_JACK
+    
 } // end of namespace sam
 
 #endif // SACAUDIOINTERFACE_H
