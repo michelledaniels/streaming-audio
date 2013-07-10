@@ -11,4 +11,8 @@
 
 == Developing Renderers ==
 
-== Developing UIs ==
+== Developing User Interfaces ==
+SAM UIs communicate with SAM using Open Sound Control (OSC) messages.  OSC messages can be sent over UDP or over TCP using SLIP encoding.  
+
+=== Registering a UI with SAM ===
+A UI must register with SAM in order to receive notifications of clients being added or removed as well as global parameter updates (volume changed etc.).  The format of the OSC messages for registering and unregistering a UI can be found [OSCMessages_0_4#SAM/UI_Messages here].
