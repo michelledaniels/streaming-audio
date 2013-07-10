@@ -13,7 +13,7 @@
 Renderers provide advanced rendering modes to extend SAM functionality. For example, when using SAM to provide audio for large-scale tiled display environments such as SAGE, a renderer can be used to spatially align audio with a client's visual image.  
 
 Internally, SAM understands two types of output: basic and discrete.  Clients using basic output (always rendering type 0) are all mixed down to the basic output channels specified in the SAM config file (typically two channels).  Clients using discrete output (non-zero rendering type) are allocated output channels and sent discretely to the renderer with no mixing in SAM.
-In this version of SAM (v0.4), only one renderer may be registered with SAM at any given time.  However, that renderer is allowed to support different rendering modes/types.
+In this version of SAM (v0.4), only one renderer may be registered with SAM at any given time.  However, that renderer is allowed to support multiple rendering modes/types.
 
 === Connecting SAM and a Renderer ===
 The renderer may run on a separate machine from SAM, in which case the two machines must be connected by physical audio interfaces and cables, and the number of clients which can use discrete rendering is limited by the number of physical channels connecting the two machines.  Alternatively, the renderer may run on the same machine as SAM.  In this case, routing between SAM and the renderer is performed using JACK.  The renderer should be running before SAM in this case, and the SAM config file must specify the renderer's JACK client name and how it names its ports.  
