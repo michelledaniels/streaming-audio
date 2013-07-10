@@ -34,7 +34,7 @@ enum StreamingAudioType
 {
     TYPE_BASIC = 0,     ///< mono sources placed in center channel or equally in left/right, stereo sources played in front left and right, surround played in surround system
     TYPE_SPATIAL,       ///< for mono and stereo sources that should be spatialized/tracked
-    TYPE_ARRAY,
+    TYPE_ARRAY,         ///< for sources that should be rendered by a speaker array
     NUM_TYPES
 };
 
@@ -44,7 +44,7 @@ enum StreamingAudioType
  */
 enum SACReturn
 {
-    SAC_SUCCESS = 0, 
+    SAC_SUCCESS = 0,    ///< Success
     SAC_REQUEST_DENIED, ///< A SAM request was denied (i.e. registration or changing type failed)
     SAC_NOT_REGISTERED, ///< Attempted to send a request to SAM before registering
     SAC_OSC_ERROR,      ///< An error occurred trying to send an OSC message to SAM or receive one from SAM
@@ -124,7 +124,7 @@ public:
      * @param samIP the IP address of SAM
      * @param samPort SAM's OSC port
      * @param replyPort this client's port to listen on (if NULL, a port will be randomly chosen)
-     * @return 0 on success, a non-zero SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int init(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort = 0);
 
@@ -136,7 +136,7 @@ public:
      * @param height the initial height of the app window
      * @param depth the initial depth of the app window
      * @param timeout response timeout time in milliseconds
-     * @return 0 on success, a non-zero SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int start(int x, int y, int width, int height, int depth, unsigned int timeout = SAC_DEFAULT_TIMEOUT);
     
@@ -149,21 +149,21 @@ public:
     /**
      * Send SAM a mute message.
      * @param isMuted whether this client should be muted or not
-     * @return 0 on success, a non-zero SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int setMute(bool isMuted);
     
     /**
      * Send SAM a global mute message.
      * @param isMuted whether all clients should be muted or not
-     * @return 0 on success, a non-zero SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int setGlobalMute(bool isMuted);
 
     /**
      * Send SAM a solo message.
      * @param isSolo whether this client should be soloed or not
-     * @return 0 on success, a non-zero SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int setSolo(bool isSolo);
 
@@ -174,7 +174,7 @@ public:
      * @param width the width of the app window
      * @param height the height of the app window
      * @param depth the depth of the app window
-     * @return 0 on success, a non-zero SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int setPosition(int x, int y, int width, int height, int depth);
     
@@ -183,28 +183,28 @@ public:
      * @param type the type of audio stream this client will send
      * @param timeout the timeout time in milliseconds after which this method will return false if no
      * response has been received from SAM.
-     * @return 0 on success, a non-zero SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int setType(StreamingAudioType type, unsigned int timeout = SAC_DEFAULT_TIMEOUT);
     
     /**
      * Send SAM a volume message.
      * @param volume the volume for the client
-     * @return 0 on success, a non-zero SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int setVolume(float volume);
     
     /**
      * Send SAM a global volume message.
      * @param volume the global volume for all clients
-     * @return 0 on success, a non-zero SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int setGlobalVolume(float volume);
     
     /**
      * Send SAM a delay message.
      * @param delay the delay for the client (in milliseconds)
-     * @return 0 on success, a non-zero SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int setDelay(float delay);
 
@@ -216,17 +216,17 @@ public:
      * pthread_mutex_lock, sleep, wait, poll, select, pthread_join, pthread_cond_wait, etc, etc.
      * @param callback the function this client will call when audio samples are needed
      * @param arg each time the callback is called it will pass this as an argument
-     * @return 0 on success, a non-zero SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int setAudioCallback(SACAudioCallback callback, void* arg);
     
     /**
      * Set physical audio inputs for this client.
-     * @param inputChannels an array (length numInputs) listing which input channel indices should 
+     * NOTE: this method must be called AFTER registering otherwise it will fail.
+     * @param inputChannels an array (length numInputs) listing which input channel indices should
      * be used.  The length of inputChannels should be equal to the number of channels specified in
      * the constructor for this SAC.  The channel indices should be 1-indexed.
-     * NOTE: this method must be called AFTER registering otherwise it will fail.
-     * @return 0 on success, a non-zero SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int setPhysicalInputs(unsigned int* inputChannels);
             
