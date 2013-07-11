@@ -15,8 +15,37 @@ Two example SAM clients are available in the src/client/examples directory.  The
 
 
 === Initializing a Client ===
+{{{
+StreamingAudioClient sac;
+if (sac.init(numChannels, type, name, samIP, samPort) != SAC_SUCCESS)
+{
+    printf("Couldn't initialize client");
+}
+
+}}}
 
 === The Streaming Audio Callback ===
+The streaming audio callback is called each time the client is ready to send a buffer of samples to SAM.  Inside, you can generate your own audio, pull audio from physical inputs, copy audio from another sample buffer, etc.
+{{{
+bool sac_audio_callback(unsigned int nChannels, unsigned int nFrames, float** out, void* data)
+{
+    // play silence
+    for (unsigned int ch = 0; ch < nChannels; ch++)
+    {
+        for (unsigned int n = 0; n < nFrames; n++)
+        {
+            out[ch][n] = 0.0f;
+        }
+    }
+    return true;
+}
+}}}
+
+Then register the audio callback with your `StreamingAudioClient`:
+{{{
+sac.setAudioCallback(sac_audio_callback, NULL);
+}}}
+As with other callbacks, the second parameter to `setAudioCallback` is a pointer to data that the client will pass you each time the callback is called.  If you have no need to maintain state between callbacks, pass `NULL` as the second parameter.
 
 === Streaming From Physical Audio Inputs ===
 
