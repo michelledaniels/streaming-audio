@@ -48,12 +48,37 @@ sac.setAudioCallback(sac_audio_callback, NULL);
 As with other callbacks, the second parameter to `setAudioCallback` is a pointer to data that the client will pass you each time the callback is called.  If you have no need to maintain state between callbacks, pass `NULL` as the second parameter.
 
 === Streaming From Physical Audio Inputs ===
+To create a client that will stream audio directly from the physical audio inputs of the machine, you can write an audio callback which will pull audio from those inputs.  Alternatively, the streaming audio client library provides a built-in method for doing exactly that.  To use it, do not register an audio callback. Instead, use the following:
+{{{
+sac.setPhysicalInputs(inputChannels);
+}}}
+Here, `inputChannels` is an array of `unsigned int`s indicating the input channels that will be used.  
+
+The call to `setPhysicalInputs` must be made after the client has already been initialized and started and will return an error otherwise.
 
 === Starting a Client ===
+After successfully initializing the client, the client must be started:
+{{{
+if (sac.start(x, y, width, height, depth, timeout) != SAC_SUCCESS)
+{
+    printf("Couldn't start client");
+}
+
+}}}
+
+Starting the client initiates the process of registering with SAM using OSC over TCP.  The method then blocks waiting for a response from SAM.  You can specify a timeout (in milliseconds) for the blocking/waiting, after which point `start` will return an error code indicating that it has timed out and did not receive a response from SAM.  If starting was successful, a TCP connection between the client and SAM remains in place for the exchange of OSC messages until the client is stopped.
+
+=== Position Information ===
+
+The position data passed to `start` is intended to provide the current position of a client's corresponding video for use in advanced rendering modes.  If your client has no corresponding video or image, or has no need of spatial rendering, those parameters will be ignored.  If you do wish to take advantage of spatial rendering modes that rely on position information, then whenever your client changes position you must update SAM:
+{{{
+sac.setPosition(x, y, width, height, depth);
+}}}
 
 === Stopping a Client ===
+To stop a client, simply destroy the StreamingAudioClient object.  This will cause the client to unregister with SAM and clean itself up neatly.  If your application crashes and the StreamingAudioClient destructor is never called, your app may remain registered with SAM.  However, SAM should detect that its TCP connection with the client has been disconnected and correctly unregister the client.  
 
-
+Note that unregistering a client with SAM causes the client's unique ID to be released for reuse by another client and loses information about parameters set for that client in SAM (volume, mute, delay, etc.).  SAM currently has no concept of "pausing" a client, so if you don't wish to unregister your client but simply have no audio data to send, you should have your audio callback send silence to SAM until more audio data is available.
 
 == Developing Renderers ==
 Renderers provide advanced rendering modes to extend SAM functionality. For example, when using SAM to provide audio for large-scale tiled display environments such as SAGE, a renderer can be used to spatially align audio with a client's visual image.  
