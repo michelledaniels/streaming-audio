@@ -48,7 +48,7 @@ sac.setAudioCallback(sac_audio_callback, NULL);
 As with other callbacks, the second parameter to `setAudioCallback` is a pointer to data that the client will pass you each time the callback is called.  If you have no need to maintain state between callbacks, pass `NULL` as the second parameter.
 
 === Streaming From Physical Audio Inputs ===
-To create a client that will stream audio directly from the physical audio inputs of the machine, you can write an audio callback which will pull audio from those inputs.  Alternatively, the streaming audio client library provides a built-in method for doing exactly that.  To use it, do not register an audio callback. Instead, use the following:
+To create a client that will stream audio directly from the physical audio inputs of the machine, you can write an audio callback which will pull audio from those inputs.  Alternatively, the streaming audio client library provides a built-in method for doing exactly that when using JACK.  To use it, do not register an audio callback. Instead, use the following:
 {{{
 sac.setPhysicalInputs(inputChannels);
 }}}
