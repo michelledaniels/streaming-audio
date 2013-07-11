@@ -15,7 +15,10 @@ Two example SAM clients are available in the src/client/examples directory.  The
 
 
 === Initializing a Client ===
+To initialize a client, you must provide the number of channels of audio you wish to send to SAM, the rendering type for this client, a user-readable name for the client (for use in UIs, for example), the IP address of the SAM instance this client will connect to, and the port on which the SAM instance is listening for OSC messages.
 {{{
+#include "sam_client.h"
+using namespace sam;
 StreamingAudioClient sac;
 if (sac.init(numChannels, type, name, samIP, samPort) != SAC_SUCCESS)
 {
@@ -23,6 +26,8 @@ if (sac.init(numChannels, type, name, samIP, samPort) != SAC_SUCCESS)
 }
 
 }}}
+
+Note that `StreamingAudioClient` is in the `sam` namespace.
 
 === The Streaming Audio Callback ===
 The streaming audio callback is called each time the client is ready to send a buffer of samples to SAM.  Inside, you can generate your own audio, pull audio from physical inputs, copy audio from another sample buffer, etc.
@@ -76,7 +81,7 @@ sac.setPosition(x, y, width, height, depth);
 }}}
 
 === Stopping a Client ===
-To stop a client, simply destroy the StreamingAudioClient object.  This will cause the client to unregister with SAM and clean itself up neatly.  If your application crashes and the StreamingAudioClient destructor is never called, your app may remain registered with SAM.  However, SAM should detect that its TCP connection with the client has been disconnected and correctly unregister the client.  
+To stop a client, simply destroy the `StreamingAudioClient` object.  This will cause the client to unregister with SAM and clean itself up neatly.  If your application crashes and the `StreamingAudioClient` destructor is never called, your app may remain registered with SAM.  However, SAM should detect that its TCP connection with the client has been disconnected and correctly unregister the client.  
 
 Note that unregistering a client with SAM causes the client's unique ID to be released for reuse by another client and loses information about parameters set for that client in SAM (volume, mute, delay, etc.).  SAM currently has no concept of "pausing" a client, so if you don't wish to unregister your client but simply have no audio data to send, you should have your audio callback send silence to SAM until more audio data is available.
 
