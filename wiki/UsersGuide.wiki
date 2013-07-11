@@ -20,7 +20,7 @@ make install
 
 This will install the `sam`, `saminput`, and `samugen` console applications in `/usr/local/bin`.
 
-NOTE: if you are running Linux, depending on your distribution you may need to replace `qmake` with `qmake-qt4` in the configure script, as `qmake` often refers to Qt 3.  In the future this should be automated.
+NOTE: On some Linux distributions, `qmake` for Qt 4 is called `qmake-qt4` and `qmake` refers to Qt 3.  The configure script attempts to use the correct version of `qmake` for your system, but if you encounter strange `qmake` errors, you might want to double-check this.
 
 == Using SAM ==
 SAM is a highly-configurable console application.  Parameters can be specified in a file called sam.conf, which should be located in whatever directory SAM is run from.  Some parameters can be overridden on the command line, but the config file will provide more flexibility.
