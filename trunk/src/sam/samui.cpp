@@ -40,19 +40,13 @@ void SamUI::doBeforeQuit()
 
 void SamUI::on_startSamButton_clicked()
 {
-    /*if (m_sam)
+    if (m_sam)
     {
         if (!m_sam->isRunning())
         {
             qWarning("SamUI::on_startSamButton_clicked starting SAM");
-            if (!m_sam->start())
-            {
-                // TODO: display error
-            }
-            else
-            {
-                ui->startSamButton->setText("Stop SAM");
-            }
+            m_sam->start();
+            ui->startSamButton->setText("Stop SAM");
         }
         else
         {
@@ -70,24 +64,27 @@ void SamUI::on_startSamButton_clicked()
     else
     {
         // TODO: display error
-    }*/
+    }
 }
 
 void SamUI::on_actionAbout_triggered()
 {
     QMessageBox msgBox;
-    QString about("Streaming Audio Manager version ");
-    about.append(sam::VERSION_MAJOR);
-    about.append(".");
-    about.append(sam::VERSION_MINOR);
-    about.append(".");
-    about.append(sam::VERSION_PATCH);
-    about.append("\nBuilt on ");
-    about.append(__DATE__);
-    about.append(" at ");
-    about.append(__TIME__);
-    about.append("\nCopyright UCSD 2011-2012\n");
+    QString about("Streaming Audio Manager");
     msgBox.setText(about);
+    QString info("Version ");
+    info.append(QString::number(sam::VERSION_MAJOR));
+    info.append(".");
+    info.append(QString::number(sam::VERSION_MINOR));
+    info.append(".");
+    info.append(QString::number(sam::VERSION_PATCH));
+    msgBox.setText(about);
+    info.append("\nBuilt on ");
+    info.append(__DATE__);
+    info.append(" at ");
+    info.append(__TIME__);
+    info.append("\nCopyright UCSD 2011-2013\n");
+    msgBox.setInformativeText(info);
     msgBox.exec();
 }
 
