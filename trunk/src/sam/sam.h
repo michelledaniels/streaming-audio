@@ -107,11 +107,9 @@ public:
     StreamingAudioManager& operator=(const StreamingAudioManager&);
 
     /**
-     * Start this StreamingAudioManager.
-     * @return true on success, false on failure
-     * @see stop()
+     * Start this StreamingAudioManager
      */
-    bool start();
+    void start();
 
     /**
      * Stop this StreamingAudioManager.
@@ -306,6 +304,12 @@ public:
 public slots:
 
     /**
+     * Start running this StreamingAudioManager.
+     * @see stop()
+     */
+    void run();
+
+    /**
      * Clean up before quitting the application.
      * This will shutdown the JACK server.
      */
@@ -352,6 +356,11 @@ signals:
      */
     void meterTick();
     
+    /**
+     * Signal that an error occurred on startup.
+     */
+    void startupError();
+
 private:
 
     /**
@@ -592,8 +601,10 @@ private:
 
     // for OSC
     quint16 m_oscServerPort;        ///< port the OSC server will listen for messages on
-    QUdpSocket m_udpSocket;         ///< UDP socket for receiving OSC messages
-    QTcpServer m_tcpServer;         ///< The server listening for incoming TCP connections
+    QUdpSocket* m_udpSocket;        ///< UDP socket for receiving OSC messages
+    QTcpServer* m_tcpServer;        ///< The server listening for incoming TCP connections
+
+    QThread* m_samThread;           ///< Thread for SAM's event loop
 }; 
 
 #endif // SAM_H

@@ -40,7 +40,7 @@ void SamUI::doBeforeQuit()
 
 void SamUI::on_startSamButton_clicked()
 {
-    if (m_sam)
+    /*if (m_sam)
     {
         if (!m_sam->isRunning())
         {
@@ -70,7 +70,7 @@ void SamUI::on_startSamButton_clicked()
     else
     {
         // TODO: display error
-    }
+    }*/
 }
 
 void SamUI::on_actionAbout_triggered()

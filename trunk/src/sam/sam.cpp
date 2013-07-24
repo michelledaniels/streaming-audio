@@ -62,7 +62,10 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_delayCurrent(0),
     m_delayNext(0),
     m_delayMax(0),
-    m_oscServerPort(params.oscPort)
+    m_oscServerPort(params.oscPort),
+    m_udpSocket(NULL),
+    m_tcpServer(NULL),
+    m_samThread(NULL)
 {
     m_apps = new StreamingAudioApp*[m_maxClients];
     m_appState = new SamAppState[m_maxClients];
@@ -90,8 +93,6 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_meterInterval = int(m_sampleRate * (params.meterIntervalMillis / 1000.0f));
 
     connect(this, SIGNAL(meterTick()), this, SLOT(notifyMeter()));
-    connect(&m_udpSocket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
-    connect(&m_tcpServer, SIGNAL(newConnection()), this, SLOT(handleTcpConnection()));
 
     if (params.renderHost && strlen(params.renderHost) > 0 && params.renderPort > 0)
     {
@@ -105,6 +106,11 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
 
     m_basicChannels.append(params.basicChannels);
     m_discreteChannels.append(params.discreteChannels);
+
+    m_samThread = new QThread();
+    moveToThread(m_samThread);
+    connect(m_samThread, SIGNAL(started()), this, SLOT(run()));
+    connect(m_samThread, SIGNAL(finished()), m_samThread, SLOT(deleteLater()));
 }
 
 StreamingAudioManager::~StreamingAudioManager()
@@ -138,28 +144,40 @@ StreamingAudioManager::~StreamingAudioManager()
     }
 }
 
-bool StreamingAudioManager::start()
+void StreamingAudioManager::start()
+{
+    m_samThread->start();
+}
+
+void StreamingAudioManager::run()
 {
     if (m_isRunning)
     {
-        qWarning("StreamingAudioManager::start() SAM is already running");
-        return false;
+        qWarning("StreamingAudioManager::run() SAM is already running");
+        return;
     }
 
+    m_udpSocket = new QUdpSocket(this);
+    m_tcpServer = new QTcpServer(this);
+    connect(m_udpSocket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+    connect(m_tcpServer, SIGNAL(newConnection()), this, SLOT(handleTcpConnection()));
+
     // bind OSC sockets
-    if (!m_tcpServer.listen(QHostAddress::Any, m_oscServerPort))
+    if (!m_tcpServer->listen(QHostAddress::Any, m_oscServerPort))
     {
-        qWarning("StreamingAudioManager::start() TCP server couldn't listen on port %d", m_oscServerPort);
-        return false;
+        qWarning("StreamingAudioManager::run() TCP server couldn't listen on port %d", m_oscServerPort);
+        emit startupError();
+        return;
     }
-    qDebug("StreamingAudioManager::start() TCP server listening on port %d for OSC messages", m_oscServerPort);
+    qDebug("StreamingAudioManager::run() TCP server listening on port %d for OSC messages", m_oscServerPort);
     
-    if (!m_udpSocket.bind(m_oscServerPort))
+    if (!m_udpSocket->bind(m_oscServerPort))
     {
-        qWarning("StreamingAudioManager::start() UDP socket couldn't bind to port %d: %s", m_oscServerPort, m_udpSocket.errorString().toAscii().data());
-        return false;
+        qWarning("StreamingAudioManager::run() UDP socket couldn't bind to port %d: %s", m_oscServerPort, m_udpSocket->errorString().toAscii().data());
+        emit startupError();
+        return;
     }
-    qDebug("StreamingAudioManager::start() UDP socket binded successfully to port %d.  Now listening for OSC messages.", m_oscServerPort);
+    qDebug("StreamingAudioManager::run() UDP socket binded successfully to port %d.  Now listening for OSC messages.", m_oscServerPort);
     
     // TODO: verify valid sample rate and buffer size
     
@@ -175,12 +193,17 @@ bool StreamingAudioManager::start()
         if (!start_jack(m_sampleRate, m_bufferSize, m_outputPortOffset + m_maxOutputChannels, m_jackDriver))
         {
             qWarning("Couldn't start JACK server process");
-            return false;
+            emit startupError();
+            return;
         }
     }
 
     // open jack client
-    if (!open_jack_client()) return false;
+    if (!open_jack_client())
+    {
+        emit startupError();
+        return;
+    }
 
     // verify that JACK is running at correct sample rate and buffer size
     jack_nframes_t bufferSize = jack_get_buffer_size(m_client);
@@ -188,12 +211,14 @@ bool StreamingAudioManager::start()
     if (bufferSize != (unsigned int)m_bufferSize)
     {
         qWarning("Expected JACK running with buffer size %d, but actual buffer size is %d", m_bufferSize, bufferSize);
-        return false;
+        emit startupError();
+        return;
     }
     if (sampleRate != (unsigned int)m_sampleRate)
     {
         qWarning("Expected JACK running with sample rate %d, but actual sample rate is %d", m_sampleRate, sampleRate);
-        return false;
+        emit startupError();
+        return;
     }
 
     // register jack callbacks
@@ -204,20 +229,24 @@ bool StreamingAudioManager::start()
     jack_on_shutdown(m_client, StreamingAudioManager::jackShutdown, this);
 
     // activate client (starts processing)
-    if (jack_activate(m_client) != 0) return false;
+    if (jack_activate(m_client) != 0)
+    {
+        qWarning("Couldn't activate JACK client");
+        emit startupError();
+        return;
+    }
 
     init_physical_ports();
     
     printf("\nSAM is now running.  Send OSC messages to port %d.\n", m_oscServerPort);
 
     m_isRunning = true;
-
-    return true;
 }
 
 bool StreamingAudioManager::stop()
 {
-    qWarning("StreamingAudioManager::Stop");
+    qDebug("StreamingAudioManager::Stop");
+    qDebug() << "Thread = " << thread() << ", SAM thread = " << m_samThread;
 
     if (!m_isRunning) return false;
 
@@ -244,14 +273,33 @@ bool StreamingAudioManager::stop()
     success &= stop_jack();
     
     // stop OSC server
-    m_tcpServer.close();
-    m_udpSocket.close();
+    m_tcpServer->close();
+    m_udpSocket->close();
+
+    if (m_udpSocket)
+    {
+        delete m_udpSocket;
+        m_udpSocket = NULL;
+    }
+
+    if (m_tcpServer)
+    {
+        delete m_tcpServer;
+        m_tcpServer = NULL;
+    }
+
+    m_samThread->quit();
+    if (!m_samThread->wait(5000))
+    {
+        qWarning("Timed out waiting for SAM thread to quit");
+    }
 
     if (success)
     {
         m_isRunning = false;
-        qDebug("SAM stopped.\n");
+        qWarning("\nSAM stopped.\n");
     }
+
     return success;
 }
 
@@ -732,7 +780,7 @@ void StreamingAudioManager::jackShutdown(void*)
 void StreamingAudioManager::doBeforeQuit()
 {
     qDebug("StreamingAudioManager::doBeforeQuit");
-    stop();
+    //stop();
 }
 
 void StreamingAudioManager::handleOscMessage(OscMessage* msg, const char* sender, QAbstractSocket* socket)
@@ -1850,7 +1898,7 @@ bool StreamingAudioManager::disconnect_app_ports(int port)
 void StreamingAudioManager::handleTcpConnection()
 {
     qDebug("StreamingAudioManager::handleTcpConnection");
-    QTcpSocket* socket = m_tcpServer.nextPendingConnection();
+    QTcpSocket* socket = m_tcpServer->nextPendingConnection();
     int available = socket->bytesAvailable();
     qDebug() << "handling connection for socket " << socket << ", " << available << " bytesAvailable";
     OscTcpSocketReader* reader = new OscTcpSocketReader(socket);
@@ -1861,13 +1909,13 @@ void StreamingAudioManager::handleTcpConnection()
 
 void StreamingAudioManager::readPendingDatagrams()
 {
-    while (m_udpSocket.hasPendingDatagrams())
+    while (m_udpSocket->hasPendingDatagrams())
     {
         QByteArray datagram;
-        datagram.resize(m_udpSocket.pendingDatagramSize());
+        datagram.resize(m_udpSocket->pendingDatagramSize());
         QHostAddress sender;
         quint16 senderPort;
-        m_udpSocket.readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
+        m_udpSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
         qDebug() << "StreamingAudioManager::readPendingDatagrams UDP message = " << QString(datagram);
 
         OscMessage* oscMsg = new OscMessage();
@@ -1879,7 +1927,7 @@ void StreamingAudioManager::readPendingDatagrams()
         }
         else
         {
-            handleOscMessage(oscMsg, sender.toString().toAscii().data(), &m_udpSocket);
+            handleOscMessage(oscMsg, sender.toString().toAscii().data(), m_udpSocket);
         }
     }
 }
