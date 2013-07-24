@@ -110,7 +110,6 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_samThread = new QThread();
     moveToThread(m_samThread);
     connect(m_samThread, SIGNAL(started()), this, SLOT(run()));
-    connect(m_samThread, SIGNAL(finished()), m_samThread, SLOT(deleteLater()));
 }
 
 StreamingAudioManager::~StreamingAudioManager()
@@ -142,6 +141,7 @@ StreamingAudioManager::~StreamingAudioManager()
         delete[] m_appState;
         m_appState = NULL;
     }
+    m_samThread->deleteLater();
 }
 
 void StreamingAudioManager::start()
