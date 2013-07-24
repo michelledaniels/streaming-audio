@@ -351,14 +351,16 @@ int main(int argc, char* argv[])
         QCoreApplication::setOrganizationName("UCSD Sonic Arts");
         QCoreApplication::setOrganizationDomain("sonicarts.ucsd.edu");
         QCoreApplication::setApplicationName("Streaming Audio Manager");
+
         StreamingAudioManager sam(params);
 
         signal(SIGINT, signalhandler);
         signal(SIGTERM, signalhandler);
 
         QObject::connect(&app, SIGNAL(aboutToQuit()), &sam, SLOT(doBeforeQuit()));
+        QObject::connect(&sam, SIGNAL(startupError()), &app, SLOT(quit()));
 
-        if (!sam.start()) exit(EXIT_FAILURE);
+        sam.start();
 
         app.exec();
     }
