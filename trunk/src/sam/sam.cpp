@@ -1402,9 +1402,6 @@ void StreamingAudioManager::osc_set_volume(OscMessage* msg, const char* sender)
     float volume = arg.val.f;
     printf("Setting volume for app at port %d to %f\n\n", port, volume);
     setAppVolume(port, volume);
-
-    // if the port wasn't valid and SetAppVolume returns false, no error reply is sent because we don't have a reply port for this message.
-    // TODO: should all messages have a reply port??
 }
 
 void StreamingAudioManager::osc_set_mute(OscMessage* msg, const char* sender)
@@ -1433,8 +1430,6 @@ void StreamingAudioManager::osc_set_solo(OscMessage* msg, const char* sender)
     int solo = arg.val.i;
     printf("Setting solo for app %d to %d\n\n", port, solo);
     setAppSolo(port, solo);
-    
-    // TODO: error handling (invalid id, etc.)
 }
 
 void StreamingAudioManager::osc_set_delay(OscMessage* msg, const char* sender)
@@ -1598,8 +1593,7 @@ int StreamingAudioManager::jack_process(jack_nframes_t nframes)
         m_nextMeterNotify += m_meterInterval;
     }
 
-    // check if any app is solo'd (TODO: store this info so we don't have to iterate every time??)
-    // also check for any apps that should be deleted
+    // check if any app is solo'd or should be deleted
     bool soloNext = false;
     for (int i = 0; i < m_maxClients; i++)
     {
@@ -1750,10 +1744,6 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
         // assign a basic port for each app output channel
         for (int ch = 0; ch < numChannels; ch++)
         {
-            const char* appPortName = m_apps[port]->getOutputPortName(ch);
-            if (!appPortName) return false;
-
-            // connect the port to the next available output
             m_apps[port]->setChannelAssignment(ch, m_basicChannels[ch]);
         }
         // any additional app channels won't be connected to anything
@@ -1772,10 +1762,7 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
         int nextFreeOutput = 0;
         for (int ch = 0; ch < channels; ch++)
         {
-            const char* appPortName = m_apps[port]->getOutputPortName(ch);
-            if (!appPortName) return false;
-            
-            // connect the port to the next available output
+            // assign the next available output
             bool portFound = false;
             for (int k = nextFreeOutput; k < m_numPhysicalPortsOut; k++)
             {
@@ -1829,7 +1816,6 @@ bool StreamingAudioManager::connect_app_ports(int port, const int* outputPorts)
         // connect the app's output port to the specified physical output
         char systemOut[MAX_PORT_NAME];
         snprintf(systemOut, MAX_PORT_NAME, "%s:%s%d", m_outputJackClientName, m_outputJackPortBase, outputPorts[ch] + m_outputPortOffset);
-        // TODO: handle case where system ports have non-standard names (is this possible?)?
         const char* appPortName = m_apps[port]->getOutputPortName(ch);
         if (!appPortName) return false;
         int result = jack_connect(m_client, appPortName, systemOut);
@@ -1952,8 +1938,6 @@ void StreamingAudioManager::cleanupApp(int port, int type)
     if (type > sam::TYPE_BASIC)
     {
         // release output ports used by this app
-        // TODO: can use app's channel assigmments array to do this more efficiently
-        // TODO: should this been done from App to make sure that ports are only made available when they've been freed in JACK??
         for (int i = 0; i < m_numPhysicalPortsOut; i++)
         {
             if (m_outputUsed[i] == port)
