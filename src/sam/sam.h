@@ -527,10 +527,10 @@ private:
     int jack_process(jack_nframes_t nframes);
     
     /**
-     * initialize physical output ports 
+     * initialize output ports
      * @return true on success, false on failure
      */
-    bool init_physical_ports();
+    bool init_output_ports();
     
     /** 
      * send a /sam/stream/add message.
@@ -583,8 +583,8 @@ private:
     QList<unsigned int> m_basicChannels; ///< list of basic channels to use
     QList<unsigned int> m_discreteChannels; ///< list of discrete channels to use
 
-    int m_numPhysicalPortsOut;        ///< number of physical output ports
-    int* m_outputUsed;                ///< which physical output ports are in use (by which app)
+    int m_numOutputPorts;             ///< number of output JACK ports
+    int* m_outputUsed;                ///< which output ports are in use (by which app)
     quint16 m_rtpPort;                ///< base port to use for RTP streaming
     int m_outputPortOffset;           ///< the first channel will be offset by this amount
     char* m_outputJackClientName;     ///< jack client name to which SAM will connect outputs
