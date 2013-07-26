@@ -236,7 +236,11 @@ void StreamingAudioManager::run()
         return;
     }
 
-    init_physical_ports();
+    if (!init_physical_ports())
+    {
+        emit startupError();
+        return;
+    }
     
     printf("\nSAM is now running.  Send OSC messages to port %d.\n", m_oscServerPort);
 
@@ -1637,7 +1641,13 @@ int StreamingAudioManager::jack_process(jack_nframes_t nframes)
 bool StreamingAudioManager::init_physical_ports()
 {
     // get all jack ports that correspond to physical outputs
-    const char** outputPorts = jack_get_ports(m_client, NULL, NULL, JackPortIsInput | JackPortIsPhysical);
+    const char** outputPorts = jack_get_ports(m_client, m_outputJackClientName, NULL, JackPortIsInput);
+
+    if (!outputPorts)
+    {
+        qWarning("JACK client %s has no input ports", m_outputJackClientName);
+        return false;
+    }
 
     // count the number of physical output ports
     const char** currentPort = outputPorts;
