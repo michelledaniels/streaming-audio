@@ -1881,20 +1881,15 @@ bool StreamingAudioManager::disconnect_app_ports(int port)
         while (*conn != NULL)
         {
             const char* connName = *conn;
-            jack_port_t* connPort = jack_port_by_name(m_client, connName);
-            int portFlags = jack_port_flags(connPort);
-            if ((portFlags & JackPortIsPhysical) == JackPortIsPhysical)
+            // disconnect the port
+            if (jack_disconnect(m_client, appPortName, connName) != 0)\
             {
-                // disconnect the port
-                if (jack_disconnect(m_client, appPortName, connName) != 0)\
-                {
-                    qWarning("StreamingAudioManager::disconnect_app_ports failed to disconnect %s and %s", appPortName, connName);
-                    return false;
-                }
-                else
-                {
-                    qDebug("StreamingAudioManager::disconnect_app_ports disconnected %s and %s", appPortName, connName);
-                }
+                qWarning("StreamingAudioManager::disconnect_app_ports failed to disconnect %s and %s", appPortName, connName);
+                return false;
+            }
+            else
+            {
+                qDebug("StreamingAudioManager::disconnect_app_ports disconnected %s and %s", appPortName, connName);
             }
             conn++;
         }
