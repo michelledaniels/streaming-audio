@@ -300,6 +300,10 @@ public:
      */
     bool isRunning() { return m_isRunning; }
 
+    /**
+     * Notify receivers of JACK xruns.
+     */
+    void notifyXrun();
 
 public slots:
 
@@ -360,6 +364,11 @@ signals:
      * Signal that an error occurred on startup.
      */
     void startupError();
+
+    /**
+     * Signal that an xrun occurred.
+     */
+    void xrun();
 
 private:
 

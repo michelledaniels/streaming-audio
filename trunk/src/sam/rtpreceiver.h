@@ -68,6 +68,12 @@ public:
      */
     int receiveAudio(float** audio, int channels, int frames);
     
+public slots:
+    /**
+     * Handle a JACK xrun.
+     */
+    void handleXrun();
+
 signals:
 
     /**
