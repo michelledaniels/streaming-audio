@@ -179,8 +179,6 @@ void StreamingAudioManager::run()
     }
     qDebug("StreamingAudioManager::run() UDP socket binded successfully to port %d.  Now listening for OSC messages.", m_oscServerPort);
     
-    // TODO: verify valid sample rate and buffer size
-    
     // check for an already-running JACK server
     if (JackServerIsRunning())
     {
@@ -510,7 +508,17 @@ bool StreamingAudioManager::registerRenderer(const char* hostname, quint16 port)
 {
     if (m_renderer)
     {
-        return false; // a renderer is already registered
+        // a renderer is already registered - deny registration
+        OscMessage replyMsg;
+        replyMsg.init("/sam/render/regdeny", "i", 0);
+        OscAddress replyAddress;
+        replyAddress.host.setAddress(hostname);
+        replyAddress.port = port;
+        if (!OscClient::sendUdp(&replyMsg, &replyAddress))
+        {
+            qWarning("Couldn't send OSC message");
+        }
+        return false;
     }
     
     OscAddress* address = new OscAddress;
@@ -713,7 +721,7 @@ int StreamingAudioManager::setAppType(int port, StreamingAudioType type)
         if (!disconnect_app_ports(port)) return 0; // TODO: define error codes
         
         // release old output ports used by this app
-        // TODO: can use app's channel assigmments array to do this more efficiently ??
+        // TODO: can use app's channel assigmments array to do this more efficiently ??  Would need to save a copy before it changes above...
         for (int i = 0; i < m_numPhysicalPortsOut; i++)
         {
             if (m_outputUsed[i] == port)
@@ -771,7 +779,6 @@ int StreamingAudioManager::jackSampleRateChanged(jack_nframes_t nframes, void*)
 int StreamingAudioManager::jackXrun(void* sam)
 {
     qWarning("WARNING: JACK xrun");
-    // TODO: notify SAM of xrun and have SAM notify RTP receivers
     ((StreamingAudioManager*)sam)->notifyXrun();
     return 0;
 }
@@ -973,21 +980,7 @@ void StreamingAudioManager::handle_render_message(const char* address, OscMessag
             quint16 replyPort = arg.val.i;
 
             printf("Registering a renderer at host %s, port %d\n\n", sender, replyPort);
-            bool success = registerRenderer(sender, replyPort);
-
-            // TODO: move this code into RegisterRenderer??
-            if (!success)
-            {
-                OscMessage replyMsg;
-                replyMsg.init("/sam/render/regdeny", "i", 0);
-                OscAddress replyAddress;
-                replyAddress.host.setAddress(sender);
-                replyAddress.port = replyPort;
-                if (!OscClient::sendUdp(&replyMsg, &replyAddress))
-                {
-                    qWarning("Couldn't send OSC message");
-                }
-            }
+            registerRenderer(sender, replyPort);
         }
         else
         {
