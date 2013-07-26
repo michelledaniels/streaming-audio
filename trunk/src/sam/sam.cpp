@@ -43,7 +43,7 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_apps(NULL),
     m_appState(NULL),
     m_isRunning(false),
-    m_numPhysicalPortsOut(0),
+    m_numOutputPorts(0),
     m_outputUsed(NULL),
     m_rtpPort(params.rtpPort),
     m_outputPortOffset(params.outputPortOffset),
@@ -234,7 +234,7 @@ void StreamingAudioManager::run()
         return;
     }
 
-    if (!init_physical_ports())
+    if (!init_output_ports())
     {
         emit startupError();
         return;
@@ -722,7 +722,7 @@ int StreamingAudioManager::setAppType(int port, StreamingAudioType type)
         
         // release old output ports used by this app
         // TODO: can use app's channel assigmments array to do this more efficiently ??  Would need to save a copy before it changes above...
-        for (int i = 0; i < m_numPhysicalPortsOut; i++)
+        for (int i = 0; i < m_numOutputPorts; i++)
         {
             if (m_outputUsed[i] == port)
             {
@@ -1632,7 +1632,7 @@ int StreamingAudioManager::jack_process(jack_nframes_t nframes)
     return 0;
 }
 
-bool StreamingAudioManager::init_physical_ports()
+bool StreamingAudioManager::init_output_ports()
 {
     // get all jack ports that correspond to physical outputs
     const char** outputPorts = jack_get_ports(m_client, m_outputJackClientName, NULL, JackPortIsInput);
@@ -1647,46 +1647,46 @@ bool StreamingAudioManager::init_physical_ports()
     const char** currentPort = outputPorts;
     while (*currentPort != NULL)
     {
-        m_numPhysicalPortsOut++;
-        qDebug("StreamingAudioManager::init_physical_ports() counted port %s", *currentPort);
+        m_numOutputPorts++;
+        qDebug("StreamingAudioManager::init_output_ports() counted port %s", *currentPort);
         currentPort++;
     }
-    qDebug("StreamingAudioManager::init_physical_ports() counted %d physical outputs", m_numPhysicalPortsOut);
+    qDebug("StreamingAudioManager::init_output_ports() counted %d outputs", m_numOutputPorts);
     jack_free(outputPorts);
     
     // -- HACK --
-    //m_numPhysicalPortsOut -= m_outputPortOffset;
+    //m_numOutputPorts -= m_outputPortOffset;
     // -- END HACK --
 
-    m_outputUsed = new int[m_numPhysicalPortsOut];
-    for (int i = 0; i < m_numPhysicalPortsOut; i++)
+    m_outputUsed = new int[m_numOutputPorts];
+    for (int i = 0; i < m_numOutputPorts; i++)
     {
         m_outputUsed[i] = OUTPUT_DISABLED;
     }
 
     for (int i = 0; i < m_basicChannels.size(); i++)
     {
-        if (m_basicChannels[i] <= m_numPhysicalPortsOut)
+        if (m_basicChannels[i] <= m_numOutputPorts)
         {
             m_outputUsed[m_basicChannels[i]-1] = OUTPUT_ENABLED_BASIC; // outputUsed is 0-indexed, while channel lists are 1-indexed
-            qDebug("StreamingAudioManager::init_physical_ports() enabling basic channel: m_outputUsed[%d] = %d", m_basicChannels[i]-1, m_outputUsed[m_basicChannels[i]-1]);
+            qDebug("StreamingAudioManager::init_output_ports() enabling basic channel: m_outputUsed[%d] = %d", m_basicChannels[i]-1, m_outputUsed[m_basicChannels[i]-1]);
         }
         else
         {
-            qWarning("StreamingAudioManager::init_physical_ports() couldn't enable basic channel %u", m_basicChannels[i]);
+            qWarning("StreamingAudioManager::init_output_ports() couldn't enable basic channel %u", m_basicChannels[i]);
         }
     }
 
     for (int i = 0; i < m_discreteChannels.size(); i++)
     {
-        if (m_discreteChannels[i] <= m_numPhysicalPortsOut)
+        if (m_discreteChannels[i] <= m_numOutputPorts)
         {
             m_outputUsed[m_discreteChannels[i]-1] = OUTPUT_ENABLED_DISCRETE;
-            qDebug("StreamingAudioManager::init_physical_ports() enabling discrete channel: m_outputUsed[%d] = %d", m_discreteChannels[i]-1, m_outputUsed[m_discreteChannels[i]-1]);
+            qDebug("StreamingAudioManager::init_output_ports() enabling discrete channel: m_outputUsed[%d] = %d", m_discreteChannels[i]-1, m_outputUsed[m_discreteChannels[i]-1]);
         }
         else
         {
-            qWarning("StreamingAudioManager::init_physical_ports() couldn't enable discrete channel %u", m_discreteChannels[i]);
+            qWarning("StreamingAudioManager::init_output_ports() couldn't enable discrete channel %u", m_discreteChannels[i]);
         }
     }
 
@@ -1764,7 +1764,7 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
         {
             // assign the next available output
             bool portFound = false;
-            for (int k = nextFreeOutput; k < m_numPhysicalPortsOut; k++)
+            for (int k = nextFreeOutput; k < m_numOutputPorts; k++)
             {
                 qDebug("StreamingAudioManager::allocate_output_ports m_outputUsed[%d] = %d", k, m_outputUsed[k]);
                 if (m_outputUsed[k] != OUTPUT_ENABLED_DISCRETE) continue;
@@ -1776,11 +1776,11 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
             }
             if (!portFound)
             {
-                qWarning("StreamingAudioManager::allocate_output_ports no ports available out of %d physical outputs!", m_numPhysicalPortsOut);
+                qWarning("StreamingAudioManager::allocate_output_ports no ports available out of %d physical outputs!", m_numOutputPorts);
                 
                 // release output ports already allocated to this app
                 // TODO: also undo channel assignment changes !?!
-                for (int i = 0; i < m_numPhysicalPortsOut; i++)
+                for (int i = 0; i < m_numOutputPorts; i++)
                 {
                     if (m_outputUsed[i] == port)
                     {
@@ -1938,7 +1938,7 @@ void StreamingAudioManager::cleanupApp(int port, int type)
     if (type > sam::TYPE_BASIC)
     {
         // release output ports used by this app
-        for (int i = 0; i < m_numPhysicalPortsOut; i++)
+        for (int i = 0; i < m_numOutputPorts; i++)
         {
             if (m_outputUsed[i] == port)
             {
