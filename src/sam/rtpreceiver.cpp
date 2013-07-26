@@ -609,3 +609,13 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
 
     return 0;
 }
+
+void RtpReceiver::handleXrun()
+{
+    QDateTime currentTime = QDateTime::currentDateTime();
+    QString currentTimeString = currentTime.toString();
+    QByteArray currentTimeAscii = currentTimeString.toAscii();
+    qWarning("[%s] RtpReceiver::handleXrun: ssrc = %u, RTP port = %d", currentTimeAscii.data(), m_ssrc, m_portRtp);
+
+    // TODO: decide how to handle xruns
+}

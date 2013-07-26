@@ -772,7 +772,14 @@ int StreamingAudioManager::jackXrun(void* sam)
 {
     qWarning("WARNING: JACK xrun");
     // TODO: notify SAM of xrun and have SAM notify RTP receivers
+    ((StreamingAudioManager*)sam)->notifyXrun();
     return 0;
+}
+
+void StreamingAudioManager::notifyXrun()
+{
+    qWarning("StreamingAudioManager::notifyXrun");
+    emit xrun();
 }
 
 void StreamingAudioManager::jackShutdown(void*)

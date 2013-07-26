@@ -30,7 +30,7 @@ public:
 
     /** Constructor.
      */
-    StreamingAudioApp(const char* name, int port, int channels, const SamAppPosition& pos, StreamingAudioType type, jack_client_t* client, QTcpSocket* socket, quint16 rtpBasePort, int maxDelay, quint32 m_packetQueueSize, QObject* parent = 0);
+    StreamingAudioApp(const char* name, int port, int channels, const SamAppPosition& pos, StreamingAudioType type, jack_client_t* client, QTcpSocket* socket, quint16 rtpBasePort, int maxDelay, quint32 m_packetQueueSize, StreamingAudioManager* sam, QObject* parent = 0);
 
     /**
      * Destructor.
@@ -385,6 +385,7 @@ private:
     SamAppPosition m_position;  ///< app window position
     StreamingAudioType m_type;  ///< audio type
     bool m_deleteMe;            ///< indicates whether this app is ready to be deleted
+    StreamingAudioManager* m_sam; ///< SAM
 
     // JACK ports, etc.
     int* m_channelAssign;        ///< channel assignments (which physical output channels this app will be connected to)
