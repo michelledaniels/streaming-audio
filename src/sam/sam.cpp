@@ -457,10 +457,11 @@ bool StreamingAudioManager::registerUI(const char* host, quint16 port)
     address.host.setAddress(host);
     address.port = port;
     OscMessage msg;
-    msg.init("/sam/ui/regconfirm", "iif", getNumApps(), m_muteNext, m_volumeNext);
+    msg.init("/sam/ui/regconfirm", "iifff", getNumApps(), m_muteNext, m_volumeNext, (m_delayNext * 1000.0f / (float)m_sampleRate), (m_delayMax * 1000.0f / (float)m_sampleRate));
     if (!OscClient::sendUdp(&msg, &address))
     {
         qWarning("Couldn't send OSC message");
+        return false;
     }
     
     // send app/registered messages to UI for all currently-registered apps
@@ -482,6 +483,7 @@ bool StreamingAudioManager::registerUI(const char* host, quint16 port)
             if (!OscClient::sendUdp(&msg, &address))
             {
                 qWarning("Couldn't send OSC message");
+                return false;
             }
         }       
     }
