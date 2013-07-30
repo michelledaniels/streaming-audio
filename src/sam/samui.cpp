@@ -29,8 +29,14 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     connect(m_samButton, SIGNAL(clicked()), this, SLOT(on_samButton_clicked()));
 
     MasterWidget* master = new MasterWidget(1.0f, false, 0.0f, this);
+
+    // messages from master widget to SAM
     connect(master, SIGNAL(volumeChanged(float)), m_sam, SLOT(setVolume(float)));
     connect(master, SIGNAL(muteChanged(bool)), m_sam, SLOT(setMute(bool)));
+
+    // messages from SAM to master widget
+    connect(m_sam, SIGNAL(volumeChanged(float)), master, SLOT(setVolume(float)));
+    connect(m_sam, SIGNAL(muteChanged(bool)), master, SLOT(setMute(bool)));
 
     ClientWidget* client1 = new ClientWidget(0, "client 1", 2, 1.0f, false, false, 0.0f, 0, 0, 0, 0, 0, this);
     ClientWidget* client2 = new ClientWidget(1, "client 2", 2, 0.5f, false, false, 0.0f, 0, 0, 0, 0, 0, this);
