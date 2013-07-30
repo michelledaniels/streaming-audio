@@ -370,6 +370,10 @@ signals:
      */
     void xrun();
 
+    void volumeChanged(float);
+    void muteChanged(bool);
+    void delayChanged(float);
+
 private:
 
     /**

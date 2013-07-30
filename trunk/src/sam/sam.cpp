@@ -576,6 +576,7 @@ void StreamingAudioManager::setVolume(float volume)
             qWarning("Couldn't send OSC message");
         }
     }
+    emit volumeChanged(volume);
 }
 
 void StreamingAudioManager::setDelay(float delay)
@@ -598,6 +599,7 @@ void StreamingAudioManager::setDelay(float delay)
             qWarning("Couldn't send OSC message");
         }
     }
+    emit delayChanged(delay);
 }
 
 void StreamingAudioManager::setMute(bool isMuted)
@@ -616,6 +618,7 @@ void StreamingAudioManager::setMute(bool isMuted)
             qWarning("Couldn't send OSC message");
         }
     }
+    emit muteChanged(isMuted);
 }
 
 bool StreamingAudioManager::setAppVolume(int port, float volume)
