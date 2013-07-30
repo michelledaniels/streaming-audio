@@ -47,24 +47,12 @@ private slots:
     /**
      * Respond to start button click.
      */
-    void on_startSamButton_clicked();
+    //void on_startSamButton_clicked();
 
     /**
      * Respond to about action triggered.
      */
     void on_actionAbout_triggered();
-
-    /**
-     * Respond to change in volume slider value.
-     * @param value new slider value
-     */
-    void on_volumeSlider_valueChanged(int value);
-
-    /**
-     * Respond to mute checkbox state change.
-     * @param arg1 current checkbox state
-     */
-    void on_muteCheckBox_stateChanged(int arg1);
 
 private:
     Ui::SamUI *ui;                  ///< UI
