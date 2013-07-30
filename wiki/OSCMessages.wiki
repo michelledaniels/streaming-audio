@@ -31,7 +31,7 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
 || `/sam/ui/register` || `i` || `replyPort` || `/sam/ui/regconfirm` followed by `/sam/app/registered` for each app already registered with SAM, or `/sam/ui/regdeny`|| ||
-|| `/sam/ui/regconfirm` || `iif` ||| `currentNumApps`, `globalMute`, `globalVolume`|| none || ||
+|| `/sam/ui/regconfirm` || `iifff` ||| `currentNumApps`, `globalMute`, `globalVolume`, `globalDelay`, `delayMax` || none || delay parameters are specified in milliseconds ||
 ||`/sam/ui/regdeny` || `i` || `errorCode` || none || error codes TBD ||
 ||`/sam/ui/unregister` || `i` ||| `replyPort` || none || ||
 ||`/sam/app/registered` || `isiiiiiii` || `id`, `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type` || none || ||
