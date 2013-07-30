@@ -185,24 +185,6 @@ public:
     bool unregisterRenderer();
 
     /**
-     * Set the global volume level.
-     * @param volume the volume level to be set, in the range [0.0, 1.0]
-     */
-    void setVolume(float volume);
-
-    /**
-     * Set the global mute status.
-     * @param mute true if SAM is to be muted, false otherwise
-     */
-    void setMute(bool mute);
-
-    /**
-     * Set the global delay.
-     * @param delay to be set (non-negative), in milliseconds
-     */
-    void setDelay(float delay);
-
-    /**
      * Enable/disable an output channel
      * @param ch the channel (1-indexed) to be enabled/disabled
      * @param enabled true if the channel is to be enabled, false otherwise
@@ -306,6 +288,24 @@ public:
     void notifyXrun();
 
 public slots:
+
+    /**
+     * Set the global volume level.
+     * @param volume the volume level to be set, in the range [0.0, 1.0]
+     */
+    void setVolume(float volume);
+
+    /**
+     * Set the global mute status.
+     * @param mute true if SAM is to be muted, false otherwise
+     */
+    void setMute(bool mute);
+
+    /**
+     * Set the global delay.
+     * @param delay to be set (non-negative), in milliseconds
+     */
+    void setDelay(float delay);
 
     /**
      * Start running this StreamingAudioManager.

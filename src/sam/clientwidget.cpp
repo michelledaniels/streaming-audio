@@ -9,7 +9,7 @@
 
 #include "clientwidget.h"
 
-static const int METER_NUM_TICKS = 10;
+static const int METER_NUM_TICKS = 5;
 static const int METER_TICK_LENGTH = 5;
 static const int METER_TICK_LABEL_LENGTH = 30;
 
@@ -65,7 +65,7 @@ ClientWidget::ClientWidget(int id, const char* name, int channels, float volume,
     m_soloCheckBox(NULL)
 {
     m_name.append(name);
-    setMinimumSize(250, 400);
+    setMinimumSize(280, 400);
 
     QScrollArea *scrollArea = new QScrollArea(this);
     //scrollArea->setMinimumSize(400, 400);
@@ -106,7 +106,7 @@ ClientWidget::ClientWidget(int id, const char* name, int channels, float volume,
     for (int i = 0; i < m_channels; i++)
     {
         meters[i] = new MeterWidget(this);
-        meters[i]->setMinimumSize(60,200);
+        meters[i]->setMinimumSize(50,100);
         meters[i]->setLevel(0.5f, 1.0f);
         hLayout->addWidget(meters[i]);
     }

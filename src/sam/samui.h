@@ -9,6 +9,7 @@
 #define SAMUI_H
 
 #include <QMainWindow>
+#include <QPushButton>
 
 #include "sam.h"
 
@@ -47,7 +48,7 @@ private slots:
     /**
      * Respond to start button click.
      */
-    //void on_startSamButton_clicked();
+    void on_samButton_clicked();
 
     /**
      * Respond to about action triggered.
@@ -57,6 +58,8 @@ private slots:
 private:
     Ui::SamUI *ui;                  ///< UI
     StreamingAudioManager* m_sam;   ///< SAM instance
+
+    QPushButton* m_samButton;
 };
 
 #endif // SAMUI_H
