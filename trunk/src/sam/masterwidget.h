@@ -24,10 +24,10 @@ signals:
     void delayChanged(float delay);
 
 public slots:
-    /*void setVolume(float volume);
-    void setMute(bool mute);
-    void setDelay(float delay);
-*/
+    void setVolume(float);
+    void setMute(bool);
+    //void setDelay(float delay);
+
     void on_volumeSlider_valueChanged(int);
     void on_muteCheckBox_toggled(bool);
 

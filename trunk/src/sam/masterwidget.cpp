@@ -51,6 +51,16 @@ MasterWidget::MasterWidget(float volume, bool mute, float delay, QWidget *parent
     scrollArea->setWidget(groupBox1);
 }
 
+void MasterWidget::setVolume(float volume)
+{
+    m_volumeSlider->setValue(volume * VOLUME_SLIDER_SCALE);
+}
+
+void MasterWidget::setMute(bool mute)
+{
+    m_muteCheckBox->setChecked(mute);
+}
+
 void MasterWidget::on_volumeSlider_valueChanged(int val)
 {
     float fval = val / (float)VOLUME_SLIDER_SCALE;

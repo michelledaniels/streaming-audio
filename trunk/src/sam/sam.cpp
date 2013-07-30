@@ -561,6 +561,7 @@ bool StreamingAudioManager::unregisterRenderer()
 
 void StreamingAudioManager::setVolume(float volume)
 {
+    qWarning("StreamingAudioManager::setVolume %f", volume);
     m_volumeNext = volume >= 0.0 ? volume : 0.0;
     m_volumeNext = volume <= 1.0 ? volume : 1.0;
 
@@ -601,6 +602,7 @@ void StreamingAudioManager::setDelay(float delay)
 
 void StreamingAudioManager::setMute(bool isMuted)
 {
+    qWarning("StreamingAudioManager::setMute %d", isMuted);
     m_muteNext = isMuted;
 
     // notify subscribers
