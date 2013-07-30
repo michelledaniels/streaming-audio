@@ -610,7 +610,7 @@ private:
     bool m_soloCurrent;             ///< the current solo status (true if any app is currently solo'd)
     int m_delayCurrent;             ///< the current delay (in samples)
     int m_delayNext;                ///< the requested delay (in samples)
-    int m_delayMax;                 ///< the maximum support delay (in samples)
+    int m_delayMax;                 ///< the maximum supported delay (in samples)
 
     // for OSC
     quint16 m_oscServerPort;        ///< port the OSC server will listen for messages on
