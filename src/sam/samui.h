@@ -17,6 +17,8 @@ namespace Ui {
 class SamUI;
 }
 
+class MasterWidget;
+
 /**
  * @class SamUI
  * SamUI is the main window of a GUI for SAM
@@ -48,7 +50,7 @@ private slots:
     /**
      * Respond to start button click.
      */
-    void on_samButton_clicked();
+    void onSamButtonClicked();
 
     /**
      * Respond to about action triggered.
@@ -59,6 +61,7 @@ private:
     Ui::SamUI *ui;                  ///< UI
     StreamingAudioManager* m_sam;   ///< SAM instance
 
+    MasterWidget* m_master;
     QPushButton* m_samButton;
 };
 

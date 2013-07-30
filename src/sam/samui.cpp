@@ -17,6 +17,7 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::SamUI),
     m_sam(NULL),
+    m_master(NULL),
     m_samButton(NULL)
 {
     ui->setupUi(this);
@@ -26,17 +27,9 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     m_sam = new StreamingAudioManager(params);
 
     m_samButton = new QPushButton(QString("Start SAM"), this);
-    connect(m_samButton, SIGNAL(clicked()), this, SLOT(on_samButton_clicked()));
+    connect(m_samButton, SIGNAL(clicked()), this, SLOT(onSamButtonClicked()));
 
-    MasterWidget* master = new MasterWidget(1.0f, false, 0.0f, this);
-
-    // messages from master widget to SAM
-    connect(master, SIGNAL(volumeChanged(float)), m_sam, SLOT(setVolume(float)));
-    connect(master, SIGNAL(muteChanged(bool)), m_sam, SLOT(setMute(bool)));
-
-    // messages from SAM to master widget
-    connect(m_sam, SIGNAL(volumeChanged(float)), master, SLOT(setVolume(float)));
-    connect(m_sam, SIGNAL(muteChanged(bool)), master, SLOT(setMute(bool)));
+    m_master = new MasterWidget(1.0f, false, 0.0f, this);
 
     ClientWidget* client1 = new ClientWidget(0, "client 1", 2, 1.0f, false, false, 0.0f, 0, 0, 0, 0, 0, this);
     ClientWidget* client2 = new ClientWidget(1, "client 2", 2, 0.5f, false, false, 0.0f, 0, 0, 0, 0, 0, this);
@@ -46,8 +39,8 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     QVBoxLayout* layout1 = new QVBoxLayout(groupBox1);
     groupBox1->setLayout(layout1);
     layout1->addWidget(m_samButton);
-    layout1->addWidget(master);
-    layout1->setAlignment(master, Qt::AlignHCenter);
+    layout1->addWidget(m_master);
+    layout1->setAlignment(m_master, Qt::AlignHCenter);
 
     QGroupBox* groupBox2 = new QGroupBox(groupBox1);
     QHBoxLayout* layout2 = new QHBoxLayout(groupBox2);
@@ -78,25 +71,48 @@ void SamUI::doBeforeQuit()
     if (m_sam) m_sam->stop();
 }
 
-void SamUI::on_samButton_clicked()
+void SamUI::onSamButtonClicked()
 {
     if (m_sam)
     {
         if (!m_sam->isRunning())
         {
-            qWarning("SamUI::on_samButton_clicked starting SAM");
+            qWarning("SamUI::onSamButtonClicked starting SAM");
             m_sam->start();
+            m_sam->setVolume(m_master->getVolume());
+            m_sam->setMute(m_master->getMute());
+
+            // messages from master widget to SAM
+            connect(m_master, SIGNAL(volumeChanged(float)), m_sam, SLOT(setVolume(float)));
+            connect(m_master, SIGNAL(muteChanged(bool)), m_sam, SLOT(setMute(bool)));
+            connect(m_master, SIGNAL(delayChanged(float)), m_sam, SLOT(setDelay(float)));
+
+            // messages from SAM to master widget
+            connect(m_sam, SIGNAL(volumeChanged(float)), m_master, SLOT(setVolume(float)));
+            connect(m_sam, SIGNAL(muteChanged(bool)), m_master, SLOT(setMute(bool)));
+            connect(m_sam, SIGNAL(delayChanged(float)), m_master, SLOT(setDelay(float)));
+
             m_samButton->setText("Stop SAM");
         }
         else
         {
-            qWarning("SamUI::on_samButton_clicked stopping SAM");
+            qWarning("SamUI::onSamButtonClicked stopping SAM");
             if (!m_sam->stop())
             {
-                qWarning("SamUI::on_samButton_clicked couldn't stop SAM");
+                qWarning("SamUI::onSamButtonClicked couldn't stop SAM");
             }
             else
             {
+                // messages from master widget to SAM
+                disconnect(m_master, SIGNAL(volumeChanged(float)), m_sam, SLOT(setVolume(float)));
+                disconnect(m_master, SIGNAL(muteChanged(bool)), m_sam, SLOT(setMute(bool)));
+                disconnect(m_master, SIGNAL(delayChanged(float)), m_sam, SLOT(setDelay(float)));
+
+                // messages from SAM to master widget
+                disconnect(m_sam, SIGNAL(volumeChanged(float)), m_master, SLOT(setVolume(float)));
+                disconnect(m_sam, SIGNAL(muteChanged(bool)), m_master, SLOT(setMute(bool)));
+                disconnect(m_sam, SIGNAL(delayChanged(float)), m_master, SLOT(setDelay(float)));
+
                 m_samButton->setText("Start SAM");
             }
         }
