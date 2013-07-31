@@ -49,7 +49,7 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
 
     scrollArea->setWidget(groupBox2);
     layout1->addWidget(scrollArea, 0, Qt::AlignCenter);
-    setMinimumSize(groupBox1->size());
+    scrollArea->setMinimumSize(400, 250);
     setCentralWidget(groupBox1);
 
 }
