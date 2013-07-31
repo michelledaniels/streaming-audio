@@ -41,6 +41,7 @@ public slots:
 protected:
     // widgets
     QSlider* m_volumeSlider;
+    QLabel* m_volumeLabel;
     QCheckBox* m_muteCheckBox;
     QDoubleSpinBox* m_delaySpinBox;
 };

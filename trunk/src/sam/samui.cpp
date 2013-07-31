@@ -34,24 +34,23 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     ClientWidget* client1 = new ClientWidget(0, "client 1", 2, 1.0f, false, false, 0.0f, 0, 0, 0, 0, 0, this);
     ClientWidget* client2 = new ClientWidget(1, "client 2", 2, 0.5f, false, false, 0.0f, 0, 0, 0, 0, 0, this);
 
-    QScrollArea* scrollArea = new QScrollArea(this);
-    QGroupBox* groupBox1 = new QGroupBox(scrollArea);
+    QGroupBox* groupBox1 = new QGroupBox(this);
     QVBoxLayout* layout1 = new QVBoxLayout(groupBox1);
     groupBox1->setLayout(layout1);
-    layout1->addWidget(m_samButton);
-    layout1->addWidget(m_master);
-    layout1->setAlignment(m_master, Qt::AlignHCenter);
+    layout1->addWidget(m_samButton, 0, Qt::AlignCenter);
+    layout1->addWidget(m_master, 0, Qt::AlignCenter);
 
-    QGroupBox* groupBox2 = new QGroupBox(groupBox1);
+    QScrollArea* scrollArea = new QScrollArea(groupBox1);
+    QGroupBox* groupBox2 = new QGroupBox(scrollArea);
     QHBoxLayout* layout2 = new QHBoxLayout(groupBox2);
     groupBox2->setLayout(layout2);
     layout2->addWidget(client1);
     layout2->addWidget(client2);
 
-    layout1->addWidget(groupBox2);
-
-    scrollArea->setWidget(groupBox1);
-    setCentralWidget(scrollArea);
+    scrollArea->setWidget(groupBox2);
+    layout1->addWidget(scrollArea, 0, Qt::AlignCenter);
+    setMinimumSize(groupBox1->size());
+    setCentralWidget(groupBox1);
 
 }
 
