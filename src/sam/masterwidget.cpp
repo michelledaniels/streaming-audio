@@ -14,10 +14,10 @@ MasterWidget::MasterWidget(float volume, bool mute, float delay, QWidget *parent
     m_volumeSlider(NULL),
     m_muteCheckBox(NULL)
 {
-    setMinimumSize(200, 350);
+    setMinimumSize(250, 350);
 
-    QGroupBox *groupBox1 = new QGroupBox(this);
-    QVBoxLayout* vLayout = new QVBoxLayout(groupBox1);
+    QGroupBox *masterGroup = new QGroupBox(this);
+    QVBoxLayout* masterLayout = new QVBoxLayout(masterGroup);
 
     // add name label
     QLabel* nameLabel = new QLabel(this);
@@ -28,7 +28,7 @@ MasterWidget::MasterWidget(float volume, bool mute, float delay, QWidget *parent
     font.setPointSize(pointSize + 2);
     font.setBold(true);
     nameLabel->setFont(font);
-    vLayout->addWidget(nameLabel);
+    masterLayout->addWidget(nameLabel);
 
     // add volume slider
     m_volumeSlider = new QSlider(Qt::Vertical, this);
@@ -36,15 +36,25 @@ MasterWidget::MasterWidget(float volume, bool mute, float delay, QWidget *parent
     m_volumeSlider->setMaximum(VOLUME_SLIDER_SCALE);
     m_volumeSlider->setValue(volume * VOLUME_SLIDER_SCALE);
     connect(m_volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(on_volumeSlider_valueChanged(int)));
-    vLayout->addWidget(m_volumeSlider);
+    QLabel* volumeNameLabel = new QLabel(QString("Volume"), this);
+    m_volumeLabel = new QLabel(this);
+    m_volumeLabel->setNum(volume);
+    QWidget *volumeBox = new QWidget(masterGroup);
+    volumeBox->setMinimumSize(60, 150);
+    volumeBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QVBoxLayout* volumeLayout = new QVBoxLayout(volumeBox);
+    volumeLayout->addWidget(volumeNameLabel, 0, Qt::AlignCenter);
+    volumeLayout->addWidget(m_volumeSlider, 0, Qt::AlignCenter);
+    volumeLayout->addWidget(m_volumeLabel, 0, Qt::AlignCenter);
+    masterLayout->addWidget(volumeBox, 0, Qt::AlignCenter);
 
     // add mute checkbox
     m_muteCheckBox = new QCheckBox(QString("Mute"), this);
     m_muteCheckBox->setChecked(mute);
-    vLayout->addWidget(m_muteCheckBox);
+    masterLayout->addWidget(m_muteCheckBox, 0, Qt::AlignCenter);
     connect(m_muteCheckBox, SIGNAL(toggled(bool)), this, SLOT(on_muteCheckBox_toggled(bool)));
 
-    groupBox1->setLayout(vLayout);
+    masterGroup->setLayout(masterLayout);
 
     // add delay spinbox
     QLabel* delayLabel = new QLabel(QString("Delay (ms)"), this);
@@ -52,18 +62,18 @@ MasterWidget::MasterWidget(float volume, bool mute, float delay, QWidget *parent
     m_delaySpinBox->setMinimum(0.0);
     m_delaySpinBox->setMaximum(1000.0);
     m_delaySpinBox->setValue(delay);
-    QGroupBox *groupBox2 = new QGroupBox(groupBox1);
-    //groupBox2->setStyleSheet("border:0;");
-    QHBoxLayout* hLayout = new QHBoxLayout(groupBox2);
-    hLayout->addWidget(delayLabel);
-    hLayout->addWidget(m_delaySpinBox);
-    vLayout->addWidget(groupBox2);
+    QWidget *delayBox = new QWidget(masterGroup);
+    QHBoxLayout* delayLayout = new QHBoxLayout(delayBox);
+    delayLayout->addWidget(delayLabel);
+    delayLayout->addWidget(m_delaySpinBox);
+    masterLayout->addWidget(delayBox, 0, Qt::AlignCenter);
     connect(m_delaySpinBox, SIGNAL(valueChanged(double)), this, SLOT(on_delaySpinBox_valueChanged(double)));
 }
 
 void MasterWidget::setVolume(float volume)
 {
     m_volumeSlider->setValue(volume * VOLUME_SLIDER_SCALE);
+    m_volumeLabel->setNum(volume);
 }
 
 void MasterWidget::setMute(bool mute)
@@ -80,6 +90,7 @@ void MasterWidget::on_volumeSlider_valueChanged(int val)
 {
     float fval = val / (float)VOLUME_SLIDER_SCALE;
     //qWarning("MasterWidget::on_volumeSlider_valueChanged fval = %f", fval);
+    m_volumeLabel->setNum(fval);
     emit volumeChanged(fval);
 }
 
