@@ -443,9 +443,11 @@ void sac_create(t_samclient *x)
     }
     
     if (err == sam::SAC_SUCCESS) {
+        x->sac_state = 1;
         outlet_int(x->m_outlet1, 1);
     }
     else {
+        x->sac_state = 0;
         outlet_int(x->m_outlet1, 0);
     }
 }
@@ -462,14 +464,7 @@ void sac_destroy(t_samclient *x)
 
 void samclient_dspstate(t_samclient *x, long n)
 {
-    // when dac is turned, connect SAM client if appropriate
-    if (n == 1 && x->sac == NULL && x->sac_state == 1) {
-        sac_create(x);
-    }
-    // when dac is turned off, disconnect SAM client if appropriate
-    else if (n == 0 && x->sac != NULL) {
-        sac_destroy(x);
-    }
+    // do something, if necessary
 }
 
 // this function is called when the DAC is enabled, and "registers" a function
@@ -538,10 +533,7 @@ t_int *samclient_perform(t_int *w)
     int chans = (int)x->channels;           // number of input channels
     int i, j;
     
-    if (x->sac == NULL && x->sac_state == 1) {
-        sac_create(x);
-    }
-    else if (x->sac_state == 1 && x->sac->isRunning()) {
+    if (x->sac_state == 1 && x->sac->isRunning()) {
         if (x->m_obj.z_disabled) {
             for (i = 0; i < chans ; i++) {
                 for (j = 0; j < n; j++) {
@@ -571,10 +563,7 @@ void samclient_perform64(t_samclient *x, t_object *dsp64, double **ins, long num
     int chans = (int)x->channels;   // number of input channels
     int i, j;
     
-    if (x->sac == NULL && x->sac_state == 1) {
-        sac_create(x);
-    }
-    else if (x->sac_state == 1 && x->sac->isRunning()) {
+    if (x->sac_state == 1 && x->sac->isRunning()) {
         if (x->m_obj.z_disabled) {
             for (i = 0; i < chans ; i++) {
                 //in = (t_double *)ins[i]; // assign pointer to input channel
@@ -603,7 +592,6 @@ void samclient_setup(void)
 {
     samclient_class = class_new(gensym("samclient~"), (t_newmethod)samclient_new, (t_method)samclient_free, sizeof(t_samclient), 0, A_GIMME, 0);
     
-    //class_addmethod(samclient_class, (t_method)samclient_dspstate, gensym("dspstate"), A_CANT, 0);
 	class_addmethod(samclient_class, (t_method)samclient_dsp, gensym("dsp"), A_CANT, 0);
     class_addmethod(samclient_class, (t_method)sac_connect, gensym("connect"), A_NULL, 0);
     class_addmethod(samclient_class, (t_method)sac_disconnect, gensym("disconnect"), A_NULL, 0);
@@ -711,9 +699,11 @@ void sac_create(t_samclient *x)
     }
     
     if (err == sam::SAC_SUCCESS) {
+        x->sac_state = 1;
         outlet_float((t_outlet *)(x->m_outlet1), 1);
     }
     else {
+        x->sac_state = 0;
         outlet_float((t_outlet *)(x->m_outlet1), 0);
     }
 }
@@ -832,10 +822,7 @@ t_int *samclient_perform(t_int *w)
     int chans = (int)x->channels;           // number of input channels
     int i, j;
     
-    if (x->sac == NULL && x->sac_state == 1) {
-        sac_create(x);
-    }
-    else if (x->sac_state == 1 && x->sac->isRunning()) {
+    if (x->sac_state == 1 && x->sac->isRunning()) {
         for (i = 0; i < chans ; i++) {
             x->sigvec[i] = (t_float *)w[i+3]; // assign pointer to input channel
         }
@@ -853,10 +840,14 @@ t_int *samclient_perform(t_int *w)
 
 void sac_connect(t_samclient *x)
 {
-    x->sac_state = 1;
+    if (x->sac_state == 0) {
+        sac_create(x);
+    }
 }
 
 void sac_disconnect(t_samclient *x)
 {
-    sac_destroy(x);
+    if (x->sac_state == 1) {
+        sac_destroy(x);
+    }
 }
