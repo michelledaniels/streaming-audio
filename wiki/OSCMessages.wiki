@@ -50,8 +50,8 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 || `/sam/set/delay` || `if` || `id`, `delay` || none || `delay` is specified in milliseconds and should be greater than 0 and less than or equal to the maximum delay specified in the SAM config file, `id` of `-1` sets the global delay (which is added to the per-client delay) ||
 || `/sam/set/position` || `iiiiii` || `id`, `x`, `y`, `width`, `height`, `depth` || none ||  ||
 || `/sam/set/type` ||  `iii` || `id`, `type`, `replyPort` || `sam/type/confirm` if able to change type or `/sam/type/deny` if unable to change type || ||
-|| `/sam/type/confirm` || `i` || `type` || none || ||
-|| `/sam/type/deny` || `i` || `errorCode` || none || error codes TBD ||
+|| `/sam/type/confirm` || `ii` || `id`, `type` || none || ||
+|| `/sam/type/deny` || `iii` || `id`, `type`, `errorCode` || none || `type` is the current type for the app with id `id`.  Error codes TBD. ||
 
 === Getting Parameters ===
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
