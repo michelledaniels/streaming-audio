@@ -11,8 +11,8 @@
 // Modified by Zachary Seldess, Qualcomm Institute, Calit2, UC San Diego
 
 // UPDATE THESE PATHS AS NEEDED
-C74SUPPORT = /Users/zachary/Software/Max/MaxSDK-6.1.1/c74support
-QTSDK_DIR = /usr/local/Cellar/qt/4.8.4
+C74SUPPORT = $(SRCROOT)/../../../c74support
+QTSDK_DIR = /usr/local/Cellar/qt/4.8.5
 SA_DIR = /Users/zachary/Calit2/software/sam/streaming-audio
 
 // Name & Version
