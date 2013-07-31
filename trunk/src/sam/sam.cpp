@@ -1500,7 +1500,7 @@ void StreamingAudioManager::osc_set_type(OscMessage* msg, const char* sender, QA
     {
         // send /sam/type/confirm message
         OscMessage msg;
-        msg.init("/sam/type/confirm", "i", m_apps[port]->getType());
+        msg.init("/sam/type/confirm", "ii", port, m_apps[port]->getType());
         
         if (socket->socketType() == QAbstractSocket::TcpSocket)
         {
@@ -1519,7 +1519,7 @@ void StreamingAudioManager::osc_set_type(OscMessage* msg, const char* sender, QA
         // send /sam/type/deny message
         // TODO: define error codes
         OscMessage msg;
-        msg.init("/sam/type/deny", "i", errorCode);
+        msg.init("/sam/type/deny", "iii", port, m_apps[port]->getType(), errorCode);
         if (!OscClient::sendUdp(&msg, &replyAddr))
         {
             qWarning("Couldn't send OSC message");
