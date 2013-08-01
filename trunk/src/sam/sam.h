@@ -143,9 +143,10 @@ public:
      * @param depth initial depth of corresponding SAGE window
      * @param type the app's streaming type
      * @param socket the TCP socket through which the app/client connected to SAM
+     * @param errCode if an error occurs, the SamErrorCode which best describes the error.  Otherwise undefined.
      * @return unique port for this stream or -1 on error
      */
-    int registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, sam::StreamingAudioType type, QTcpSocket* socket);
+    int registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, sam::StreamingAudioType type, QTcpSocket* socket, sam::SamErrorCode& errCode);
 
     /**
      * Unregister an app
@@ -239,9 +240,10 @@ public:
      * Set the type for an app.
      * @param port the port/unique ID of the app to be updated
      * @param type the type to be set
-     * @return -1 on success, or a non-zero error code on failure
+     * @param error code on failure, otherwise undefined
+     * @return true on success, false on failure
      */
-    int setAppType(int port, sam::StreamingAudioType type);
+    bool setAppType(int port, sam::StreamingAudioType type, sam::SamErrorCode& errorCode);
 
     /**
      * JACK buffer size changed callback.
