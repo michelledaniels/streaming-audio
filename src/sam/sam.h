@@ -569,9 +569,14 @@ private:
     bool disconnect_app_ports(int port);
 
     /**
-     * Print debug info to console
+     * Print debug info to console.
      */
     void print_debug();
+
+    /**
+     * Check for version match.
+     */
+    bool version_check(int major, int minor, int patch);
     
     int m_sampleRate;                 ///< sample rate for JACK
     int m_bufferSize;                 ///< buffer size for JACK

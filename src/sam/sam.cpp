@@ -510,16 +510,7 @@ bool StreamingAudioManager::registerRenderer(const char* hostname, quint16 port)
 {
     if (m_renderer)
     {
-        // a renderer is already registered - deny registration
-        OscMessage replyMsg;
-        replyMsg.init("/sam/render/regdeny", "i", 0);
-        OscAddress replyAddress;
-        replyAddress.host.setAddress(hostname);
-        replyAddress.port = port;
-        if (!OscClient::sendUdp(&replyMsg, &replyAddress))
-        {
-            qWarning("Couldn't send OSC message");
-        }
+        qWarning("StreamingAudioManager::registerRenderer can't register: a renderer is already registered");
         return false;
     }
     
@@ -930,25 +921,43 @@ void StreamingAudioManager::handle_app_message(const char* address, OscMessage* 
 
 void StreamingAudioManager::handle_ui_message(const char* address, OscMessage* msg, const char* sender)
 {
-    if (!msg->typeMatches("i"))
-    {
-        printf("Unknown OSC message:\n");
-        msg->print();
-        return;
-    }
-
-    OscArg arg;
-    msg->getArg(0, arg);
-    quint16 replyPort = arg.val.i;
-
     qDebug("SAM received UI message: source host = %s", sender);
 
     // check third level of address
     if (qstrcmp(address, "/register") == 0) // /sam/ui/register
     {
-        printf("Registering UI at host %s, port %d\n\n", sender, replyPort);
-        bool success = registerUI(sender, replyPort);
-        if (!success)
+        if (!msg->typeMatches("iiii"))
+        {
+            printf("Unknown OSC message:\n");
+            msg->print();
+            return;
+        }
+
+        OscArg arg;
+        msg->getArg(0, arg);
+        int majorVersion = arg.val.i;
+        msg->getArg(1, arg);
+        int minorVersion = arg.val.i;
+        msg->getArg(2, arg);
+        int patchVersion = arg.val.i;
+        msg->getArg(3, arg);
+        quint16 replyPort = arg.val.i;
+
+        bool success = false;
+        if (version_check(majorVersion, minorVersion, patchVersion))
+        {
+            success = registerUI(sender, replyPort);
+        }
+        else
+        {
+            qWarning("Denying UI registration due to version mismatch: SAM is version %d.%d.%d, UI is %d.%d.%d",
+                     sam::VERSION_MAJOR, sam::VERSION_MINOR, sam::VERSION_PATCH, majorVersion, minorVersion, patchVersion);
+        }
+        if (success)
+        {
+            printf("Registering UI at host %s, port %d\n\n", sender, replyPort);
+        }
+        else
         {
             OscMessage replyMsg;
             replyMsg.init("/sam/ui/regdeny", "i", 0);
@@ -963,6 +972,17 @@ void StreamingAudioManager::handle_ui_message(const char* address, OscMessage* m
     }
     else if (qstrcmp(address, "/unregister") == 0) // /sam/ui/unregister
     {
+        if (!msg->typeMatches("i"))
+        {
+            printf("Unknown OSC message:\n");
+            msg->print();
+            return;
+        }
+
+        OscArg arg;
+        msg->getArg(0, arg);
+        quint16 replyPort = arg.val.i;
+
         printf("Unregistering UI at host %s, port %d\n\n", sender, replyPort);
         unregisterUI(sender, replyPort);
         // TODO: error handling?  handle return value from UnregisterUI?
@@ -979,16 +999,47 @@ void StreamingAudioManager::handle_render_message(const char* address, OscMessag
     // check third level of address
     if (qstrcmp(address, "/register") == 0) // /sam/render/register
     {
-        if (msg->typeMatches("i"))
+        if (msg->typeMatches("iiii"))
         {
             qDebug("SAM received message to register a renderer: source host = %s", sender);
 
             OscArg arg;
             msg->getArg(0, arg);
+            int majorVersion = arg.val.i;
+            msg->getArg(1, arg);
+            int minorVersion = arg.val.i;
+            msg->getArg(2, arg);
+            int patchVersion = arg.val.i;
+            msg->getArg(3, arg);
             quint16 replyPort = arg.val.i;
 
-            printf("Registering a renderer at host %s, port %d\n\n", sender, replyPort);
-            registerRenderer(sender, replyPort);
+            bool success = false;
+            if (version_check(majorVersion, minorVersion, patchVersion))
+            {
+                success = registerRenderer(sender, replyPort);
+            }
+            else
+            {
+                qWarning("Denying renderer registration due to version mismatch: SAM is version %d.%d.%d, renderer is %d.%d.%d",
+                         sam::VERSION_MAJOR, sam::VERSION_MINOR, sam::VERSION_PATCH, majorVersion, minorVersion, patchVersion);
+            }
+
+            if (success)
+            {
+                printf("Registering a renderer at host %s, port %d\n\n", sender, replyPort);
+            }
+            else
+            {
+                OscMessage replyMsg;
+                replyMsg.init("/sam/render/regdeny", "i", 0);
+                OscAddress replyAddress;
+                replyAddress.host.setAddress(sender);
+                replyAddress.port = replyPort;
+                if (!OscClient::sendUdp(&replyMsg, &replyAddress))
+                {
+                    qWarning("Couldn't send OSC message");
+                }
+            }
         }
         else
         {
@@ -1564,7 +1615,7 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
 
     int port = -1;
     // register if version matches
-    if (majorVersion == sam::VERSION_MAJOR && minorVersion == sam::VERSION_MINOR && patchVersion == sam::VERSION_PATCH)
+    if (version_check(majorVersion, minorVersion, patchVersion))
     {
         printf("Registering app at hostname %s, port %d with name %s, %d channel(s), position [%d %d %d %d %d], type = %d\n\n", socket->peerAddress().toString().toAscii().data(), replyPort, name, channels, x, y, width, height, depth, type);
         port = registerApp(name, channels, x, y, width, height, depth, type, socket);
@@ -2073,4 +2124,9 @@ void StreamingAudioManager::print_debug()
         }
     }
     qWarning("--END PRINTING DEBUG INFO--\n");
+}
+
+bool StreamingAudioManager::version_check(int major, int minor, int patch)
+{
+    return (major == sam::VERSION_MAJOR && minor == sam::VERSION_MINOR && patch == sam::VERSION_PATCH);
 }
