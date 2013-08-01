@@ -5,6 +5,16 @@ SAM uses the [http://opensoundcontrol.org/ Open Sound Control] (OSC) protocol fo
 
 <wiki:toc max_depth="3" />
 
+== Error Codes ==
+The following error codes can be returned by SAM to clients, renderers, or UIs in response to OSC messages.
+
+|| *Error Code* || *Description* ||
+|| 0 || Non-specific error ||
+|| 1 || Version mismatch between SAM and client/renderer/UI ||
+|| 2 || SAM's maximum number of clients has been reached ||
+|| 3 || SAM has no available output channels (JACK ports) ||
+|| 4 || Invalid client ID ||
+
 == SAM/Client Messages ==
 
 In the following messages, the word `app` refers to a SAM client.  When a client registers with SAM, it is assigned a unique identifier (non-negative integer), called `id` in the remainder of this document.
@@ -13,16 +23,16 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
 || `/sam/app/register` || `siiiiiiiiiiii` || `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type`, `bufferSize`, `major version`, `minor version`, `patch version`, `replyPort` || `/sam/app/regconfirm` or `/sam/app/regdeny` || `bufferSize` is the buffer size this client wishes to send to SAM.  If SAM doesn't support that buffer size, its response in the regconfirm will reflect that. ||
 || `/sam/app/regconfirm` || `iii` || `id`, `sampleRate`, `bufferSize`, `rtpBasePort` || none || `bufferSize` may not be the same as what the client requested if SAM doesn't support the client's requested buffer size.  The client must use the buffer size returned here. ||
-|| `/sam/app/regdeny` || `i`|| `errorCode` || none || error codes TBD ||
+|| `/sam/app/regdeny` || `i`|| `errorCode` || none || error codes defined above ||
 || `/sam/app/unregister` || `i` || `id` || none || sending an `id` of `-1` tells SAM to unregister all clients ||
 
 
 == SAM/Renderer Messages ==
 
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
-||`/sam/render/register` || `iiii` || `major version`, `minor version`, `patch version`, `replyPort` || `/sam/render/regconfirm`, followed by `/sam/stream/add` for each app already registered with SAM, or `/sam/render/regdeny`||  ||
+||`/sam/render/register` || `i` || `replyPort` || `/sam/render/regconfirm`, followed by `/sam/stream/add` for each app already registered with SAM, or `/sam/render/regdeny`||  ||
 || `/sam/render/regconfirm`|| || || || ||
-|| `/sam/render/regdeny` || `i` || `errorCode` || none || error codes TBD ||
+|| `/sam/render/regdeny` || `i` || `errorCode` || none || error codes defined above ||
 ||`/sam/render/unregister` || none  || none || none || ||
 || `/sam/stream/add` || `iii...` || `id`, `type`, `channels`, followed by a list of all channels (type `i`) || none || Sent by SAM to the renderer when a new stream is added (app registered).  Specifies the output channels that stream is using. This is a variable-length message depending on the number of channels. ||
 || `/sam/stream/remove` || `i` || `id` || none || Sent by SAM when a stream is removed (app unregistered). ||
@@ -30,9 +40,9 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 == SAM/UI Messages == 
 
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
-|| `/sam/ui/register` || `iiii` || `major version`, `minor version`, `patch version`, `replyPort` || `/sam/ui/regconfirm` followed by `/sam/app/registered` for each app already registered with SAM, or `/sam/ui/regdeny`|| ||
+|| `/sam/ui/register` || `i` || `replyPort` || `/sam/ui/regconfirm` followed by `/sam/app/registered` for each app already registered with SAM, or `/sam/ui/regdeny`|| ||
 || `/sam/ui/regconfirm` || `iifff` ||| `currentNumApps`, `globalMute`, `globalVolume`, `globalDelay`, `delayMax` || none || delay parameters are specified in milliseconds ||
-||`/sam/ui/regdeny` || `i` || `errorCode` || none || error codes TBD ||
+||`/sam/ui/regdeny` || `i` || `errorCode` || none || error codes defined above ||
 ||`/sam/ui/unregister` || `i` ||| `replyPort` || none || ||
 ||`/sam/app/registered` || `isiiiiiii` || `id`, `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type` || none || ||
 || `/sam/app/unregistered` || `i` || `id` || none || ||
