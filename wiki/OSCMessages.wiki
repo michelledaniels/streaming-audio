@@ -20,7 +20,7 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 == SAM/Renderer Messages ==
 
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
-||`/sam/render/register` || `i` || `replyPort` || `/sam/render/regconfirm`, followed by `/sam/stream/add` for each app already registered with SAM, or `/sam/render/regdeny`||  ||
+||`/sam/render/register` || `iiii` || `major version`, `minor version`, `patch version`, `replyPort` || `/sam/render/regconfirm`, followed by `/sam/stream/add` for each app already registered with SAM, or `/sam/render/regdeny`||  ||
 || `/sam/render/regconfirm`|| || || || ||
 || `/sam/render/regdeny` || `i` || `errorCode` || none || error codes TBD ||
 ||`/sam/render/unregister` || none  || none || none || ||
@@ -30,7 +30,7 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 == SAM/UI Messages == 
 
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
-|| `/sam/ui/register` || `i` || `replyPort` || `/sam/ui/regconfirm` followed by `/sam/app/registered` for each app already registered with SAM, or `/sam/ui/regdeny`|| ||
+|| `/sam/ui/register` || `iiii` || `major version`, `minor version`, `patch version`, `replyPort` || `/sam/ui/regconfirm` followed by `/sam/app/registered` for each app already registered with SAM, or `/sam/ui/regdeny`|| ||
 || `/sam/ui/regconfirm` || `iifff` ||| `currentNumApps`, `globalMute`, `globalVolume`, `globalDelay`, `delayMax` || none || delay parameters are specified in milliseconds ||
 ||`/sam/ui/regdeny` || `i` || `errorCode` || none || error codes TBD ||
 ||`/sam/ui/unregister` || `i` ||| `replyPort` || none || ||
