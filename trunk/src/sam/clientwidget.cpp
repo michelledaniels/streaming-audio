@@ -69,8 +69,8 @@ ClientWidget::ClientWidget(int id, const char* name, int channels, float volume,
 
     QScrollArea *scrollArea = new QScrollArea(this);
     //scrollArea->setMinimumSize(400, 400);
-    QGroupBox *groupBox1 = new QGroupBox(scrollArea);
-    QVBoxLayout* vLayout = new QVBoxLayout(groupBox1);
+    QGroupBox *clientBox = new QGroupBox(scrollArea);
+    QVBoxLayout* clientLayout = new QVBoxLayout(clientBox);
 
     // add name label
     QLabel* nameLabel = new QLabel(this);
@@ -81,17 +81,16 @@ ClientWidget::ClientWidget(int id, const char* name, int channels, float volume,
     font.setPointSize(pointSize + 2);
     font.setBold(true);
     nameLabel->setFont(font);
-    vLayout->addWidget(nameLabel);
+    clientLayout->addWidget(nameLabel);
 
     // add id label
     QLabel* idLabel = new QLabel(this);
     idLabel->setText("SAM client ID: " + QString::number(m_id));
     idLabel->setAlignment(Qt::AlignHCenter);
-    vLayout->addWidget(idLabel);
+    clientLayout->addWidget(idLabel);
 
-    QGroupBox *groupBox2 = new QGroupBox(groupBox1);
-    groupBox2->setStyleSheet("border:0;");
-    QHBoxLayout* hLayout = new QHBoxLayout(groupBox2);
+    QWidget *levelBox = new QWidget(clientBox);
+    QHBoxLayout* levelLayout = new QHBoxLayout(levelBox);
 
     // add volume slider
     m_volumeSlider = new QSlider(Qt::Vertical, this);
@@ -99,7 +98,7 @@ ClientWidget::ClientWidget(int id, const char* name, int channels, float volume,
     m_volumeSlider->setMaximum(VOLUME_SLIDER_SCALE);
     m_volumeSlider->setValue(volume * VOLUME_SLIDER_SCALE);
     connect(m_volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(on_volumeSlider_valueChanged(int)));
-    hLayout->addWidget(m_volumeSlider);
+    levelLayout->addWidget(m_volumeSlider);
 
     // add meter widgets
     MeterWidget** meters = new MeterWidget*[m_channels];
@@ -108,24 +107,24 @@ ClientWidget::ClientWidget(int id, const char* name, int channels, float volume,
         meters[i] = new MeterWidget(this);
         meters[i]->setMinimumSize(50,100);
         meters[i]->setLevel(0.5f, 1.0f);
-        hLayout->addWidget(meters[i]);
+        levelLayout->addWidget(meters[i]);
     }
 
-    groupBox2->setLayout(hLayout);
-    vLayout->addWidget(groupBox2);
+    levelBox->setLayout(levelLayout);
+    clientLayout->addWidget(levelBox);
 
     // add mute/solo checkboxes
     m_muteCheckBox = new QCheckBox(QString("Mute"), this);
     m_muteCheckBox->setChecked(mute);
-    vLayout->addWidget(m_muteCheckBox);
+    clientLayout->addWidget(m_muteCheckBox);
     connect(m_muteCheckBox, SIGNAL(toggled(bool)), this, SLOT(on_muteCheckBox_toggled(bool)));
     m_soloCheckBox = new QCheckBox(QString("Solo"), this);
     m_soloCheckBox->setChecked(solo);
-    vLayout->addWidget(m_soloCheckBox);
+    clientLayout->addWidget(m_soloCheckBox);
     connect(m_soloCheckBox, SIGNAL(toggled(bool)), this, SLOT(on_soloCheckBox_toggled(bool)));
 
-    groupBox1->setLayout(vLayout);
-    scrollArea->setWidget(groupBox1);
+    clientBox->setLayout(clientLayout);
+    scrollArea->setWidget(clientBox);
 }
 
 void ClientWidget::on_volumeSlider_valueChanged(int val)
