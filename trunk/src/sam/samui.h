@@ -8,6 +8,8 @@
 #ifndef SAMUI_H
 #define SAMUI_H
 
+#include <QGroupBox>
+#include <QHBoxLayout>
 #include <QMainWindow>
 #include <QPushButton>
 
@@ -18,6 +20,7 @@ class SamUI;
 }
 
 class MasterWidget;
+class ClientWidget;
 
 /**
  * @class SamUI
@@ -45,6 +48,16 @@ public slots:
      * Perform necessary cleanup before app closes.
      */
     void doBeforeQuit();
+
+    /**
+     * Add client.
+     */
+    void addClient(int);
+
+    /**
+     * Remove client.
+     */
+    void removeClient(int);
     
 private slots:
     /**
@@ -63,6 +76,11 @@ private:
 
     MasterWidget* m_master;
     QPushButton* m_samButton;
+    QGroupBox* m_clientGroup;
+    QHBoxLayout* m_clientLayout;
+
+    int m_maxClients;
+    ClientWidget** m_clients;
 };
 
 #endif // SAMUI_H

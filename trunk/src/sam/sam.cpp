@@ -420,6 +420,8 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
     {
         send_stream_added(m_apps[port], m_renderer);
     }
+
+    emit appAdded(port);
     
     return port;
 }
@@ -445,6 +447,8 @@ bool StreamingAudioManager::unregisterApp(int port)
     // TODO: could this still be a race condition?  What if app is deleted/app status set to closing between check above and call below??
     // flag app for deletion - we can't delete it now because the JACK processing thread could be using it
     m_apps[port]->flagForDelete();
+
+    emit appRemoved(port);
 
     return true;
 }
@@ -783,6 +787,25 @@ bool StreamingAudioManager::setAppType(int port, StreamingAudioType type, sam::S
     }
     
     qDebug("StreamingAudioManager::setAppType finished successfully");
+    return true;
+}
+
+const char* StreamingAudioManager::getAppName(int id)
+{
+    if (!idIsValid(id)) return NULL;
+    return m_apps[id]->getName();
+}
+
+bool StreamingAudioManager::getAppParams(int id, ClientParams& params)
+{
+    if (!idIsValid(id)) return false;
+
+    params.channels = m_apps[id]->getNumChannels();
+    params.volume = m_apps[id]->getVolume();
+    params.mute = m_apps[id]->getMute();
+    params.solo = m_apps[id]->getSolo();
+    params.delay = m_apps[id]->getDelay();
+    params.pos = m_apps[id]->getPosition();
     return true;
 }
 

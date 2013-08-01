@@ -10,6 +10,8 @@
 
 #include <QtGui>
 
+#include "sam.h"
+
 class MeterWidget : public QWidget
 {
     Q_OBJECT
@@ -33,7 +35,7 @@ class ClientWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ClientWidget(int id, const char* name, int m_channels, float volume, bool mute, bool solo, float delay, int x, int y, int w, int h, int d, QWidget *parent = 0);
+    explicit ClientWidget(int id, const char* name, ClientParams& params, QWidget *parent = 0);
 
 signals:
 

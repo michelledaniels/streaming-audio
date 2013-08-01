@@ -56,9 +56,9 @@ void MeterWidget::paintEvent(QPaintEvent* event)
     }
 }
 
-ClientWidget::ClientWidget(int id, const char* name, int channels, float volume, bool mute, bool solo, float delay, int x, int y, int w, int h, int d, QWidget *parent) :
+ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidget *parent) :
     QWidget(parent),
-    m_channels(channels),
+    m_channels(params.channels),
     m_id(id),
     m_volumeSlider(NULL),
     m_muteCheckBox(NULL),
@@ -96,7 +96,7 @@ ClientWidget::ClientWidget(int id, const char* name, int channels, float volume,
     m_volumeSlider = new QSlider(Qt::Vertical, this);
     m_volumeSlider->setMinimum(0);
     m_volumeSlider->setMaximum(VOLUME_SLIDER_SCALE);
-    m_volumeSlider->setValue(volume * VOLUME_SLIDER_SCALE);
+    m_volumeSlider->setValue(params.volume * VOLUME_SLIDER_SCALE);
     connect(m_volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(on_volumeSlider_valueChanged(int)));
     levelLayout->addWidget(m_volumeSlider);
 
@@ -115,11 +115,11 @@ ClientWidget::ClientWidget(int id, const char* name, int channels, float volume,
 
     // add mute/solo checkboxes
     m_muteCheckBox = new QCheckBox(QString("Mute"), this);
-    m_muteCheckBox->setChecked(mute);
+    m_muteCheckBox->setChecked(params.mute);
     clientLayout->addWidget(m_muteCheckBox);
     connect(m_muteCheckBox, SIGNAL(toggled(bool)), this, SLOT(on_muteCheckBox_toggled(bool)));
     m_soloCheckBox = new QCheckBox(QString("Solo"), this);
-    m_soloCheckBox->setChecked(solo);
+    m_soloCheckBox->setChecked(params.solo);
     clientLayout->addWidget(m_soloCheckBox);
     connect(m_soloCheckBox, SIGNAL(toggled(bool)), this, SLOT(on_soloCheckBox_toggled(bool)));
 
