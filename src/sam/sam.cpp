@@ -334,7 +334,7 @@ int StreamingAudioManager::getNumApps()
     return count;
 }       
 
-int StreamingAudioManager::registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, StreamingAudioType type, QTcpSocket* socket)
+int StreamingAudioManager::registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, StreamingAudioType type, QTcpSocket* socket, sam::SamErrorCode& errCode)
 {
     // TODO: check for duplicates (an app already at the same IP/port)?
     
@@ -353,6 +353,7 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
     {
         // error: all ports in use
         qWarning("StreamingAudioManager::registerApp error: max clients already in use!");
+        errCode = sam::SAM_ERR_MAX_CLIENTS;
         return -1;
     }
     
@@ -371,6 +372,7 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
     {
         qWarning("StreamingAudioManager::registerApp error: could not initialize app!");
         m_apps[port]->flagForDelete();
+        errCode = sam::SAM_ERR_DEFAULT;
         return -1;
     }
 
@@ -378,12 +380,14 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
     if (!allocate_output_ports(port, channels, type))
     {
         m_apps[port]->flagForDelete();
+        errCode = sam::SAM_ERR_NO_FREE_OUTPUT;
         return -1;
     }
     
     if (!connect_app_ports(port, m_apps[port]->getChannelAssignments()))
     {
         m_apps[port]->flagForDelete();
+        errCode = sam::SAM_ERR_DEFAULT;
         return -1;
     }
     qDebug("StreamingAudioManager::registerApp finished connecting app ports");
@@ -687,13 +691,17 @@ bool StreamingAudioManager::setAppPosition(int port, int x, int y, int width, in
     return true;
 }
 
-int StreamingAudioManager::setAppType(int port, StreamingAudioType type)
+bool StreamingAudioManager::setAppType(int port, StreamingAudioType type, sam::SamErrorCode& errorCode)
 {
     // check for valid port
-    if (!idIsValid(port)) return 0; // TODO: define error codes
+    if (!idIsValid(port))
+    {
+        errorCode = sam::SAM_ERR_INVALID_ID;
+        return false;
+    }
 
     int typeOld = m_apps[port]->getType();
-    if (typeOld == type) return -1; // nothing to do
+    if (typeOld == type) return true; // nothing to do
     
     // re-assign ports if we are changing from basic to non-basic type and vice-versa
     if (typeOld == sam::TYPE_BASIC)
@@ -701,24 +709,40 @@ int StreamingAudioManager::setAppType(int port, StreamingAudioType type)
         qDebug("StreamingAudioManager::setAppType switching app %d from basic type to non-basic type", port);
         
         // allocate new output ports
-        if (!allocate_output_ports(port, m_apps[port]->getNumChannels(), type)) return 0; // TODO: define error codes
-        
+        if (!allocate_output_ports(port, m_apps[port]->getNumChannels(), type))
+        {
+            errorCode = sam::SAM_ERR_NO_FREE_OUTPUT;
+            return false;
+        }
+
         // disconnect from old output ports
-        if (!disconnect_app_ports(port)) return 0; // TODO: define error codes
-        
+        if (!disconnect_app_ports(port))
+        {
+            errorCode = sam::SAM_ERR_DEFAULT;
+            return false;
+        }
+
         // connect to new output ports
-        if (!connect_app_ports(port, m_apps[port]->getChannelAssignments())) return 0; // TODO: define error codes
+        if (!connect_app_ports(port, m_apps[port]->getChannelAssignments()))
+        {
+            errorCode = sam::SAM_ERR_DEFAULT;
+            return false;
+        }
     }
     else if (typeOld != sam::TYPE_BASIC && type == sam::TYPE_BASIC)
     {
         qDebug("StreamingAudioManager::SetAppType switching app %d from non-basic type to basic type", port);
         
         // allocate new output ports
-        if (!allocate_output_ports(port, m_apps[port]->getNumChannels(), type)) return 0; // TODO: define error codes
+        if (!allocate_output_ports(port, m_apps[port]->getNumChannels(), type)) return sam::SAM_ERR_NO_FREE_OUTPUT;
         
         // disconnect from old output ports
-        if (!disconnect_app_ports(port)) return 0; // TODO: define error codes
-        
+        if (!disconnect_app_ports(port))
+        {
+            errorCode = sam::SAM_ERR_DEFAULT;
+            return false;
+        }
+
         // release old output ports used by this app
         // TODO: can use app's channel assigmments array to do this more efficiently ??  Would need to save a copy before it changes above...
         for (int i = 0; i < m_numOutputPorts; i++)
@@ -730,7 +754,11 @@ int StreamingAudioManager::setAppType(int port, StreamingAudioType type)
         }
         
         // connect to new output ports
-        if (!connect_app_ports(port, m_apps[port]->getChannelAssignments())) return 0; // TODO: define error codes
+        if (!connect_app_ports(port, m_apps[port]->getChannelAssignments()))
+        {
+            errorCode = sam::SAM_ERR_DEFAULT;
+            return false;
+        }
     }
     else
     {
@@ -754,7 +782,7 @@ int StreamingAudioManager::setAppType(int port, StreamingAudioType type)
     }
     
     qDebug("StreamingAudioManager::setAppType finished successfully");
-    return -1;
+    return true;
 }
 
 int StreamingAudioManager::jackBufferSizeChanged(jack_nframes_t nframes, void*)
@@ -944,12 +972,14 @@ void StreamingAudioManager::handle_ui_message(const char* address, OscMessage* m
         quint16 replyPort = arg.val.i;
 
         bool success = false;
+        sam::SamErrorCode code = sam::SAM_ERR_DEFAULT;
         if (version_check(majorVersion, minorVersion, patchVersion))
         {
             success = registerUI(sender, replyPort);
         }
         else
         {
+            code = sam::SAM_ERR_VERSION_MISMATCH;
             qWarning("Denying UI registration due to version mismatch: SAM is version %d.%d.%d, UI is %d.%d.%d",
                      sam::VERSION_MAJOR, sam::VERSION_MINOR, sam::VERSION_PATCH, majorVersion, minorVersion, patchVersion);
         }
@@ -960,7 +990,7 @@ void StreamingAudioManager::handle_ui_message(const char* address, OscMessage* m
         else
         {
             OscMessage replyMsg;
-            replyMsg.init("/sam/ui/regdeny", "i", 0);
+            replyMsg.init("/sam/ui/regdeny", "i", code);
             OscAddress replyAddress;
             replyAddress.host.setAddress(sender);
             replyAddress.port = replyPort;
@@ -1014,12 +1044,14 @@ void StreamingAudioManager::handle_render_message(const char* address, OscMessag
             quint16 replyPort = arg.val.i;
 
             bool success = false;
+            sam::SamErrorCode code = sam::SAM_ERR_DEFAULT;
             if (version_check(majorVersion, minorVersion, patchVersion))
             {
                 success = registerRenderer(sender, replyPort);
             }
             else
             {
+                code = sam::SAM_ERR_VERSION_MISMATCH;
                 qWarning("Denying renderer registration due to version mismatch: SAM is version %d.%d.%d, renderer is %d.%d.%d",
                          sam::VERSION_MAJOR, sam::VERSION_MINOR, sam::VERSION_PATCH, majorVersion, minorVersion, patchVersion);
             }
@@ -1031,7 +1063,7 @@ void StreamingAudioManager::handle_render_message(const char* address, OscMessag
             else
             {
                 OscMessage replyMsg;
-                replyMsg.init("/sam/render/regdeny", "i", 0);
+                replyMsg.init("/sam/render/regdeny", "i", code);
                 OscAddress replyAddress;
                 replyAddress.host.setAddress(sender);
                 replyAddress.port = replyPort;
@@ -1546,8 +1578,9 @@ void StreamingAudioManager::osc_set_type(OscMessage* msg, const char* sender, QA
     OscAddress replyAddr;
     replyAddr.host.setAddress(sender);
     replyAddr.port = replyPort;
-    int errorCode = setAppType(port, type);
-    if (errorCode < 0)
+    sam::SamErrorCode errorCode = sam::SAM_ERR_DEFAULT;
+    bool success = setAppType(port, type, errorCode);
+    if (success)
     {
         // send /sam/type/confirm message
         OscMessage msg;
@@ -1567,11 +1600,11 @@ void StreamingAudioManager::osc_set_type(OscMessage* msg, const char* sender, QA
     }
     else
     {
+        qWarning("StreamingAudioManager::osc_set_type error code = %d", errorCode);
         // send /sam/type/deny message
-        // TODO: define error codes
         OscMessage msg;
         int respondType = idIsValid(port) ? m_apps[port]->getType() : -1;
-        msg.init("/sam/type/deny", "iii", respondType, errorCode);
+        msg.init("/sam/type/deny", "iii", port, respondType, errorCode);
         if (!OscClient::sendUdp(&msg, &replyAddr))
         {
             qWarning("Couldn't send OSC message");
@@ -1615,13 +1648,15 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
 
     int port = -1;
     // register if version matches
+    sam::SamErrorCode code = sam::SAM_ERR_DEFAULT;
     if (version_check(majorVersion, minorVersion, patchVersion))
     {
         printf("Registering app at hostname %s, port %d with name %s, %d channel(s), position [%d %d %d %d %d], type = %d\n\n", socket->peerAddress().toString().toAscii().data(), replyPort, name, channels, x, y, width, height, depth, type);
-        port = registerApp(name, channels, x, y, width, height, depth, type, socket);
+        port = registerApp(name, channels, x, y, width, height, depth, type, socket, code);
     }
     else
     {
+        code = sam::SAM_ERR_VERSION_MISMATCH;
         qWarning("Denying app registration due to client version mismatch: SAM is version %d.%d.%d, client is %d.%d.%d",
                  sam::VERSION_MAJOR, sam::VERSION_MINOR, sam::VERSION_PATCH, majorVersion, minorVersion, patchVersion);
     }
@@ -1630,7 +1665,7 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
     if (port < 0)
     {
         OscMessage msg;
-        msg.init("/sam/app/regdeny", "i", 0);
+        msg.init("/sam/app/regdeny", "i", code);
         if (!OscClient::sendFromSocket(&msg, socket))
         {
             qWarning("Couldn't send OSC message");

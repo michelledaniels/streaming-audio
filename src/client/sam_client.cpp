@@ -415,7 +415,7 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender)
                 OscArg arg;
                 msg->getArg(0, arg);
                 int errorCode = arg.val.i;
-                qDebug() << "SAM registration DENIED: error code = " << errorCode << endl;
+                qWarning("SAM registration DENIED: error code = %d", errorCode);
                 handle_regdeny(errorCode);
             }
             else

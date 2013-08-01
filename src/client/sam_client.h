@@ -27,6 +27,19 @@ static const int VERSION_PATCH = 5;
 static const unsigned int SAC_DEFAULT_TIMEOUT = 10000; // in milliseconds
 
 /**
+ * @enum SamErrorCode
+ * Possible error codes returned by SAM in OSC messages to clients, renderers, and UIs.
+ */
+enum SamErrorCode
+{
+    SAM_ERR_DEFAULT = 0,        ///< non-specific error
+    SAM_ERR_VERSION_MISMATCH,   ///< the client, renderer, or UI version didn't match SAM's version
+    SAM_ERR_MAX_CLIENTS,        ///< the maximum number of clients has been reached
+    SAM_ERR_NO_FREE_OUTPUT,     ///< there are no more output channels (JACK ports) available in SAM
+    SAM_ERR_INVALID_ID          ///< invalid client id
+};
+
+/**
  * @enum StreamingAudioType
  * The possible types of audio streams for an app.
  */
