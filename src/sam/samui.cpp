@@ -18,7 +18,11 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     ui(new Ui::SamUI),
     m_sam(NULL),
     m_master(NULL),
-    m_samButton(NULL)
+    m_samButton(NULL),
+    m_clientGroup(NULL),
+    m_clientLayout(NULL),
+    m_maxClients(params.maxClients),
+    m_clients(NULL)
 {
     ui->setupUi(this);
 
@@ -26,31 +30,36 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
 
     m_sam = new StreamingAudioManager(params);
 
+    connect(m_sam, SIGNAL(appAdded(int)), this, SLOT(addClient(int)));
+    connect(m_sam, SIGNAL(appRemoved(int)), this, SLOT(removeClient(int)));
+
     m_samButton = new QPushButton(QString("Start SAM"), this);
     connect(m_samButton, SIGNAL(clicked()), this, SLOT(onSamButtonClicked()));
 
     m_master = new MasterWidget(1.0f, false, 0.0f, this);
 
-    ClientWidget* client1 = new ClientWidget(0, "client 1", 2, 1.0f, false, false, 0.0f, 0, 0, 0, 0, 0, this);
-    ClientWidget* client2 = new ClientWidget(1, "client 2", 2, 0.5f, false, false, 0.0f, 0, 0, 0, 0, 0, this);
+    m_clients = new ClientWidget*[m_maxClients];
+    for (int i = 0; i < m_maxClients; i++)
+    {
+        m_clients[i] = NULL;
+    }
 
-    QGroupBox* groupBox1 = new QGroupBox(this);
-    QVBoxLayout* layout1 = new QVBoxLayout(groupBox1);
-    groupBox1->setLayout(layout1);
-    layout1->addWidget(m_samButton, 0, Qt::AlignCenter);
-    layout1->addWidget(m_master, 0, Qt::AlignCenter);
+    QGroupBox* mainBox = new QGroupBox(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(mainBox);
+    mainBox->setLayout(mainLayout);
+    mainLayout->addWidget(m_samButton, 0, Qt::AlignCenter);
+    mainLayout->addWidget(m_master, 0, Qt::AlignCenter);
 
-    QScrollArea* scrollArea = new QScrollArea(groupBox1);
-    QGroupBox* groupBox2 = new QGroupBox(scrollArea);
-    QHBoxLayout* layout2 = new QHBoxLayout(groupBox2);
-    groupBox2->setLayout(layout2);
-    layout2->addWidget(client1);
-    layout2->addWidget(client2);
+    QScrollArea* clientScrollArea = new QScrollArea(mainBox);
+    m_clientGroup = new QGroupBox(clientScrollArea);
+    m_clientLayout = new QHBoxLayout(m_clientGroup);
+    m_clientGroup->setLayout(m_clientLayout);
+    m_clientGroup->setMinimumSize(400,250);
 
-    scrollArea->setWidget(groupBox2);
-    layout1->addWidget(scrollArea, 0, Qt::AlignCenter);
-    scrollArea->setMinimumSize(400, 250);
-    setCentralWidget(groupBox1);
+    clientScrollArea->setWidget(m_clientGroup);
+    mainLayout->addWidget(clientScrollArea, 0, Qt::AlignCenter);
+    clientScrollArea->setMinimumSize(400, 250);
+    setCentralWidget(mainBox);
 
 }
 
@@ -68,6 +77,56 @@ SamUI::~SamUI()
 void SamUI::doBeforeQuit()
 {
     if (m_sam) m_sam->stop();
+}
+
+void SamUI::addClient(int id)
+{
+    qWarning("SamUI::addClient id = %d", id);
+    if (id < 0 || id >= m_maxClients)
+    {
+        qWarning("SamUI::addClient received invalid id %d", id);
+        return;
+    }
+
+    if (m_clients[id])
+    {
+        // TODO: set new name and parameters
+        m_clientLayout->addWidget(m_clients[id], 0, Qt::AlignCenter);
+        m_clients[id]->show();
+    }
+    else
+    {
+        ClientParams params;
+        if (!m_sam->getAppParams(id, params))
+        {
+            qWarning("SamUI::addClient couldn't get client parameters");
+            return;
+        }
+        m_clients[id] = new ClientWidget(id, m_sam->getAppName(id), params, this);
+        //m_clientLayout->addWidget(m_clients[id], 0, Qt::AlignCenter);
+        m_clientLayout->addWidget(m_clients[id]);
+    }
+}
+
+void SamUI::removeClient(int id)
+{
+    qWarning("SamUI::removeClient id = %d", id);
+
+    if (id < 0 || id >= m_maxClients)
+    {
+        qWarning("SamUI::addClient received invalid id %d", id);
+        return;
+    }
+
+    if (m_clients[id])
+    {
+        m_clients[id]->hide();
+        m_clientLayout->removeWidget(m_clients[id]);
+    }
+    else
+    {
+        qWarning("SamUI::removeClient tried to remove non-existent client widget");
+    }
 }
 
 void SamUI::onSamButtonClicked()

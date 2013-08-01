@@ -61,6 +61,20 @@ struct SamAppPosition
 };
 
 /**
+ * @struct ClientParams
+ * This struct contains the parameters describing a client/app
+ */
+struct ClientParams
+{
+    int channels;
+    float volume;
+    bool mute;
+    bool solo;
+    float delay;
+    SamAppPosition pos;
+};
+
+/**
  * @enum SamAppState
  * The possible states for an app.
  */
@@ -132,7 +146,7 @@ public:
      * @return the number of registered apps
      */
     int getNumApps();
-    
+
     /**
      * Register a new app.
      * @param name the name of the app, to be used for displaying in a UI
@@ -245,6 +259,21 @@ public:
      * @return true on success, false on failure
      */
     bool setAppType(int port, sam::StreamingAudioType type, sam::SamErrorCode& errorCode);
+
+    /**
+     * Get the name of an app.
+     * @param id the port/unique ID of the app to be queried
+     * @return name on success, NULL on failure
+     */
+    const char* getAppName(int id);
+
+    /**
+     * Get the name of an app.
+     * @param id the port/unique ID of the app to be queried
+     * @param params the parameter struct to be populated
+     * @return true on success, false on failure
+     */
+    bool getAppParams(int id, ClientParams& params);
 
     /**
      * JACK buffer size changed callback.
@@ -376,6 +405,8 @@ signals:
     void volumeChanged(float);
     void muteChanged(bool);
     void delayChanged(float);
+    void appAdded(int);
+    void appRemoved(int);
 
 private:
 
