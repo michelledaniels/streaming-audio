@@ -23,7 +23,7 @@ namespace sam
     
 static const int VERSION_MAJOR = 0;
 static const int VERSION_MINOR = 5;
-static const int VERSION_PATCH = 5;
+static const int VERSION_PATCH = 6;
 static const unsigned int SAC_DEFAULT_TIMEOUT = 10000; // in milliseconds
 
 /**

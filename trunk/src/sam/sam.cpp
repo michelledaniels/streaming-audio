@@ -65,7 +65,8 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_oscServerPort(params.oscPort),
     m_udpSocket(NULL),
     m_tcpServer(NULL),
-    m_samThread(NULL)
+    m_samThread(NULL),
+    m_verifyPatchVersion(params.verifyPatchVersion)
 {
     m_apps = new StreamingAudioApp*[m_maxClients];
     m_appState = new SamAppState[m_maxClients];
@@ -2163,5 +2164,12 @@ void StreamingAudioManager::print_debug()
 
 bool StreamingAudioManager::version_check(int major, int minor, int patch)
 {
-    return (major == sam::VERSION_MAJOR && minor == sam::VERSION_MINOR && patch == sam::VERSION_PATCH);
+    if (m_verifyPatchVersion)
+    {
+        return (major == sam::VERSION_MAJOR && minor == sam::VERSION_MINOR && patch == sam::VERSION_PATCH);
+    }
+    else
+    {
+        return (major == sam::VERSION_MAJOR && minor == sam::VERSION_MINOR);
+    }
 }
