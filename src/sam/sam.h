@@ -44,6 +44,7 @@ struct SamParams
     QList<unsigned int> discreteChannels; ///< list of discrete channels to use
     int maxClients;        ///< maximum number of clients that can be connected simultaneously
     float meterIntervalMillis; ///< milliseconds between meter broadcasts to subscribers
+    bool verifyPatchVersion;   ///< whether or not the patch versions have to match during version check
 };
 
 /**
@@ -625,6 +626,9 @@ private:
     QTcpServer* m_tcpServer;        ///< The server listening for incoming TCP connections
 
     QThread* m_samThread;           ///< Thread for SAM's event loop
+
+    // for version checking
+    bool m_verifyPatchVersion;      ///< Whether the patch version must match for version checking
 }; 
 
 #endif // SAM_H

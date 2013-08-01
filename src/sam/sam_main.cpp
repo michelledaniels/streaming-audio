@@ -166,6 +166,7 @@ int main(int argc, char* argv[])
     params.outputJackPortBase = outputJackPortBytes.data();
     params.maxClients = settings.value("MaxClients", 100).toInt();
     params.meterIntervalMillis = settings.value("MeterIntervalMillis", 1000.0f).toFloat();
+    params.verifyPatchVersion = settings.value("VerifyPatchVersion", true).toBool();
 
     if (params.maxClients <= 0)
     {
@@ -325,6 +326,7 @@ int main(int argc, char* argv[])
     printf("OutputJackPortBase: %s\n", params.outputJackPortBase);
     printf("Max clients: %d\n", params.maxClients);
     printf("Meter interval in millis: %f\n", params.meterIntervalMillis);
+    printf("Verify patch version: %d\n", params.verifyPatchVersion);
 
     // TODO: check that all arguments are valid, non-null??
     if (useGui) // run in GUI mode
