@@ -65,7 +65,7 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidg
     m_soloCheckBox(NULL)
 {
     m_name.append(name);
-    setMinimumSize(280, 400);
+    setMinimumSize(200, 400);
 
     QGroupBox *clientBox = new QGroupBox(this);
     QVBoxLayout* clientLayout = new QVBoxLayout(clientBox);

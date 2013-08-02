@@ -58,7 +58,7 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
 
     clientScrollArea->setWidget(m_clientGroup);
     mainLayout->addWidget(clientScrollArea);
-    clientScrollArea->setMinimumSize(400, 250);
+    clientScrollArea->setMinimumSize(400, 300);
     setCentralWidget(mainBox);
 
 }
@@ -103,7 +103,6 @@ void SamUI::addClient(int id)
             return;
         }
         m_clients[id] = new ClientWidget(id, m_sam->getAppName(id), params, this);
-        //m_clientLayout->addWidget(m_clients[id], 0, Qt::AlignCenter);
         m_clientLayout->addWidget(m_clients[id]);
     }
 }
