@@ -51,13 +51,13 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     mainLayout->addWidget(m_master, 0, Qt::AlignCenter);
 
     QScrollArea* clientScrollArea = new QScrollArea(mainBox);
+    clientScrollArea->setWidgetResizable(true);
     m_clientGroup = new QGroupBox(clientScrollArea);
     m_clientLayout = new QHBoxLayout(m_clientGroup);
     m_clientGroup->setLayout(m_clientLayout);
-    m_clientGroup->setMinimumSize(400,250);
 
     clientScrollArea->setWidget(m_clientGroup);
-    mainLayout->addWidget(clientScrollArea, 0, Qt::AlignCenter);
+    mainLayout->addWidget(clientScrollArea);
     clientScrollArea->setMinimumSize(400, 250);
     setCentralWidget(mainBox);
 
