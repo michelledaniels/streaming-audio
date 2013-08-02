@@ -97,11 +97,16 @@ public:
 
     /**
       * StreamingAudioClient default constructor.
+      * Initialization must be done separately with init().  This is the preferred
+      * method, since it allows the caller to handle any errors within init().
       */
     StreamingAudioClient();
 
     /**
      * StreamingAudioClient constructor.
+     * Includes initialization, but because a constructor has no return value
+     * to report initialization errors, the preferred approach is to use the
+     * default constructor and call init() separately.
      * @param numChannels number of audio channels this client will send to SAM
      * @param type the type of audio stream this client will send
      * @param name the name of this client
@@ -109,9 +114,11 @@ public:
      * @param samPort SAM's OSC port
      * @param replyPort this client's port to listen on (if NULL, a port will be randomly chosen)
      * @param payloadType PAYLOAD_PCM_16, PAYLOAD_PCM_24, or PAYLOAD_PCM_32
+     * @param driveExternally false to allow SAC to drive the audio sending or true to drive the
+     *      audio sending externally.
      * @see ~StreamingAudioClient
      */
-    StreamingAudioClient(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort = 0, quint8 payloadType = PAYLOAD_PCM_16);
+    StreamingAudioClient(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort = 0, quint8 payloadType = PAYLOAD_PCM_16, bool driveExternally = false);
     
     /**
      * StreamingAudioClient destructor.
@@ -131,15 +138,20 @@ public:
 
     /**
      * Init this StreamingAudioClient.
+     * If you use the default constructor, you must separately initialize with
+     * this method before calling start().
      * @param numChannels number of audio channels this client will send to SAM
      * @param type the type of audio stream this client will send
      * @param name the name of this client
      * @param samIP the IP address of SAM
      * @param samPort SAM's OSC port
      * @param replyPort this client's port to listen on (if NULL, a port will be randomly chosen)
+     * @param payloadType PAYLOAD_PCM_16, PAYLOAD_PCM_24 or PAYLOAD_PCM_32
+     * @param driveExternally false to allow SAC to drive the audio sending or true to drive the
+     *      audio sending externally.
      * @return 0 on success, a non-zero ::SACReturn code on failure
      */
-    int init(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort = 0);
+    int init(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort = 0, quint8 payloadType = PAYLOAD_PCM_16, bool driveExternally = false);
 
     /**
      * Register this client with SAM and block until response is received.
@@ -153,6 +165,31 @@ public:
      */
     int start(int x, int y, int width, int height, int depth, unsigned int timeout = SAC_DEFAULT_TIMEOUT);
     
+    /**
+     * Send audio to SAM.
+     * Should only be called if driving the sending from outside SAC.
+     * @param in a buffer of input audio samples to send (NULL if no input).
+     *      Format: in[ch][frame] using the number of channels specified at initialization time
+     *      and buffer size (number of sample "frames" per channel) returned from getBufferSize()
+     *      after successfully starting SAC.
+     * @return true on success, false on failure
+     */
+    bool sendAudio(float** in);
+
+    /**
+     * Get the buffer size that should be used when driving audio sending from outside SAC.
+     * This can only be called after start() has returned successfully.
+     * @return buffer size (number of samples per channel sent in each packet) or 0 if unitialized
+     */
+    unsigned int getBufferSize() { return m_bufferSize; }
+
+    /**
+     * Get the sample rate that should be used when driving audio sending from outside SAC.
+     * This can only be called after start() has returned successfully.
+     * @return the current sampling rate or zero if uninitialized
+     */
+    unsigned int getSampleRate() { return m_sampleRate; }
+
     /**
      * Find out how many channels of physical audio inputs are available to this client.
      * @return the number of physical audio inputs available
@@ -251,14 +288,8 @@ public:
     float getLatency() { return 0.0f; }
     
     /**
-     * Get audio sample rate.
-     * @return the current sampling rate or zero if uninitialized
-     */
-    int getSampleRate() { if (m_interface) return m_interface->getSampleRate(); else return 0; }
-    
-    /**
-     * Get audio sample rate.
-     * @return the sampling rate
+     * Check if this StreamingAudioClient is running.
+     * @return true if running, false otherwise
      */
     bool isRunning() { return (m_port >= 0); }
 
@@ -293,15 +324,6 @@ private:
     void handle_typedeny(int errorCode);
     
     /**
-     * Send audio to SAM.
-     * @param nchannels the number of channels of audio to send
-     * @param nframes the number of audio frames to send
-     * @param in a buffer of input audio samples to send (NULL if no input)
-     * @return true on success, false on failure
-     */
-    bool send_audio(unsigned int nchannels, unsigned int nframes, float** in);
-
-    /**
      * Audio interface process callback.
      */
     static bool interface_callback(unsigned int nchannels, unsigned int nframes, float** in, float** out, void* sac);
@@ -314,6 +336,8 @@ private:
     bool read_from_socket();
     
     unsigned int m_channels;
+    unsigned int m_bufferSize;
+    unsigned int m_sampleRate;
     StreamingAudioType m_type;
     volatile int m_port;
     char* m_name;
@@ -327,6 +351,7 @@ private:
     QByteArray m_data;                ///< temporary storage for received data
     
     // for audio interface
+    bool m_driveExternally;           ///< true to drive with an external clock tick, false to use internal SAC driver.
     SacAudioInterface* m_interface;   ///< audio interface
     
     // for RTP
