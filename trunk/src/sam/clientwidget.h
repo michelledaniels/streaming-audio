@@ -40,23 +40,26 @@ public:
 signals:
 
     // for notifying SAM of changes
-    void volumeChanged(float volume);
-    void muteChanged(bool mute);
-    void soloChanged(bool solo);
-    void delayChanged(float delay);
-    void positionChanged(int x, int y, int w, int h, int d);
+    void volumeChanged(int id, float volume);
+    void muteChanged(int id, bool mute);
+    void soloChanged(int id, bool solo);
+    void delayChanged(int id, float delay);
+    void positionChanged(int id, int x, int y, int w, int h, int d);
 
 public slots:
-    /*void setVolume(float volume);
-    void setMute(bool mute);
-    void setSolo(bool solo);
-    void setDelay(float delay);
-    void setPosition(int x, int y, int w, int h, int d);
+    void setName(const char*);
+    void setVolume(float);
+    void setMute(bool);
+    void setSolo(bool);
+    void setDelay(float);
+    void setPosition(int, int, int, int, int);
+    void setType(int);
     void setMeter(const float* rms, const float* peak);
-*/
+
     void on_volumeSlider_valueChanged(int);
     void on_muteCheckBox_toggled(bool);
     void on_soloCheckBox_toggled(bool);
+
 
 protected:
     QString m_name;
@@ -64,6 +67,7 @@ protected:
     int m_id;
 
     // widgets
+    QLabel* m_nameLabel;
     QSlider* m_volumeSlider;
     QCheckBox* m_muteCheckBox;
     QCheckBox* m_soloCheckBox;

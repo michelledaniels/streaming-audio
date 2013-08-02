@@ -60,6 +60,7 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidg
     QWidget(parent),
     m_channels(params.channels),
     m_id(id),
+    m_nameLabel(NULL),
     m_volumeSlider(NULL),
     m_muteCheckBox(NULL),
     m_soloCheckBox(NULL)
@@ -71,15 +72,15 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidg
     QVBoxLayout* clientLayout = new QVBoxLayout(clientBox);
 
     // add name label
-    QLabel* nameLabel = new QLabel(this);
-    nameLabel->setText(m_name);
-    nameLabel->setAlignment(Qt::AlignHCenter);
-    QFont font = nameLabel->font();
+    m_nameLabel = new QLabel(this);
+    m_nameLabel->setText(m_name);
+    m_nameLabel->setAlignment(Qt::AlignHCenter);
+    QFont font = m_nameLabel->font();
     int pointSize = font.pointSize();
     font.setPointSize(pointSize + 2);
     font.setBold(true);
-    nameLabel->setFont(font);
-    clientLayout->addWidget(nameLabel);
+    m_nameLabel->setFont(font);
+    clientLayout->addWidget(m_nameLabel);
 
     // add id label
     QLabel* idLabel = new QLabel(this);
@@ -124,21 +125,63 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidg
     clientBox->setLayout(clientLayout);
 }
 
+void ClientWidget::setName(const char* name)
+{
+    m_name.clear();
+    m_name.append(name);
+    m_nameLabel->setText(m_name);
+}
+
+void ClientWidget::setVolume(float volume)
+{
+    m_volumeSlider->setValue(volume * VOLUME_SLIDER_SCALE);
+}
+
+void ClientWidget::setMute(bool mute)
+{
+    m_muteCheckBox->setChecked(mute);
+}
+
+void ClientWidget::setSolo(bool solo)
+{
+    m_soloCheckBox->setChecked(solo);
+}
+
+void ClientWidget::setDelay(float delay)
+{
+
+}
+
+void ClientWidget::setPosition(int x, int y, int w, int h, int d)
+{
+
+}
+
+void ClientWidget::setType(int type)
+{
+
+}
+
+void ClientWidget::setMeter(const float* rms, const float* peak)
+{
+
+}
+
 void ClientWidget::on_volumeSlider_valueChanged(int val)
 {
     float fval = val / (float)VOLUME_SLIDER_SCALE;
     qWarning("ClientWidget::on_volumeSlider_valueChanged fval = %f", fval);
-    emit volumeChanged(fval);
+    emit volumeChanged(m_id, fval);
 }
 
 void ClientWidget::on_muteCheckBox_toggled(bool checked)
 {
     qWarning("ClientWidget::on_muteCheckBox_toggled checked = %d", checked);
-    emit muteChanged(checked);
+    emit muteChanged(m_id, checked);
 }
 
 void ClientWidget::on_soloCheckBox_toggled(bool checked)
 {
     qWarning("ClientWidget::on_soloCheckBox_toggled checked = %d", checked);
-    emit soloChanged(checked);
+    emit soloChanged(m_id, checked);
 }
