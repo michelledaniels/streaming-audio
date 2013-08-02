@@ -58,6 +58,13 @@ public slots:
      * Remove client.
      */
     void removeClient(int);
+
+    void setAppVolume(int, float);
+    void setAppMute(int, bool);
+    void setAppSolo(int, bool);
+    void setAppDelay(int, float);
+    void setAppPosition(int, int, int, int, int, int);
+    void setAppType(int, int);
     
 private slots:
     /**
@@ -71,6 +78,10 @@ private slots:
     void on_actionAbout_triggered();
 
 private:
+
+    void connect_client(int id);
+    void disconnect_client(int id);
+
     Ui::SamUI *ui;                  ///< UI
     StreamingAudioManager* m_sam;   ///< SAM instance
 

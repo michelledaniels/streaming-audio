@@ -206,59 +206,6 @@ public:
      * @param enabled true if the channel is to be enabled, false otherwise
      */
     void setOutEnabled(int ch, bool enabled);
-    
-    /**
-     * Set the volume level for an app.
-     * @param port the port/unique ID of the app to be updated
-     * @param volume the volume level to be set, in the range [0.0, 1.0]
-     * @return true on success, false on failure (invalid port, etc.)
-     */
-    bool setAppVolume(int port, float volume);
-
-    /**
-     * Set the mute status for an app.
-     * @param port the port/unique ID of the app to be updated
-     * @param isMuted true if the app is to be muted, false otherwise
-     * @return true on success, false on failure (invalid port, etc.)
-     */
-    bool setAppMute(int port, bool isMuted);
-
-    /**
-     * Set the solo status for an app.
-     * @param port the port/unique ID of the app to be updated
-     * @param isSolo true if the app is to be solo'd, false otherwise
-     * @return true on success, false on failure (invalid port, etc.)
-     */
-    bool setAppSolo(int port, bool isSolo);
-
-    /**
-     * Set the delay for an app.
-     * @param port the port/unique ID of the app to be updated
-     * @param delay delay in milliseconds
-     * @return true on success, false on failure (invalid port, etc.)
-     */
-    bool setAppDelay(int port, float delay);
-
-    /**
-     * Set the position of an app.
-     * @param port the port/unique ID of the app to be updated
-     * @param x the x-coordinate of the upper-left corner of the app's window
-     * @param y the y-coordinate of the upper-left corner of the app's window
-     * @param width the width of the app's window
-     * @param height the height of the app's window
-     * @param depth the depth of the app's window
-     * @return true on success, false on failure (invalid port, etc.)
-     */
-    bool setAppPosition(int port, int x, int y, int width, int height, int depth);
-
-    /**
-     * Set the type for an app.
-     * @param port the port/unique ID of the app to be updated
-     * @param type the type to be set
-     * @param error code on failure, otherwise undefined
-     * @return true on success, false on failure
-     */
-    bool setAppType(int port, sam::StreamingAudioType type, sam::SamErrorCode& errorCode);
 
     /**
      * Get the name of an app.
@@ -340,6 +287,59 @@ public slots:
     void setDelay(float delay);
 
     /**
+     * Set the volume level for an app.
+     * @param port the port/unique ID of the app to be updated
+     * @param volume the volume level to be set, in the range [0.0, 1.0]
+     * @return true on success, false on failure (invalid port, etc.)
+     */
+    bool setAppVolume(int port, float volume);
+
+    /**
+     * Set the mute status for an app.
+     * @param port the port/unique ID of the app to be updated
+     * @param isMuted true if the app is to be muted, false otherwise
+     * @return true on success, false on failure (invalid port, etc.)
+     */
+    bool setAppMute(int port, bool isMuted);
+
+    /**
+     * Set the solo status for an app.
+     * @param port the port/unique ID of the app to be updated
+     * @param isSolo true if the app is to be solo'd, false otherwise
+     * @return true on success, false on failure (invalid port, etc.)
+     */
+    bool setAppSolo(int port, bool isSolo);
+
+    /**
+     * Set the delay for an app.
+     * @param port the port/unique ID of the app to be updated
+     * @param delay delay in milliseconds
+     * @return true on success, false on failure (invalid port, etc.)
+     */
+    bool setAppDelay(int port, float delay);
+
+    /**
+     * Set the position of an app.
+     * @param port the port/unique ID of the app to be updated
+     * @param x the x-coordinate of the upper-left corner of the app's window
+     * @param y the y-coordinate of the upper-left corner of the app's window
+     * @param width the width of the app's window
+     * @param height the height of the app's window
+     * @param depth the depth of the app's window
+     * @return true on success, false on failure (invalid port, etc.)
+     */
+    bool setAppPosition(int port, int x, int y, int width, int height, int depth);
+
+    /**
+     * Set the type for an app.
+     * @param port the port/unique ID of the app to be updated
+     * @param type the type to be set
+     * @param error code on failure, otherwise undefined
+     * @return true on success, false on failure
+     */
+    bool setAppType(int port, sam::StreamingAudioType type, sam::SamErrorCode& errorCode);
+
+    /**
      * Start running this StreamingAudioManager.
      * @see stop()
      */
@@ -407,6 +407,12 @@ signals:
     void delayChanged(float);
     void appAdded(int);
     void appRemoved(int);
+    void appVolumeChanged(int, float);
+    void appMuteChanged(int, bool);
+    void appSoloChanged(int, bool);
+    void appDelayChanged(int, float);
+    void appPositionChanged(int, int, int, int, int, int);
+    void appTypeChanged(int, int);
 
 private:
 

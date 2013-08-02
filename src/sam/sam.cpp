@@ -637,6 +637,8 @@ bool StreamingAudioManager::setAppVolume(int port, float volume)
     if (!idIsValid(port)) return false;
 
     m_apps[port]->setVolume(volume);
+
+    emit appVolumeChanged(port, volume);
     return true;
 }
 
@@ -653,6 +655,7 @@ bool StreamingAudioManager::setAppMute(int port, bool isMuted)
     if (!idIsValid(port)) return false;
 
     m_apps[port]->setMute(isMuted);
+    emit appMuteChanged(port, isMuted);
     return true;
 }
 
@@ -662,6 +665,7 @@ bool StreamingAudioManager::setAppSolo(int port, bool isSolo)
     if (!idIsValid(port)) return false;
 
     m_apps[port]->setSolo(isSolo);
+    emit appSoloChanged(port, isSolo);
     return true;
 }
 
@@ -678,6 +682,7 @@ bool StreamingAudioManager::setAppDelay(int port, float delay)
     if (!idIsValid(port)) return false;
 
     m_apps[port]->setDelay(delay);
+    emit appDelayChanged(port, delay);
     return true;
 }
 
@@ -693,6 +698,7 @@ bool StreamingAudioManager::setAppPosition(int port, int x, int y, int width, in
     pos.height = height;
     pos.depth = depth;
     m_apps[port]->setPosition(pos);
+    emit appPositionChanged(port, x, y, width, height, depth);
     return true;
 }
 
@@ -787,6 +793,7 @@ bool StreamingAudioManager::setAppType(int port, StreamingAudioType type, sam::S
     }
     
     qDebug("StreamingAudioManager::setAppType finished successfully");
+    emit appTypeChanged(port, type);
     return true;
 }
 

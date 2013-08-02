@@ -32,6 +32,12 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
 
     connect(m_sam, SIGNAL(appAdded(int)), this, SLOT(addClient(int)));
     connect(m_sam, SIGNAL(appRemoved(int)), this, SLOT(removeClient(int)));
+    connect(m_sam, SIGNAL(appVolumeChanged(int, float)), this, SLOT(setAppVolume(int,float)));
+    connect(m_sam, SIGNAL(appMuteChanged(int, bool)), this, SLOT(setAppMute(int, bool)));
+    connect(m_sam, SIGNAL(appSoloChanged(int, bool)), this, SLOT(setAppSolo(int, bool)));
+    connect(m_sam, SIGNAL(appDelayChanged(int, float)), this, SLOT(setAppDelay(int,float)));
+    connect(m_sam, SIGNAL(appPositionChanged(int, int, int, int, int, int)), this, SLOT(setAppPosition(int,int,int,int,int,int)));
+    connect(m_sam, SIGNAL(appTypeChanged(int, int)), this, SLOT(setAppType(int, int)));
 
     m_samButton = new QPushButton(QString("Start SAM"), this);
     connect(m_samButton, SIGNAL(clicked()), this, SLOT(onSamButtonClicked()));
@@ -90,8 +96,21 @@ void SamUI::addClient(int id)
 
     if (m_clients[id])
     {
-        // TODO: set new name and parameters
+        ClientParams params;
+        if (!m_sam->getAppParams(id, params))
+        {
+            qWarning("SamUI::addClient couldn't get client parameters");
+            return;
+        }
         m_clientLayout->addWidget(m_clients[id], 0, Qt::AlignCenter);
+        m_clients[id]->setName(m_sam->getAppName(id));
+        m_clients[id]->setVolume(params.volume);
+        m_clients[id]->setMute(params.mute);
+        m_clients[id]->setSolo(params.solo);
+        m_clients[id]->setDelay(params.delay);
+        m_clients[id]->setPosition(params.pos.x, params.pos.y, params.pos.width, params.pos.height, params.pos.depth);
+
+        connect_client(id);
         m_clients[id]->show();
     }
     else
@@ -103,6 +122,7 @@ void SamUI::addClient(int id)
             return;
         }
         m_clients[id] = new ClientWidget(id, m_sam->getAppName(id), params, this);
+        connect_client(id);
         m_clientLayout->addWidget(m_clients[id]);
     }
 }
@@ -125,6 +145,54 @@ void SamUI::removeClient(int id)
     else
     {
         qWarning("SamUI::removeClient tried to remove non-existent client widget");
+    }
+}
+
+void SamUI::setAppVolume(int id, float volume)
+{
+    if (m_clients[id])
+    {
+        m_clients[id]->setVolume(volume);
+    }
+}
+
+void SamUI::setAppMute(int id, bool mute)
+{
+    if (m_clients[id])
+    {
+        m_clients[id]->setMute(mute);
+    }
+}
+
+void SamUI::setAppSolo(int id, bool solo)
+{
+    if (m_clients[id])
+    {
+        m_clients[id]->setSolo(solo);
+    }
+}
+
+void SamUI::setAppDelay(int id, float delay)
+{
+    if (m_clients[id])
+    {
+        m_clients[id]->setDelay(delay);
+    }
+}
+
+void SamUI::setAppPosition(int id, int x, int y, int width, int height, int depth)
+{
+    if (m_clients[id])
+    {
+        m_clients[id]->setPosition(x, y, width, height, depth);
+    }
+}
+
+void SamUI::setAppType(int id, int type)
+{
+    if (m_clients[id])
+    {
+        m_clients[id]->setType(type);
     }
 }
 
@@ -199,4 +267,18 @@ void SamUI::on_actionAbout_triggered()
     info.append("\nCopyright UCSD 2011-2013\n");
     msgBox.setInformativeText(info);
     msgBox.exec();
+}
+
+void SamUI::connect_client(int id)
+{
+    connect(m_clients[id], SIGNAL(volumeChanged(int, float)), m_sam, SLOT(setAppVolume(int, float)));
+    connect(m_clients[id], SIGNAL(muteChanged(int, bool)), m_sam, SLOT(setAppMute(int, bool)));
+    connect(m_clients[id], SIGNAL(soloChanged(int, bool)), m_sam, SLOT(setAppSolo(int, bool)));
+}
+
+void SamUI::disconnect_client(int id)
+{
+    disconnect(m_clients[id], SIGNAL(volumeChanged(int, float)), m_sam, SLOT(setAppVolume(int, float)));
+    disconnect(m_clients[id], SIGNAL(muteChanged(int, bool)), m_sam, SLOT(setAppMute(int, bool)));
+    disconnect(m_clients[id], SIGNAL(soloChanged(int, bool)), m_sam, SLOT(setAppSolo(int, bool)));
 }
