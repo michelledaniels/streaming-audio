@@ -67,9 +67,7 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidg
     m_name.append(name);
     setMinimumSize(280, 400);
 
-    QScrollArea *scrollArea = new QScrollArea(this);
-    //scrollArea->setMinimumSize(400, 400);
-    QGroupBox *clientBox = new QGroupBox(scrollArea);
+    QGroupBox *clientBox = new QGroupBox(this);
     QVBoxLayout* clientLayout = new QVBoxLayout(clientBox);
 
     // add name label
@@ -124,7 +122,6 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidg
     connect(m_soloCheckBox, SIGNAL(toggled(bool)), this, SLOT(on_soloCheckBox_toggled(bool)));
 
     clientBox->setLayout(clientLayout);
-    scrollArea->setWidget(clientBox);
 }
 
 void ClientWidget::on_volumeSlider_valueChanged(int val)
