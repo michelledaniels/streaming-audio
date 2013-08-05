@@ -65,6 +65,7 @@ public slots:
     void setAppDelay(int, float);
     void setAppPosition(int, int, int, int, int, int);
     void setAppType(int, int);
+    void setAppMeter(int, int, float, float, float, float);
     
 private slots:
     /**

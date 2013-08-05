@@ -388,9 +388,14 @@ public slots:
 
 signals:
     /**
-     * Announce when it's time for meter updates to be sent.
+     * Announce when it's time for OSC meter updates to be sent.
      */
     void meterTick();
+
+    /**
+     * Signal that meter levels have changed for a particular app
+     */
+    void appMeterChanged(int, int, float, float, float, float);
     
     /**
      * Signal that an error occurred on startup.

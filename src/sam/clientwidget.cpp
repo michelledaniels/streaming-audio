@@ -63,7 +63,9 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidg
     m_nameLabel(NULL),
     m_volumeSlider(NULL),
     m_muteCheckBox(NULL),
-    m_soloCheckBox(NULL)
+    m_soloCheckBox(NULL),
+    m_metersIn(NULL),
+    m_metersOut(NULL)
 {
     m_name.append(name);
     setMinimumSize(200, 400);
@@ -100,13 +102,22 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidg
     levelLayout->addWidget(m_volumeSlider);
 
     // add meter widgets
-    MeterWidget** meters = new MeterWidget*[m_channels];
+    m_metersIn = new MeterWidget*[m_channels];
     for (int i = 0; i < m_channels; i++)
     {
-        meters[i] = new MeterWidget(this);
-        meters[i]->setMinimumSize(50,100);
-        meters[i]->setLevel(0.5f, 1.0f);
-        levelLayout->addWidget(meters[i]);
+        m_metersIn[i] = new MeterWidget(this);
+        m_metersIn[i]->setMinimumSize(50,100);
+        m_metersIn[i]->setLevel(0.0f, 0.0f);
+        levelLayout->addWidget(m_metersIn[i]);
+    }
+
+    m_metersOut = new MeterWidget*[m_channels];
+    for (int i = 0; i < m_channels; i++)
+    {
+        m_metersOut[i] = new MeterWidget(this);
+        m_metersOut[i]->setMinimumSize(50,100);
+        m_metersOut[i]->setLevel(0.0f, 0.0f);
+        levelLayout->addWidget(m_metersOut[i]);
     }
 
     levelBox->setLayout(levelLayout);
@@ -162,9 +173,23 @@ void ClientWidget::setType(int type)
 
 }
 
-void ClientWidget::setMeter(const float* rms, const float* peak)
+void ClientWidget::setMeter(int ch, float rmsIn, float peakIn, float rmsOut, float peakOut)
 {
+    if (ch < 0 || ch >= m_channels)
+    {
+        qWarning("ClientWidget::setMeter tried to set meter for invalid channel: %d", ch);
+        return;
+    }
 
+    if (m_metersIn && m_metersOut && m_metersIn[ch] && m_metersOut[ch])
+    {
+        m_metersIn[ch]->setLevel(rmsIn, peakIn);
+        m_metersOut[ch]->setLevel(rmsOut, peakOut);
+    }
+    else
+    {
+        qWarning("ClientWidget::setMeter meter %d was null!", ch);
+    }
 }
 
 void ClientWidget::on_volumeSlider_valueChanged(int val)

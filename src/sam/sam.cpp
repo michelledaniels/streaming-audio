@@ -1715,7 +1715,8 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
 
 int StreamingAudioManager::jack_process(jack_nframes_t nframes)
 {
-    if (m_samplesElapsed > m_nextMeterNotify)
+    bool updateMeters = (m_samplesElapsed > m_nextMeterNotify);
+    if (updateMeters)
     {
         emit meterTick();
         m_nextMeterNotify += m_meterInterval;
@@ -1741,12 +1742,33 @@ int StreamingAudioManager::jack_process(jack_nframes_t nframes)
     }
     
     // have all apps do their own processing
+    float rmsIn = 0.0f;
+    float peakIn = 0.0f;
+    float rmsOut = 0.0f;
+    float peakOut = 0.0f;
     for (int i = 0; i < m_maxClients; i++)
     {
         if (m_apps[i] && m_appState[i] == ACTIVE) // TODO: maybe only need to check app state? but this is safer...
         {
             m_apps[i]->process(nframes, m_volumeCurrent, m_volumeNext, m_muteCurrent, m_muteNext, m_soloCurrent, soloNext, m_delayCurrent, m_delayNext);
-           // TODO: need any kind of error handling here?
+            // TODO: need any kind of error handling here?
+
+            if (updateMeters)
+            {
+                // meter updates
+                for (int ch = 0; ch < m_apps[i]->getNumChannels(); ch++)
+                {
+                    bool success = m_apps[i]->getMeters(ch, rmsIn, peakIn, rmsOut, peakOut);
+                    if (success)
+                    {
+                        emit appMeterChanged(i, ch, rmsIn, peakIn, rmsOut, peakOut);
+                    }
+                    else
+                    {
+                        qWarning("StreamingAudioManager::jack_process couldn't get meter info for app %d, channel %d", i, ch);
+                    }
+                }
+            }
         }
     }
     

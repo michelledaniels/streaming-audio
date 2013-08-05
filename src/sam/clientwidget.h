@@ -17,8 +17,7 @@ class MeterWidget : public QWidget
     Q_OBJECT
 public:
     explicit MeterWidget(QWidget *parent = 0);
-
-    void setLevel(float rms, float peak) { m_rms = rms; m_peak = peak; }
+    void setLevel(float rms, float peak) { m_rms = rms; m_peak = peak; update(); }
 
 signals:
 
@@ -37,6 +36,15 @@ class ClientWidget : public QWidget
 public:
     explicit ClientWidget(int id, const char* name, ClientParams& params, QWidget *parent = 0);
 
+    void setName(const char* name);
+    void setVolume(float volume);
+    void setMute(bool mute);
+    void setSolo(bool solo);
+    void setDelay(float delay);
+    void setPosition(int x, int y, int w, int h, int d);
+    void setType(int type);
+    void setMeter(int ch, float rmsIn, float peakIn, float rmsOut, float peakOut);
+
 signals:
 
     // for notifying SAM of changes
@@ -47,15 +55,6 @@ signals:
     void positionChanged(int id, int x, int y, int w, int h, int d);
 
 public slots:
-    void setName(const char*);
-    void setVolume(float);
-    void setMute(bool);
-    void setSolo(bool);
-    void setDelay(float);
-    void setPosition(int, int, int, int, int);
-    void setType(int);
-    void setMeter(const float* rms, const float* peak);
-
     void on_volumeSlider_valueChanged(int);
     void on_muteCheckBox_toggled(bool);
     void on_soloCheckBox_toggled(bool);
@@ -71,6 +70,9 @@ protected:
     QSlider* m_volumeSlider;
     QCheckBox* m_muteCheckBox;
     QCheckBox* m_soloCheckBox;
+
+    MeterWidget** m_metersIn;
+    MeterWidget** m_metersOut;
 };
 
 #endif // CLIENTWIDGET_H
