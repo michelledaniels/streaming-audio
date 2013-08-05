@@ -857,6 +857,17 @@ const char* StreamingAudioApp::getOutputPortName(unsigned int index)
     return jack_port_name(m_outputPorts[index]);
 }
 
+bool StreamingAudioApp::getMeters(int ch, float& rmsIn, float& peakIn, float& rmsOut, float& peakOut)
+{
+    if (ch < 0 || ch >= m_channels) return false;
+
+    rmsIn = m_rmsIn[ch];
+    peakIn = m_peakIn[ch];
+    rmsOut = m_rmsOut[ch];
+    peakOut = m_peakOut[ch];
+    return true;
+}
+
 bool StreamingAudioApp::subscribe(QVector<OscAddress*> &subscribers, const char* hostRef, quint16 portRef)
 {
     for (int i = 0; i < subscribers.size(); i++)

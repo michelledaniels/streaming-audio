@@ -38,6 +38,7 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     connect(m_sam, SIGNAL(appDelayChanged(int, float)), this, SLOT(setAppDelay(int,float)));
     connect(m_sam, SIGNAL(appPositionChanged(int, int, int, int, int, int)), this, SLOT(setAppPosition(int,int,int,int,int,int)));
     connect(m_sam, SIGNAL(appTypeChanged(int, int)), this, SLOT(setAppType(int, int)));
+    connect(m_sam, SIGNAL(appMeterChanged(int, int, float, float, float, float)), this, SLOT(setAppMeter(int, int, float, float, float, float)));
 
     m_samButton = new QPushButton(QString("Start SAM"), this);
     connect(m_samButton, SIGNAL(clicked()), this, SLOT(onSamButtonClicked()));
@@ -193,6 +194,14 @@ void SamUI::setAppType(int id, int type)
     if (m_clients[id])
     {
         m_clients[id]->setType(type);
+    }
+}
+
+void SamUI::setAppMeter(int id, int ch, float rmsIn, float peakIn, float rmsOut, float peakOut)
+{
+    if (m_clients[id])
+    {
+        m_clients[id]->setMeter(ch, rmsIn, peakIn, rmsOut, peakOut);
     }
 }
 

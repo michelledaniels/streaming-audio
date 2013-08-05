@@ -329,6 +329,17 @@ public:
     const char* getName() const { return m_name; }
     
     /**
+     * Get meter levels for a particular channel of this app.
+     * @ch channel to get level info for
+     * @rmsIn storage for RMS level of input signal (what SAM receives from client)
+     * @peakIn storage for Peak level of input signal
+     * @rmsOut storage for RMS level of output signal (SAM output after volume/mute/etc.)
+     * @peakOut storage for RMS level of output signal
+     * @return true on success, false otherwise
+     */
+    bool getMeters(int ch, float& rmsIn, float& peakIn, float& rmsOut, float& peakOut);
+
+    /**
      * Subscribe to a parameter.
      * @param subscribers a vector of subscriber addresses to which the specified address will be added
      * @param host the host to be subscribed
