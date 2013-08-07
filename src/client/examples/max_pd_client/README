@@ -8,16 +8,15 @@ Dependencies:
 
 
 Installation:
-	1. Place this directory (max_sam/) and all its contents in MaxSDK-6.1.1/examples/ (or another immediate subdirectory of MaxSDK-6.1.1/)
+	1. Place this directory (max_sam/) and all its contents in MaxSDK-6.1.3/examples/ (or another immediate subdirectory of MaxSDK-6.1.3/)
 
 	2. Update the following variables in maxmspsdk.xcconfig:
-		C74SUPPORT (MAXSDK-6.1.1 /c74support directoy)
+		C74SUPPORT (MAXSDK-6.1.1 /c74support directory)
 		QTSDK_DIR (QT SDK install directory)
 		SA_DIR (Streaming-audio install directory)
 	
-	3. In <streaming-audio base directory>/src/clients/libsac.pro make sure you have the following lines UNCOMMENTED:
+	3. In <streaming-audio base directory>/src/clients/libsac.pro make sure you have the following line UNCOMMENTED:
 		DEFINES += SAC_NO_JACK
-		DEFINES += SAC_MAX_PD
 	
 	4. In streaming-audio base directory (trunk branch), run './configure' followed by 'make'.
 

@@ -11,6 +11,9 @@
 
 #include "jack/jack.h"
 
+namespace sam
+{
+
 /**
  * Check if a JACK server is already running.
  * @return true if JACK is running, false if not
@@ -50,6 +53,8 @@ bool PortIsInput(const jack_port_t* port);
  * @see PortIsInput
  */
 bool PortIsOutput(const jack_port_t* port);
+
+} // end of namespace SAM
 
 #endif // JACK_UTIL_H
 

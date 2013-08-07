@@ -8,12 +8,13 @@
 #ifndef RTPSENDER_H
 #define RTPSENDER_H
 
-#include <QElapsedTimer>
-#include <QThread>
-#include <QUdpSocket>
-
 #include "rtcp.h"
 #include "rtp.h"
+
+class QUdpSocket;
+
+namespace sam
+{
 
 /**
  * @class RtpSender
@@ -107,5 +108,7 @@ protected:
     
     RtcpHandler* m_rtcpHandler; ///< RTCP report handler
 };
+
+} // end of namespace SAM
 
 #endif // RTPSENDER_H

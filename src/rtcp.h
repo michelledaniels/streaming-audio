@@ -12,6 +12,11 @@
 #include <QObject>
 #include <QHostAddress>
 
+class QUdpSocket;
+
+namespace sam
+{
+
 static const quint8 RTCP_SR_PACKET_TYPE = 200; // sender report packet type
 static const quint8 RTCP_RR_PACKET_TYPE = 201; // receiver report packet type
 
@@ -44,8 +49,6 @@ struct RtcpSenderReport
     quint32 packetsSent;    ///< cumulative number of packets sent by this sender
     quint32 octetsSent;     ///< cumulative number of bytes sent by this sender
 };
-
-class QUdpSocket;
 
 /**
  * @class RtcpHandler
@@ -158,5 +161,7 @@ protected:
     RtcpSenderReport m_senderReport;    ///< current RTCP sender report
     
 };
+
+} // end of namespace SAM
 
 #endif // RTCP_H

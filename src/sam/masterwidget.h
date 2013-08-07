@@ -10,6 +10,8 @@
 
 #include <QtGui>
 
+namespace sam
+{
 static const int VOLUME_SLIDER_SCALE = 100;
 
 class MasterWidget : public QWidget
@@ -45,5 +47,7 @@ protected:
     QCheckBox* m_muteCheckBox;
     QDoubleSpinBox* m_delaySpinBox;
 };
+
+} // end of namespace SAM
 
 #endif // MASTERWIDGET_H
