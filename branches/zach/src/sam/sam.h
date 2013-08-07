@@ -44,6 +44,7 @@ struct SamParams
     QList<unsigned int> discreteChannels; ///< list of discrete channels to use
     int maxClients;        ///< maximum number of clients that can be connected simultaneously
     float meterIntervalMillis; ///< milliseconds between meter broadcasts to subscribers
+    bool verifyPatchVersion;   ///< whether or not the patch versions have to match during version check
 };
 
 /**
@@ -57,6 +58,20 @@ struct SamAppPosition
     int width;    ///< width of corresponding SAGE window
     int height;   ///< height of corresponding SAGE window
     int depth;    ///< depth of corresponding SAGE window
+};
+
+/**
+ * @struct ClientParams
+ * This struct contains the parameters describing a client/app
+ */
+struct ClientParams
+{
+    int channels;
+    float volume;
+    bool mute;
+    bool solo;
+    float delay;
+    SamAppPosition pos;
 };
 
 /**
@@ -107,11 +122,9 @@ public:
     StreamingAudioManager& operator=(const StreamingAudioManager&);
 
     /**
-     * Start this StreamingAudioManager.
-     * @return true on success, false on failure
-     * @see stop()
+     * Start this StreamingAudioManager
      */
-    bool start();
+    void start();
 
     /**
      * Stop this StreamingAudioManager.
@@ -133,7 +146,7 @@ public:
      * @return the number of registered apps
      */
     int getNumApps();
-    
+
     /**
      * Register a new app.
      * @param name the name of the app, to be used for displaying in a UI
@@ -145,9 +158,10 @@ public:
      * @param depth initial depth of corresponding SAGE window
      * @param type the app's streaming type
      * @param socket the TCP socket through which the app/client connected to SAM
+     * @param errCode if an error occurs, the SamErrorCode which best describes the error.  Otherwise undefined.
      * @return unique port for this stream or -1 on error
      */
-    int registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, sam::StreamingAudioType type, QTcpSocket* socket);
+    int registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, sam::StreamingAudioType type, QTcpSocket* socket, sam::SamErrorCode& errCode);
 
     /**
      * Unregister an app
@@ -187,6 +201,74 @@ public:
     bool unregisterRenderer();
 
     /**
+     * Enable/disable an output channel
+     * @param ch the channel (1-indexed) to be enabled/disabled
+     * @param enabled true if the channel is to be enabled, false otherwise
+     */
+    void setOutEnabled(int ch, bool enabled);
+
+    /**
+     * Get the name of an app.
+     * @param id the port/unique ID of the app to be queried
+     * @return name on success, NULL on failure
+     */
+    const char* getAppName(int id);
+
+    /**
+     * Get the name of an app.
+     * @param id the port/unique ID of the app to be queried
+     * @param params the parameter struct to be populated
+     * @return true on success, false on failure
+     */
+    bool getAppParams(int id, ClientParams& params);
+
+    /**
+     * JACK buffer size changed callback.
+     * JACK will call this callback if the system buffer size changes.
+     */
+    static int jackBufferSizeChanged(jack_nframes_t nframes, void* sam);
+
+    /**
+     * JACK process callback.
+     * The process callback for this JACK application is called in a
+     * special realtime thread once for each audio cycle.  
+     * This is where muting, volume control, delay, and panning occurs.
+     */
+    static int jackProcess(jack_nframes_t nframes, void* sam);
+
+    /**
+     * JACK sample rate changed callback.
+     * JACK will call this callback if the system sample rate changes.
+     */
+    static int jackSampleRateChanged(jack_nframes_t nframes, void* sam);
+
+    /**
+     * JACK xrun callback.
+     * JACK will call this callback if an xrun occurs.
+     */
+    static int jackXrun(void* sam);
+
+    /**
+     * JACK shutdown callback.
+     * JACK calls this callback if the server ever shuts down or
+     * decides to disconnect the client.
+     */
+    static void jackShutdown(void* sam);
+
+    /**
+     * Query if SAM is running.
+     * @return true if SAM is running, false otherwise
+     */
+    bool isRunning() { return m_isRunning; }
+
+    /**
+     * Notify receivers of JACK xruns.
+     */
+    void notifyXrun();
+
+public slots:
+
+    /**
      * Set the global volume level.
      * @param volume the volume level to be set, in the range [0.0, 1.0]
      */
@@ -204,13 +286,6 @@ public:
      */
     void setDelay(float delay);
 
-    /**
-     * Enable/disable an output channel
-     * @param ch the channel (1-indexed) to be enabled/disabled
-     * @param enabled true if the channel is to be enabled, false otherwise
-     */
-    void setOutEnabled(int ch, bool enabled);
-    
     /**
      * Set the volume level for an app.
      * @param port the port/unique ID of the app to be updated
@@ -259,51 +334,16 @@ public:
      * Set the type for an app.
      * @param port the port/unique ID of the app to be updated
      * @param type the type to be set
-     * @return -1 on success, or a non-zero error code on failure
+     * @param error code on failure, otherwise undefined
+     * @return true on success, false on failure
      */
-    int setAppType(int port, sam::StreamingAudioType type);
+    bool setAppType(int port, sam::StreamingAudioType type, sam::SamErrorCode& errorCode);
 
     /**
-     * JACK buffer size changed callback.
-     * JACK will call this callback if the system buffer size changes.
+     * Start running this StreamingAudioManager.
+     * @see stop()
      */
-    static int jackBufferSizeChanged(jack_nframes_t nframes, void* sam);
-
-    /**
-     * JACK process callback.
-     * The process callback for this JACK application is called in a
-     * special realtime thread once for each audio cycle.  
-     * This is where muting, volume control, delay, and panning occurs.
-     */
-    static int jackProcess(jack_nframes_t nframes, void* sam);
-
-    /**
-     * JACK sample rate changed callback.
-     * JACK will call this callback if the system sample rate changes.
-     */
-    static int jackSampleRateChanged(jack_nframes_t nframes, void* sam);
-
-    /**
-     * JACK xrun callback.
-     * JACK will call this callback if an xrun occurs.
-     */
-    static int jackXrun(void* sam);
-
-    /**
-     * JACK shutdown callback.
-     * JACK calls this callback if the server ever shuts down or
-     * decides to disconnect the client.
-     */
-    static void jackShutdown(void* sam);
-
-    /**
-     * Query if SAM is running.
-     * @return true if SAM is running, false otherwise
-     */
-    bool isRunning() { return m_isRunning; }
-
-
-public slots:
+    void run();
 
     /**
      * Clean up before quitting the application.
@@ -348,10 +388,37 @@ public slots:
 
 signals:
     /**
-     * Announce when it's time for meter updates to be sent.
+     * Announce when it's time for OSC meter updates to be sent.
      */
     void meterTick();
+
+    /**
+     * Signal that meter levels have changed for a particular app
+     */
+    void appMeterChanged(int, int, float, float, float, float);
     
+    /**
+     * Signal that an error occurred on startup.
+     */
+    void startupError();
+
+    /**
+     * Signal that an xrun occurred.
+     */
+    void xrun();
+
+    void volumeChanged(float);
+    void muteChanged(bool);
+    void delayChanged(float);
+    void appAdded(int);
+    void appRemoved(int);
+    void appVolumeChanged(int, float);
+    void appMuteChanged(int, bool);
+    void appSoloChanged(int, bool);
+    void appDelayChanged(int, float);
+    void appPositionChanged(int, int, int, int, int, int);
+    void appTypeChanged(int, int);
+
 private:
 
     /**
@@ -509,10 +576,10 @@ private:
     int jack_process(jack_nframes_t nframes);
     
     /**
-     * initialize physical output ports 
+     * initialize output ports
      * @return true on success, false on failure
      */
-    bool init_physical_ports();
+    bool init_output_ports();
     
     /** 
      * send a /sam/stream/add message.
@@ -547,9 +614,14 @@ private:
     bool disconnect_app_ports(int port);
 
     /**
-     * Print debug info to console
+     * Print debug info to console.
      */
     void print_debug();
+
+    /**
+     * Check for version match.
+     */
+    bool version_check(int major, int minor, int patch);
     
     int m_sampleRate;                 ///< sample rate for JACK
     int m_bufferSize;                 ///< buffer size for JACK
@@ -565,8 +637,8 @@ private:
     QList<unsigned int> m_basicChannels; ///< list of basic channels to use
     QList<unsigned int> m_discreteChannels; ///< list of discrete channels to use
 
-    int m_numPhysicalPortsOut;        ///< number of physical output ports
-    int* m_outputUsed;                ///< which physical output ports are in use (by which app)
+    int m_numOutputPorts;             ///< number of output JACK ports
+    int* m_outputUsed;                ///< which output ports are in use (by which app)
     quint16 m_rtpPort;                ///< base port to use for RTP streaming
     int m_outputPortOffset;           ///< the first channel will be offset by this amount
     char* m_outputJackClientName;     ///< jack client name to which SAM will connect outputs
@@ -588,12 +660,17 @@ private:
     bool m_soloCurrent;             ///< the current solo status (true if any app is currently solo'd)
     int m_delayCurrent;             ///< the current delay (in samples)
     int m_delayNext;                ///< the requested delay (in samples)
-    int m_delayMax;                 ///< the maximum support delay (in samples)
+    int m_delayMax;                 ///< the maximum supported delay (in samples)
 
     // for OSC
     quint16 m_oscServerPort;        ///< port the OSC server will listen for messages on
-    QUdpSocket m_udpSocket;         ///< UDP socket for receiving OSC messages
-    QTcpServer m_tcpServer;         ///< The server listening for incoming TCP connections
+    QUdpSocket* m_udpSocket;        ///< UDP socket for receiving OSC messages
+    QTcpServer* m_tcpServer;        ///< The server listening for incoming TCP connections
+
+    QThread* m_samThread;           ///< Thread for SAM's event loop
+
+    // for version checking
+    bool m_verifyPatchVersion;      ///< Whether the patch version must match for version checking
 }; 
 
 #endif // SAM_H

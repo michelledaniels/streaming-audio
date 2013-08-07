@@ -80,8 +80,8 @@ void RtcpHandler::sendSenderReport(qint64 currentTimeMillis, quint32 currentTime
     // write NTP timestamp (64 bits)
     quint32 millisDiff = currentTimeMillis - (currentTimeSecs * 1000);
     float currentTimeMillisFloat = millisDiff / (float)1000.0f;
-    quint32 currentTimeMillisFixed = currentTimeMillisFloat * 4294967296; // convert from [0.0, 1.0] to [0 2^32]
-    currentTimeSecs += 2208988800; // add 2,208,988,800 to convert seconds since 1970 to seconds since 1900
+    quint32 currentTimeMillisFixed = currentTimeMillisFloat * 4294967295ul; // convert from [0.0, 1.0] to [0 (2^32)-1]
+    currentTimeSecs += 2208988800ul; // add 2,208,988,800 to convert seconds since 1970 to seconds since 1900
     stream << currentTimeSecs; 
     stream << currentTimeMillisFixed;
     qDebug("RtcpHandler::sendSenderReport NTP timestamp seconds = %u, millis float = %0.4f, fixed = %u", currentTimeSecs, currentTimeMillisFloat, currentTimeMillisFixed);

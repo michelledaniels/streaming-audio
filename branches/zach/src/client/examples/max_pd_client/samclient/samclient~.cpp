@@ -43,11 +43,14 @@ typedef struct _samclient
     int height;         // initial height for SAM stream
     int depth;          // initial depth for SAM stream
     int vecsize;        // MSP signal vector size
+    int sam_vecsize;    // SAM signal vector size
+    float samprate;       // MSP sampling rate
+    float sam_samprate;   // SAM sampling rate
     float **sigvec;     // 2D array to hold n channels of current signal vector of input samples (used in perform routine)
+    int offset;         // sample offset in sigvec 2D array
     int sac_state;      // flag for SAC connection
     void *m_outlet1;    // pointer to left outlet (for Max)
     sam::StreamingAudioClient *sac = NULL;
-    sam::MaxPdAudioInterface *mai = NULL;
 } t_samclient;
 
 ///////////////////////// function prototypes
@@ -169,6 +172,10 @@ void *samclient_new(t_symbol *s, int argc, t_atom *argv)
         x->height = 0;
         x->depth = 0;
         x->vecsize = sys_getblksize();
+        x->sam_vecsize = x->vecsize;
+        x->samprate = sys_getsr();
+        x->sam_samprate = x->samprate;
+        x->offset = 0;
         x->sac_state = 0;
 
         // get number of args
@@ -190,7 +197,7 @@ void *samclient_new(t_symbol *s, int argc, t_atom *argv)
         // allocate memory for arrays, initialize struct members
         x->sigvec = (float **) sysmem_newptrclear(x->channels * sizeof(float *));
         for (i = 0; i < x->channels; i++) {
-            x->sigvec[i] = (float *) sysmem_newptrclear(x->vecsize * sizeof(float));
+            x->sigvec[i] = (float *) sysmem_newptrclear(x->sam_vecsize * sizeof(float));
         }
     }
     return (x);
@@ -409,42 +416,65 @@ void samclient_bang(t_samclient *x)
 
 void sac_create(t_samclient *x)
 {
-    int err = sam::SAC_SUCCESS;
+    int i;
+    int err = sam::SAC_ERROR;
     
-    // SAC initialization
+    // SAC creation and initialization
     if (x->sac == NULL) {
-        // using explicit constructor
-        x->sac = new sam::StreamingAudioClient((unsigned int)x->channels, (sam::StreamingAudioType)(x->type), x->name->s_name, x->ip->s_name, (unsigned short)x->port, PAYLOAD_PCM_16);
-        if (x->sac == NULL) {
-            object_error((t_object *)x, "Couldn't initialize client.");
-            err = sam::SAC_ERROR;
-        }
+        // default constructor (recommended)
+        x->sac = new sam::StreamingAudioClient();
+        // initialize SAC
+        err = x->sac->init((unsigned int)(x->channels), (sam::StreamingAudioType)(x->type), x->name->s_name, x->ip->s_name, (unsigned short)(x->port), 0, PAYLOAD_PCM_16, true);
     }
     
+    // start SAC
     if (err == sam::SAC_SUCCESS) {
         //object_post((t_object *)x, "Initialized SAC.");
-        // start SAC
-        err = x->sac->start(x->x_pos, x->y_pos, x->width, x->height, x->depth);
-        if (err == sam::SAC_SUCCESS) {
-            //object_post((t_object *)x, "Started SAC.");
-            // get MaxPdAudioInterface
-            x->mai = (sam::MaxPdAudioInterface *)x->sac->getAudioInterface();
-            if (x->mai == NULL) {
-                object_error((t_object *)x, "Couldn't initialize SAC Audio Interface.");
-                err = sam::SAC_ERROR;
-            }
-            else {
-                //object_post((t_object *)x, "SAM client connected.");
-            }
-        }
-        else {
+        err = x->sac->start(x->x_pos, x->y_pos, x->width, x->height, x->depth, sam::SAC_DEFAULT_TIMEOUT);
+        if (err != sam::SAC_SUCCESS) {
             object_error((t_object *)x, "Couldn't start SAC. Error: %d", err);
         }
     }
+    else {
+        object_error((t_object *)x, "Couldn't initialize SAC. Error: %d", err);
+    }
     
+    // check SAC sample rate and buffer size against Max/Pd
     if (err == sam::SAC_SUCCESS) {
-        x->sac_state = 1;
-        outlet_int(x->m_outlet1, 1);
+        //object_post((t_object *)x, "Started SAC.");
+        x->sam_samprate = (float)x->sac->getSampleRate();
+        int p_sam_vecsize = x->sam_vecsize;
+        x->sam_vecsize = (int)x->sac->getBufferSize();
+        
+        if (x->sam_samprate != x->samprate) {
+            err = sam::SAC_ERROR;
+            object_error((t_object *)x, "Sample rate mismatch. SAM sample rate: %f, SAC sample rate: %f", x->sam_samprate, x->samprate);
+        }
+        else if (x->sam_vecsize != x->vecsize) {
+            if ((x->sam_vecsize > x->vecsize && (x->sam_vecsize % x->vecsize == 0)) ||
+                (x->sam_vecsize < x->vecsize && (x->vecsize % x->sam_vecsize == 0))) {
+                object_post((t_object *)x, "SAM buffer size: %d, SAC buffer size: %d", x->sam_vecsize, x->vecsize);
+            }
+            else {
+                err = sam::SAC_ERROR;
+                object_error((t_object *)x, "SAC buffer size (%d) is not factor or multiple of SAM buffer size (%d)", x->vecsize, x->sam_vecsize);
+            }
+        }
+        
+        if (err == sam::SAC_SUCCESS) {
+            // resize x->sigvec, if necessary
+            if (x->sam_vecsize != p_sam_vecsize) {
+                for (i = 0; i < x->channels; i++) {
+                    sysmem_resizeptrclear(x->sigvec[i], x->sam_vecsize * sizeof(float));
+                }
+            }
+            x->offset = 0;
+            x->sac_state = 1;
+            outlet_int(x->m_outlet1, 1);
+        }
+        else {
+            sac_destroy(x);
+        }
     }
     else {
         x->sac_state = 0;
@@ -473,9 +503,39 @@ void samclient_dsp(t_samclient *x, t_signal **sp, short *count)
 {
     //post("my sample rate is: %f", sp[0]->s_sr);
     int i;
-    //int n = sp[0]->s_n;
+    int n = sp[0]->s_n;
+    float sr = sp[0]->s_sr;
     t_int **sigvec;
     int pointer_count;
+    
+    if (n != x->vecsize || sr != x->samprate) {
+        x->vecsize = n;
+        x->samprate = sr;
+        
+        if (x->sac_state == 1 && x->sac->isRunning()) {
+            int err = sam::SAC_SUCCESS;
+            
+            if (x->sam_samprate != x->samprate) {
+                err = sam::SAC_ERROR;
+                object_error((t_object *)x, "Sample rate mismatch. SAM sample rate: %f, SAC sample rate: %f", x->sam_samprate, x->samprate);
+            }
+            else if (x->sam_vecsize != x->vecsize) {
+                if ((x->sam_vecsize > x->vecsize && (x->sam_vecsize % x->vecsize == 0)) ||
+                    (x->sam_vecsize < x->vecsize && (x->vecsize % x->sam_vecsize == 0))) {
+                    object_post((t_object *)x, "SAM buffer size: %d, SAC buffer size: %d", x->sam_vecsize, x->vecsize);
+                }
+                else {
+                    err = sam::SAC_ERROR;
+                    object_error((t_object *)x, "SAC buffer size (%d) is not factor or multiple of SAM buffer size (%d)", x->vecsize, x->sam_vecsize);
+                }
+            }
+            
+            if (err == sam::SAC_ERROR) {
+                x->sac_state = 0;
+                sac_destroy(x);
+            }
+        }
+    }
     
     pointer_count = 2 + x->channels; // object pointer + vector size + input channel
     
@@ -499,13 +559,35 @@ void samclient_dsp(t_samclient *x, t_signal **sp, short *count)
 // which operates on 64-bit audio signals.
 void samclient_dsp64(t_samclient *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags)
 {
-    int i;
     int n = (int)maxvectorsize;
+    float sr = (float)samplerate;
     
-    if (n != x->vecsize) {
+    if (n != x->vecsize || sr != x->samprate) {
         x->vecsize = n;
-        for (i = 0; i < x->channels; i++) {
-            sysmem_resizeptrclear(x->sigvec[i], x->vecsize * sizeof(float));
+        x->samprate = sr;
+        
+        if (x->sac_state == 1 && x->sac->isRunning()) {
+            int err = sam::SAC_SUCCESS;
+            
+            if (x->sam_samprate != x->samprate) {
+                err = sam::SAC_ERROR;
+                object_error((t_object *)x, "Sample rate mismatch. SAM sample rate: %f, SAC sample rate: %f", x->sam_samprate, x->samprate);
+            }
+            else if (x->sam_vecsize != x->vecsize) {
+                if ((x->sam_vecsize > x->vecsize && (x->sam_vecsize % x->vecsize == 0)) ||
+                    (x->sam_vecsize < x->vecsize && (x->vecsize % x->sam_vecsize == 0))) {
+                    object_post((t_object *)x, "SAM buffer size: %d, SAC buffer size: %d", x->sam_vecsize, x->vecsize);
+                }
+                else {
+                    err = sam::SAC_ERROR;
+                    object_error((t_object *)x, "SAC buffer size (%d) is not factor or multiple of SAM buffer size (%d)", x->vecsize, x->sam_vecsize);
+                }
+            }
+            
+            if (err == sam::SAC_ERROR) {
+                x->sac_state = 0;
+                sac_destroy(x);
+            }
         }
     }
     
@@ -529,26 +611,39 @@ t_int *samclient_perform(t_int *w)
     // args are in a vector, sized as specified in samclient_dsp method
     // w[0] contains &samclient_perform, so we start at w[1]
     t_samclient *x = (t_samclient *)w[1];   // object instance pointer
+    t_float *in;                            // pointer for audio at each inlet of the object
     int n = (int)w[2];                      // signal vector size
     int chans = (int)x->channels;           // number of input channels
     int i, j;
     
     if (x->sac_state == 1 && x->sac->isRunning()) {
         if (x->m_obj.z_disabled) {
-            for (i = 0; i < chans ; i++) {
-                for (j = 0; j < n; j++) {
-                    x->sigvec[i][j] = 0.0f;
+            for (j = 0; j < n; j++, x->offset++) {
+                // send x->sigvec to SAC
+                if (x->offset >= x->sam_vecsize) {
+                    x->sac->sendAudio(x->sigvec);
+                    x->offset = 0;
+                }
+                // update x->sigvec
+                for (i = 0; i < chans; i++) {
+                    x->sigvec[i][x->offset] = 0.0f;
                 }
             }
         }
         else {
-            for (i = 0; i < chans ; i++) {
-                x->sigvec[i] = (t_float *)w[i+3]; // assign pointer to input channel
+            for (j = 0; j < n; j++, x->offset++) {
+                // send x->sigvec to SAC
+                if (x->offset >= x->sam_vecsize) {
+                    x->sac->sendAudio(x->sigvec);
+                    x->offset = 0;
+                }
+                // update x->sigvec
+                for (i = 0; i < chans; i++) {
+                    in = (t_float *)w[i+3];
+                    x->sigvec[i][x->offset] = in[j];
+                }
             }
         }
-        
-        // SAC callback
-        x->mai->process_audio((unsigned int)x->vecsize, x->sigvec, true);
     }
     
     // you have to return the NEXT pointer in the array OR MAX WILL CRASH
@@ -565,24 +660,31 @@ void samclient_perform64(t_samclient *x, t_object *dsp64, double **ins, long num
     
     if (x->sac_state == 1 && x->sac->isRunning()) {
         if (x->m_obj.z_disabled) {
-            for (i = 0; i < chans ; i++) {
-                //in = (t_double *)ins[i]; // assign pointer to input channel
-                for (j = 0; j < n; j++) {
-                    x->sigvec[i][j] = 0.0f;
+            for (j = 0; j < n; j++, x->offset++) {
+                // send x->sigvec to SAC
+                if (x->offset >= x->sam_vecsize) {
+                    x->sac->sendAudio(x->sigvec);
+                    x->offset = 0;
+                }
+                // update x->sigvec
+                for (i = 0; i < chans; i++) {
+                    x->sigvec[i][x->offset] = 0.0f;
                 }
             }
         }
         else {
-            for (i = 0; i < chans ; i++) {
-                //in = (t_double *)ins[i]; // assign pointer to input channel
-                for (j = 0; j < n; j++) {
-                    x->sigvec[i][j] = (float)(ins[i][j]);
+            for (j = 0; j < n; j++, x->offset++) {
+                // send x->sigvec to SAC
+                if (x->offset >= x->sam_vecsize) {
+                    x->sac->sendAudio(x->sigvec);
+                    x->offset = 0;
+                }
+                // update x->sigvec
+                for (i = 0; i < chans; i++) {
+                    x->sigvec[i][x->offset] = (float)(ins[i][j]);
                 }
             }
         }
-        
-        // SAC callback
-        x->mai->process_audio((unsigned int)(x->vecsize), x->sigvec, true);
     }
 }
 
@@ -630,6 +732,9 @@ void *samclient_new(t_symbol *s, int argc, t_atom *argv)
         x->height = 0;
         x->depth = 0;
         x->vecsize = sys_getblksize();
+        x->sam_vecsize = x->vecsize;
+        x->samprate = sys_getsr();
+        x->sam_samprate = x->samprate;
         x->sac_state = 0;
 
         if (argc >= 1 && argv->a_type == A_FLOAT) {
@@ -641,7 +746,7 @@ void *samclient_new(t_symbol *s, int argc, t_atom *argv)
         // allocate memory for arrays, initialize struct members
         x->sigvec = (float **) getbytes(x->channels * sizeof(float *));
         for (i = 0; i < x->channels; i++) {
-            x->sigvec[i] = (float *) getbytes(x->vecsize * sizeof(float));
+            x->sigvec[i] = (float *) getbytes(x->sam_vecsize * sizeof(float));
         }
     }
     return (x);
@@ -665,42 +770,65 @@ void samclient_free(t_samclient *x)
 
 void sac_create(t_samclient *x)
 {
-    int err = sam::SAC_SUCCESS;
+    int i;
+    int err = sam::SAC_ERROR;
     
-    // SAC initialization
+    // SAC creation and initialization
     if (x->sac == NULL) {
-        // using explicit constructor
-        x->sac = new sam::StreamingAudioClient((unsigned int)x->channels, (sam::StreamingAudioType)(x->type), x->name->s_name, x->ip->s_name, (unsigned short)x->port, PAYLOAD_PCM_16);
-        if (x->sac == NULL) {
-            pd_error((t_object *)x, "Couldn't initialize client.");
-            err = sam::SAC_ERROR;
-        }
+        // default constructor (recommended)
+        x->sac = new sam::StreamingAudioClient();
+        // initialize SAC
+        err = x->sac->init((unsigned int)(x->channels), (sam::StreamingAudioType)(x->type), x->name->s_name, x->ip->s_name, (unsigned short)(x->port), 0, PAYLOAD_PCM_16, true);
     }
     
+    // start SAC
     if (err == sam::SAC_SUCCESS) {
         //post("Initialized SAC.");
-        // start SAC
-        err = x->sac->start(x->x_pos, x->y_pos, x->width, x->height, x->depth);
-        if (err == sam::SAC_SUCCESS) {
-            //post("Started SAC.");
-            // get MaxPdAudioInterface
-            x->mai = (sam::MaxPdAudioInterface *)x->sac->getAudioInterface();
-            if (x->mai == NULL) {
-                pd_error((t_object *)x, "Couldn't initialize SAC Audio Interface.");
-                err = sam::SAC_ERROR;
-            }
-            else {
-                //post("SAM client connected.");
-            }
-        }
-        else {
+        err = x->sac->start(x->x_pos, x->y_pos, x->width, x->height, x->depth, sam::SAC_DEFAULT_TIMEOUT);
+        if (err != sam::SAC_SUCCESS) {
             pd_error((t_object *)x, "Couldn't start SAC. Error: %d", err);
         }
     }
+    else {
+        pd_error((t_object *)x, "Couldn't initialize SAC. Error: %d", err);
+    }
     
+    // check SAC sample rate and buffer size against Max/Pd
     if (err == sam::SAC_SUCCESS) {
-        x->sac_state = 1;
-        outlet_float((t_outlet *)(x->m_outlet1), 1);
+        //post("Started SAC.");
+        x->sam_samprate = (float)x->sac->getSampleRate();
+        int p_sam_vecsize = x->sam_vecsize;
+        x->sam_vecsize = (int)x->sac->getBufferSize();
+        
+        if (x->sam_samprate != x->samprate) {
+            err = sam::SAC_ERROR;
+            pd_error((t_object *)x, "Sample rate mismatch. SAM sample rate: %f, SAC sample rate: %f", x->sam_samprate, x->samprate);
+        }
+        else if (x->sam_vecsize != x->vecsize) {
+            if ((x->sam_vecsize > x->vecsize && (x->sam_vecsize % x->vecsize == 0)) ||
+                (x->sam_vecsize < x->vecsize && (x->vecsize % x->sam_vecsize == 0))) {
+                post("SAM buffer size: %d, SAC buffer size: %d", x->sam_vecsize, x->vecsize);
+            }
+            else {
+                err = sam::SAC_ERROR;
+                pd_error((t_object *)x, "SAC buffer size (%d) is not factor or multiple of SAM buffer size (%d)", x->vecsize, x->sam_vecsize);
+            }
+        }
+        
+        if (err == sam::SAC_SUCCESS) {
+            // resize x->sigvec, if necessary
+            if (x->sam_vecsize != p_sam_vecsize) {
+                for (i = 0; i < x->channels; i++) {
+                    x->sigvec[i] = (float *) resizebytes((t_object *)x, p_sam_vecsize * sizeof(float), x->sam_vecsize * sizeof(float));
+                }
+            }
+            x->offset = 0;
+            x->sac_state = 1;
+            outlet_float((t_outlet *)(x->m_outlet1), 1);
+        }
+        else {
+            sac_destroy(x);
+        }
     }
     else {
         x->sac_state = 0;
@@ -789,9 +917,39 @@ void samclient_dsp(t_samclient *x, t_signal **sp)
 {
     //post("my sample rate is: %f", sp[0]->s_sr);
     int i;
-    //int n = sp[0]->s_n;
+    int n = sp[0]->s_n;
+    float sr = sp[0]->s_sr;
     t_int **sigvec;
     int pointer_count;
+    
+    if (n != x->vecsize || sr != x->samprate) {
+        x->vecsize = n;
+        x->samprate = sr;
+        
+        if (x->sac_state == 1 && x->sac->isRunning()) {
+            int err = sam::SAC_SUCCESS;
+            
+            if (x->sam_samprate != x->samprate) {
+                err = sam::SAC_ERROR;
+                pd_error((t_object *)x, "Sample rate mismatch. SAM sample rate: %f, SAC sample rate: %f", x->sam_samprate, x->samprate);
+            }
+            else if (x->sam_vecsize != x->vecsize) {
+                if ((x->sam_vecsize > x->vecsize && (x->sam_vecsize % x->vecsize == 0)) ||
+                    (x->sam_vecsize < x->vecsize && (x->vecsize % x->sam_vecsize == 0))) {
+                    post("SAM buffer size: %d, SAC buffer size: %d", x->sam_vecsize, x->vecsize);
+                }
+                else {
+                    err = sam::SAC_ERROR;
+                    pd_error((t_object *)x, "SAC buffer size (%d) is not factor or multiple of SAM buffer size (%d)", x->vecsize, x->sam_vecsize);
+                }
+            }
+            
+            if (err == sam::SAC_ERROR) {
+                x->sac_state = 0;
+                sac_destroy(x);
+            }
+        }
+    }
     
     pointer_count = 2 + x->channels; // object pointer + vector size + input channel
     
@@ -818,17 +976,24 @@ t_int *samclient_perform(t_int *w)
     // args are in a vector, sized as specified in samclient_dsp method
     // w[0] contains &samclient_perform, so we start at w[1]
     t_samclient *x = (t_samclient *)w[1];   // object instance pointer
+    t_float *in;                            // pointer for audio at each inlet of the object
     int n = (int)w[2];                      // signal vector size
     int chans = (int)x->channels;           // number of input channels
     int i, j;
     
     if (x->sac_state == 1 && x->sac->isRunning()) {
-        for (i = 0; i < chans ; i++) {
-            x->sigvec[i] = (t_float *)w[i+3]; // assign pointer to input channel
+        for (j = 0; j < n; j++, x->offset++) {
+            // send x->sigvec to SAC
+            if (x->offset >= x->sam_vecsize) {
+                x->sac->sendAudio(x->sigvec);
+                x->offset = 0;
+            }
+            // update x->sigvec
+            for (i = 0; i < chans; i++) {
+                in = (t_float *)w[i+3];
+                x->sigvec[i][x->offset] = in[j];
+            }
         }
-        
-        // SAC callback
-        x->mai->process_audio((unsigned int)x->vecsize, x->sigvec, true);
     }
     
     // you have to return the NEXT pointer in the array OR MAX WILL CRASH
