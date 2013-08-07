@@ -429,6 +429,7 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
 
 bool StreamingAudioManager::unregisterApp(int port)
 {
+    printf("Unregistering app %d\n\n", port);
     if (port == -1)
     {
         // unregister all apps
@@ -961,7 +962,6 @@ void StreamingAudioManager::handle_app_message(const char* address, OscMessage* 
             OscArg arg;
             msg->getArg(0, arg);
             int port = arg.val.i;
-            printf("Unregistering app %d\n\n", port);
             unregisterApp(port);
 
             // TODO: error handling?  handle return value from UnregisterApp?
