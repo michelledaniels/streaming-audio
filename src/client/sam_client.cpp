@@ -227,30 +227,6 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
     
     return ((m_port >= 0) ? SAC_SUCCESS : SAC_REQUEST_DENIED);
 }
-    
-int StreamingAudioClient::stop()
-{
-    // unregister with SAM
-    if (m_port >= 0)
-    {
-        OscMessage msg;
-        msg.init("/sam/app/unregister", "i", m_port);
-        if (!OscClient::sendFromSocket(&msg, &m_socket))
-        {
-            qWarning("StreamingAudioClient::~StreamingAudioClient() Couldn't send OSC message");
-        }
-        m_port = -1;
-    }
-    
-    m_socket.disconnect();
-    
-    if (m_interface) // stop interface
-    {
-        m_interface->stop();
-    }
-    
-    return ((m_port == -1) ? SAC_SUCCESS : SAC_REQUEST_DENIED);
-}
 
 int StreamingAudioClient::setMute(bool isMuted)
 {
