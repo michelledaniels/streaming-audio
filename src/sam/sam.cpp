@@ -940,7 +940,7 @@ void StreamingAudioManager::handle_app_message(const char* address, OscMessage* 
             return;
         }
     
-        if (msg->typeMatches("siiiiiiiiiiii"))
+        if (msg->typeMatches("siiiiiiiiiiiii"))
         {
             // register
             osc_register(msg, dynamic_cast<QTcpSocket*>(socket));
@@ -1670,12 +1670,14 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
     msg->getArg(8, arg);
     int bufferSize = arg.val.i; // placeholder for future use
     msg->getArg(9, arg);
-    int majorVersion = arg.val.i;
+    int packetQueueLength = arg.val.i; // placeholder for future use
     msg->getArg(10, arg);
-    int minorVersion = arg.val.i;
+    int majorVersion = arg.val.i;
     msg->getArg(11, arg);
-    int patchVersion = arg.val.i;
+    int minorVersion = arg.val.i;
     msg->getArg(12, arg);
+    int patchVersion = arg.val.i;
+    msg->getArg(13, arg);
     quint16 replyPort = arg.val.i;
 
     int port = -1;
