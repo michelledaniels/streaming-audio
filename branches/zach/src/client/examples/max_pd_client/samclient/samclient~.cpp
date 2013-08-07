@@ -6,9 +6,6 @@
 
 #define MSP //<-- Comment out for Pd build
 
-#ifndef SAC_MAX_PD
-#define SAC_MAX_PD
-#endif
 #ifndef SAC_NO_JACK
 #define SAC_NO_JACK
 #endif
@@ -21,7 +18,12 @@
 #include "m_pd.h"       // standard Pd include, always require
 #endif
 
+#ifdef error
+#undef error // Qt has an error() function, so we need to undo #define in ext.h
+#endif
+
 #include "sam_client.h" // sam client header
+
 
 ////////////////////////// object struct
 typedef struct _samclient 

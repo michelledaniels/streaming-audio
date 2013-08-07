@@ -17,6 +17,8 @@
 #include <QUdpSocket>
 #include <QVector>
 
+namespace sam
+{
 
 #define OSC_INT qint32      ///< An OSC integer type
 #define OSC_TIME quint64    ///< An OSC time type
@@ -418,5 +420,7 @@ protected:
     QUdpSocket* m_udpSocket; ///< The socket receiving incoming UDP datagrams
     quint16 m_port;          ///< The port to listen on
 };
+
+} // end of namespace SAM
 
 #endif // OSC_H

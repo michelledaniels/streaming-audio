@@ -21,14 +21,15 @@
 #include "jack_util.h"
 #include "osc.h"
 
+namespace sam
+{
+
 static const int MAX_PORT_NAME = 32;
 static const int MAX_CMD_LEN = 64;
 
 static const int OUTPUT_ENABLED_BASIC = -1;
 static const int OUTPUT_ENABLED_DISCRETE = -2;
 static const int OUTPUT_DISABLED = -3;
-
-using sam::StreamingAudioType;
 
 StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     QObject(),
@@ -2225,3 +2226,5 @@ bool StreamingAudioManager::version_check(int major, int minor, int patch)
         return (major == sam::VERSION_MAJOR && minor == sam::VERSION_MINOR);
     }
 }
+
+} // end of namespace SAM

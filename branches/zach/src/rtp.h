@@ -12,13 +12,13 @@
 #include <QByteArray>
 #include <QtEndian>
 
+namespace sam
+{
 static const quint8 PAYLOAD_PCM_16 = 96; ///< signed 16-bit int
 static const quint8 PAYLOAD_PCM_24 = 97; ///< signed 24-bit int
 static const quint8 PAYLOAD_PCM_32 = 98; ///< 32-bit float
 static const quint8 PAYLOAD_MIN = PAYLOAD_PCM_16;
 static const quint8 PAYLOAD_MAX = PAYLOAD_PCM_32;
-
-// TODO: put this and other RTP code in SAM namespace
 
 /**
  * @class RtpPacket
@@ -102,5 +102,7 @@ public:
     QByteArray m_payload;       ///< payload data
     bool m_used;                ///< whether this packet has been used already (played or skipped)
 };
+
+} // end of namespace SAM
 
 #endif // RTP_H

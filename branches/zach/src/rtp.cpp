@@ -11,6 +11,8 @@
 
 #include "rtp.h"
 
+namespace sam
+{
 static const float Q_16BIT = 32768.5;
 static const float Q_24BIT = 8388607.5;
 
@@ -299,3 +301,5 @@ bool RtpPacket::getPayload(int numChannels, int numSamples, float** data)
     }
     return true;
 }
+
+} // end of namespace SAM

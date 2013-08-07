@@ -7,10 +7,13 @@
 
 #include <QDebug>
 #include <QTime>
-#include <QTimer>
 #include <QtEndian>
+#include <QUdpSocket>
 
 #include "rtpsender.h"
+
+namespace sam
+{
 
 RtpSender::RtpSender(const QString& host, quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, int reportInterval, int sampleRate, int channels, int bufferSize, quint32 ssrc, quint8 payloadType, QObject *parent) :
     m_socketRtp(NULL),
@@ -95,3 +98,5 @@ bool RtpSender::sendAudio(int numChannels, int numSamples, float** data)
 
     return true;
 }
+
+} // end of namespace SAM
