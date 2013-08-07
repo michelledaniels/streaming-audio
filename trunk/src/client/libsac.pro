@@ -31,6 +31,9 @@ CONFIG += staticlib
 CONFIG -= warn_on
 DEFINES += QT_NO_DEBUG_OUTPUT
 
+# uncomment to build for 32-bit arch (mac only)
+#CONFIG+=x86
+
 # For version without JACK, uncomment the next line
 #DEFINES += SAC_NO_JACK
 contains(DEFINES, SAC_NO_JACK) {
