@@ -18,6 +18,9 @@
 #include "sam.h"
 #include "sam_app.h"
 
+namespace sam
+{
+
 static const int MAX_IP_LEN = 32;
 static const int MAX_CMD_LEN = 32;
 static const int MAX_PORT_NAME = 128;
@@ -914,3 +917,5 @@ void StreamingAudioApp::disconnectApp()
     qDebug("StreamingAudioApp::disconnectApp %d, m_deleteMe = %d", m_port, m_deleteMe);
     if (!m_deleteMe) emit appDisconnected(m_port); // if the app is already flagged for deletion, we don't need to emit this
 }
+
+} // end of namespace SAM

@@ -14,7 +14,8 @@
 #include "sam.h"
 #include "rtpreceiver.h"
 
-using sam::StreamingAudioType;
+namespace sam
+{
 
 /**
  * @class StreamingAudioApp
@@ -439,6 +440,8 @@ private:
     // For OSC
     QTcpSocket* m_socket;       ///< TCP socket for sending and listening to OSC messages to/from this app/client
 };
+
+} // end of namespace SAM
 
 #endif // SAM_APP_H
 

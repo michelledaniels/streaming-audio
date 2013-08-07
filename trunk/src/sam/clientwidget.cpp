@@ -9,6 +9,8 @@
 
 #include "clientwidget.h"
 
+namespace sam
+{
 static const int METER_NUM_TICKS = 5;
 static const int METER_TICK_LENGTH = 5;
 static const int METER_TICK_LABEL_LENGTH = 30;
@@ -210,3 +212,5 @@ void ClientWidget::on_soloCheckBox_toggled(bool checked)
     qWarning("ClientWidget::on_soloCheckBox_toggled checked = %d", checked);
     emit soloChanged(m_id, checked);
 }
+
+} // end of namespace SAM

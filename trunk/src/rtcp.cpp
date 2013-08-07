@@ -12,6 +12,9 @@
 #include <QDebug>
 #include "rtcp.h"
 
+namespace sam
+{
+
 /* ----- RtcpHandler implementation ----- */
 RtcpHandler::RtcpHandler(quint16 localPort, quint32 ssrc, const QString& remoteAddress, quint16 remotePort, QObject* parent) :
     QObject(parent),
@@ -341,3 +344,5 @@ void RtcpHandler::read_sender_report(QDataStream& stream)
 
     emit senderReportReceived(lastSenderTimestamp);
 }
+
+} // end of namespace SAM

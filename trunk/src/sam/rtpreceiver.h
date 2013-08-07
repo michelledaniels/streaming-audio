@@ -17,6 +17,8 @@
 #include "rtcp.h"
 #include "rtp.h"
 
+namespace sam
+{
 /**
  * @class RtpReceiver
  * @author Michelle Daniels
@@ -225,5 +227,7 @@ protected:
 
     jack_client_t* m_jackClient;        ///< pointer to parent's JACK client (do not delete!)
 };
+
+} // end of namespace SAM
 
 #endif // RTPRECEIVER_H

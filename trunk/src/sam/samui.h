@@ -19,6 +19,9 @@ namespace Ui {
 class SamUI;
 }
 
+namespace sam
+{
+
 class MasterWidget;
 class ClientWidget;
 
@@ -95,4 +98,5 @@ private:
     ClientWidget** m_clients;
 };
 
+} // end of namespace SAM
 #endif // SAMUI_H

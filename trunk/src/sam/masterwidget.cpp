@@ -9,6 +9,9 @@
 
 #include "masterwidget.h"
 
+namespace sam
+{
+
 MasterWidget::MasterWidget(float volume, bool mute, float delay, QWidget *parent) :
     QWidget(parent),
     m_volumeSlider(NULL),
@@ -105,3 +108,5 @@ void MasterWidget::on_delaySpinBox_valueChanged(double val)
     //qWarning("MasterWidget::on_delaySpinBox_valueChanged val = %f", val);
     emit delayChanged((float)val);
 }
+
+} // end of namespace SAM
