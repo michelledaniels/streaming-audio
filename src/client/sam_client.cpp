@@ -21,6 +21,8 @@ static const quint32 REPORT_INTERVAL_MILLIS = 1000;
 StreamingAudioClient::StreamingAudioClient() :
     QObject(),
     m_channels(1),
+    m_bufferSize(0),
+    m_sampleRate(0),
     m_type(TYPE_BASIC),
     m_port(-1),
     m_name(NULL),
@@ -28,6 +30,7 @@ StreamingAudioClient::StreamingAudioClient() :
     m_samPort(0),
     m_payloadType(PAYLOAD_PCM_16),
     m_replyPort(0),
+    m_driveExternally(false),
     m_interface(NULL),
     m_sender(NULL),
     m_audioCallback(NULL),
@@ -36,9 +39,11 @@ StreamingAudioClient::StreamingAudioClient() :
 {
 }
 
-StreamingAudioClient::StreamingAudioClient(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort, quint8 payloadType) :
+StreamingAudioClient::StreamingAudioClient(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort, quint8 payloadType, bool driveExternally) :
     QObject(),
     m_channels(numChannels),
+    m_bufferSize(0),
+    m_sampleRate(0),
     m_type(type),
     m_port(-1),
     m_name(NULL),
@@ -46,13 +51,14 @@ StreamingAudioClient::StreamingAudioClient(unsigned int numChannels, StreamingAu
     m_samPort(samPort),
     m_payloadType(payloadType),
     m_replyPort(replyPort),
+    m_driveExternally(driveExternally),
     m_interface(NULL),
     m_sender(NULL),
     m_audioCallback(NULL),
     m_audioCallbackArg(NULL),
     m_audioOut(NULL)
 { 
-    init(numChannels, type, name, samIP, samPort, replyPort);
+    init(numChannels, type, name, samIP, samPort, replyPort, payloadType, driveExternally);
 }
 
 StreamingAudioClient::~StreamingAudioClient()
@@ -113,7 +119,7 @@ StreamingAudioClient::~StreamingAudioClient()
     qDebug("End of StreamingAudioClient destructor");
 }
 
-int StreamingAudioClient::init(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort)
+int StreamingAudioClient::init(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort, quint8 payloadType, bool driveExternally)
 {
     if (m_port >= 0) return SAC_ERROR; // already initialized and registered
 
@@ -121,6 +127,8 @@ int StreamingAudioClient::init(unsigned int numChannels, StreamingAudioType type
     m_type = type;
     m_samPort = samPort;
     m_replyPort = replyPort;
+    m_payloadType = payloadType;
+    m_driveExternally = driveExternally;
 
     // TODO: handle case where name or samIP are NULL??
 
@@ -185,13 +193,14 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
     qDebug("StreamingAudioClient::start() Sending register message to SAM: name = %s, channels = %d, position = [%d, %d, %d, %d, %d], type = %d", m_name, m_channels, x, y, width, height, depth, m_type);
 
     OscMessage msg;
-    msg.init("/sam/app/register", "siiiiiiiiiii", m_name, m_channels,
+    msg.init("/sam/app/register", "siiiiiiiiiiii", m_name, m_channels,
                                                        x,
                                                        y,
                                                        width,
                                                        height,
                                                        depth,
                                                        m_type,
+                                                       0, // placeholder for packet size/samples per packet requested
                                                        VERSION_MAJOR,
                                                        VERSION_MINOR,
                                                        VERSION_PATCH,
@@ -442,7 +451,7 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender)
                 OscArg arg;
                 msg->getArg(0, arg);
                 int errorCode = arg.val.i;
-                qDebug() << "SAM registration DENIED: error code = " << errorCode << endl;
+                qWarning("SAM registration DENIED: error code = %d", errorCode);
                 handle_regdeny(errorCode);
             }
             else
@@ -509,7 +518,10 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender)
 void StreamingAudioClient::handle_regconfirm(int port, unsigned int sampleRate, unsigned int bufferSize, quint16 rtpBasePort)
 {
     printf("StreamingAudioClient registration confirmed: unique id = %d, rtpBasePort = %d", port, rtpBasePort);
-    
+
+    m_bufferSize = bufferSize;
+    m_sampleRate = sampleRate;
+
     // init RTP
     quint16 portOffset = port * 4;
     m_sender = new RtpSender(m_samIP, portOffset + rtpBasePort, portOffset + rtpBasePort + 3, portOffset + rtpBasePort + 1, REPORT_INTERVAL_MILLIS, sampleRate, m_channels, bufferSize, port, m_payloadType);
@@ -527,22 +539,7 @@ void StreamingAudioClient::handle_regconfirm(int port, unsigned int sampleRate, 
     }
     
     qDebug() << "StreamingAudioClient::handle_regconfirm started RtpSender" << endl;
-    
-    
-    // init audio interface
-#ifdef SAC_MAX_PD
-    m_interface = new MaxPdAudioInterface(m_channels, bufferSize, sampleRate);
-#elif defined SAC_NO_JACK
-    m_interface = new VirtualAudioInterface(m_channels, bufferSize, sampleRate);
-#else
-    // write the JACK client name
-    char clientName[MAX_CLIENT_NAME];
-    snprintf(clientName, MAX_CLIENT_NAME, "SAC-client%d-%d", rtpBasePort, port);
-    
-    m_interface = new JackAudioInterface(m_channels, bufferSize, sampleRate, clientName);
-#endif
-    m_interface->setAudioCallback(StreamingAudioClient::interface_callback, this);
-    
+
     // allocate audio buffer
     m_audioOut = new float*[m_channels];
     for (unsigned int ch = 0; ch < m_channels; ch++)
@@ -550,22 +547,37 @@ void StreamingAudioClient::handle_regconfirm(int port, unsigned int sampleRate, 
         m_audioOut[ch] = new float[bufferSize];
     }
 
-    // start interface (start sending audio)
-    if (!m_interface->go())
+    // initialize and start interface if not driving SAC sending externally
+    if (!m_driveExternally)
     {
-        qWarning() << "StreamingAudioClient::handle_regconfirm ERROR: couldn't start audio interface : unregistering with SAM" << endl;
-        // unregister with SAM
-        OscMessage msg;
-        msg.init("/sam/app/unregister", "i", port);
-        if (!OscClient::sendFromSocket(&msg, &m_socket))
+#ifdef SAC_NO_JACK
+        m_interface = new VirtualAudioInterface(m_channels, bufferSize, sampleRate);
+#else
+        // write the JACK client name
+        char clientName[MAX_CLIENT_NAME];
+        snprintf(clientName, MAX_CLIENT_NAME, "SAC-client%d-%d", rtpBasePort, port);
+    
+        m_interface = new JackAudioInterface(m_channels, bufferSize, sampleRate, clientName);
+#endif
+        m_interface->setAudioCallback(StreamingAudioClient::interface_callback, this);
+
+        // start interface (start sending audio)
+        if (!m_interface->go())
         {
-            qWarning("Couldn't send OSC message");
+            qWarning() << "StreamingAudioClient::handle_regconfirm ERROR: couldn't start audio interface : unregistering with SAM" << endl;
+            // unregister with SAM
+            OscMessage msg;
+            msg.init("/sam/app/unregister", "i", port);
+            if (!OscClient::sendFromSocket(&msg, &m_socket))
+            {
+                qWarning("Couldn't send OSC message");
+            }
+            return;
         }
-        return;
+
+        qDebug() << "StreamingAudioClient::handle_regconfirm started audio interface" << endl;
     }
 
-    qDebug() << "StreamingAudioClient::handle_regconfirm started audio interface" << endl;
-    
     m_port = port;
 }
 
@@ -594,32 +606,29 @@ void StreamingAudioClient::handle_typedeny(int errorCode)
     // TODO: do something with the error code?
 }
 
-bool StreamingAudioClient::send_audio(unsigned int nchannels, unsigned int nframes, float** in)
+bool StreamingAudioClient::sendAudio(float** in)
 { 
-    // TODO: need error-checking to make sure nframes is not > buffer size?
-    
     if (m_audioCallback)
     {
-        //qDebug("StreamingAudioClient::send_audio calling registered audio callback");
         // call audio callback function if registered
-        if (!m_audioCallback(m_channels, nframes, m_audioOut, m_audioCallbackArg))
+        if (!m_audioCallback(m_channels, m_bufferSize, m_audioOut, m_audioCallbackArg))
         {
-            qWarning("StreamingAudioClient::send_audio error occurred calling registered audio callback");
+            qWarning("StreamingAudioClient::sendAudio error occurred calling registered audio callback");
             // output zeros if an error occurred
             // TODO: handle this error differently??
             for (unsigned int ch = 0; ch < m_channels; ch++)
             {
-                memset(m_audioOut[ch], 0, nframes * sizeof(float));
+                memset(m_audioOut[ch], 0, m_bufferSize * sizeof(float));
             }
         }
     }
     else if (in)
     {
-        // otherwise grab input audio if physical inputs enabled
+        // otherwise grab input audio if physical inputs enabled (or SAC is driven externally)
         for (unsigned int ch = 0; ch < m_channels; ch++)
         {
             // TODO: check that in[ch] is non-NULL?
-            for (unsigned int n = 0; n < nframes; n++)
+            for (unsigned int n = 0; n < m_bufferSize; n++)
             {
                 m_audioOut[ch][n] = in[ch][n];
             }
@@ -630,18 +639,19 @@ bool StreamingAudioClient::send_audio(unsigned int nchannels, unsigned int nfram
         // output zeros if no callback is registered and no input data exists
         for (unsigned int ch = 0; ch < m_channels; ch++)
         {
-            memset(m_audioOut[ch], 0, nframes * sizeof (float));
+            memset(m_audioOut[ch], 0, m_bufferSize * sizeof (float));
         }
     }
 
     // send audio data
-    m_sender->sendAudio(m_channels, nframes, m_audioOut);
+    m_sender->sendAudio(m_channels, m_bufferSize, m_audioOut);
     return true;
 }
 
 bool StreamingAudioClient::interface_callback(unsigned int nchannels, unsigned int nframes, float** in, float** out, void* sac)
 {
-    return ((StreamingAudioClient*)sac)->send_audio(nchannels, nframes, in);
+    // TODO: nchannels should match m_channels and nframes should match m_bufferSize
+    return ((StreamingAudioClient*)sac)->sendAudio(in);
 }
 
 bool StreamingAudioClient::read_from_socket()

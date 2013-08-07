@@ -24,7 +24,7 @@ static const int MAX_PORT_NAME = 128;
 
 static const quint32 REPORT_INTERVAL = 1000;
 
-StreamingAudioApp::StreamingAudioApp(const char* name, int port, int channels, const SamAppPosition& pos, StreamingAudioType type, jack_client_t* client, QTcpSocket* socket, quint16 rtpBasePort, int maxDelay, quint32 packetQueueSize, QObject* parent) :
+StreamingAudioApp::StreamingAudioApp(const char* name, int port, int channels, const SamAppPosition& pos, StreamingAudioType type, jack_client_t* client, QTcpSocket* socket, quint16 rtpBasePort, int maxDelay, quint32 packetQueueSize, StreamingAudioManager* sam, QObject* parent) :
     QObject(parent),
     m_name(NULL),
     m_port(port),
@@ -33,6 +33,7 @@ StreamingAudioApp::StreamingAudioApp(const char* name, int port, int channels, c
     m_position(pos),
     m_type(type),
     m_deleteMe(false),
+    m_sam(sam),
     m_channelAssign(NULL),
     m_jackClient(client),
     m_outputPorts(NULL),
@@ -303,6 +304,9 @@ bool StreamingAudioApp::init()
     // start receiver
     quint16 portOffset = m_port * 4;
     m_receiver = new RtpReceiver(portOffset + m_rtpBasePort, portOffset + m_rtpBasePort + 1, portOffset + m_rtpBasePort + 3, REPORT_INTERVAL, 1000 + m_port, jack_get_sample_rate(m_jackClient), jack_get_buffer_size(m_jackClient), m_packetQueueSize, m_jackClient, NULL);
+
+    connect(m_sam, SIGNAL(xrun()), m_receiver, SLOT(handleXrun()));
+
     if (!m_receiver->start())
     {
         qWarning("StreamingAudioApp::init port = %d, ERROR: couldn't start RTP receiver!", m_port);
@@ -851,6 +855,17 @@ const char* StreamingAudioApp::getOutputPortName(unsigned int index)
     if ((int)index >= m_channels || !m_outputPorts || !m_outputPorts[index]) return NULL;
     
     return jack_port_name(m_outputPorts[index]);
+}
+
+bool StreamingAudioApp::getMeters(int ch, float& rmsIn, float& peakIn, float& rmsOut, float& peakOut)
+{
+    if (ch < 0 || ch >= m_channels) return false;
+
+    rmsIn = m_rmsIn[ch];
+    peakIn = m_peakIn[ch];
+    rmsOut = m_rmsOut[ch];
+    peakOut = m_peakOut[ch];
+    return true;
 }
 
 bool StreamingAudioApp::subscribe(QVector<OscAddress*> &subscribers, const char* hostRef, quint16 portRef)

@@ -8,13 +8,19 @@
 #ifndef SAMUI_H
 #define SAMUI_H
 
+#include <QGroupBox>
+#include <QHBoxLayout>
 #include <QMainWindow>
+#include <QPushButton>
 
 #include "sam.h"
 
 namespace Ui {
 class SamUI;
 }
+
+class MasterWidget;
+class ClientWidget;
 
 /**
  * @class SamUI
@@ -42,33 +48,51 @@ public slots:
      * Perform necessary cleanup before app closes.
      */
     void doBeforeQuit();
+
+    /**
+     * Add client.
+     */
+    void addClient(int);
+
+    /**
+     * Remove client.
+     */
+    void removeClient(int);
+
+    void setAppVolume(int, float);
+    void setAppMute(int, bool);
+    void setAppSolo(int, bool);
+    void setAppDelay(int, float);
+    void setAppPosition(int, int, int, int, int, int);
+    void setAppType(int, int);
+    void setAppMeter(int, int, float, float, float, float);
     
 private slots:
     /**
      * Respond to start button click.
      */
-    void on_startSamButton_clicked();
+    void onSamButtonClicked();
 
     /**
      * Respond to about action triggered.
      */
     void on_actionAbout_triggered();
 
-    /**
-     * Respond to change in volume slider value.
-     * @param value new slider value
-     */
-    void on_volumeSlider_valueChanged(int value);
-
-    /**
-     * Respond to mute checkbox state change.
-     * @param arg1 current checkbox state
-     */
-    void on_muteCheckBox_stateChanged(int arg1);
-
 private:
+
+    void connect_client(int id);
+    void disconnect_client(int id);
+
     Ui::SamUI *ui;                  ///< UI
     StreamingAudioManager* m_sam;   ///< SAM instance
+
+    MasterWidget* m_master;
+    QPushButton* m_samButton;
+    QGroupBox* m_clientGroup;
+    QHBoxLayout* m_clientLayout;
+
+    int m_maxClients;
+    ClientWidget** m_clients;
 };
 
 #endif // SAMUI_H

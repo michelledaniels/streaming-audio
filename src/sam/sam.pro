@@ -20,7 +20,9 @@ SOURCES += sam_main.cpp \
     ../rtp.cpp \
     ../rtcp.cpp \
     rtpreceiver.cpp \
-    samui.cpp
+    samui.cpp \
+    clientwidget.cpp \
+    masterwidget.cpp
 
 HEADERS += sam.h \
     sam_app.h \
@@ -29,7 +31,9 @@ HEADERS += sam.h \
     ../rtp.h \
     ../rtcp.h \
     rtpreceiver.h \
-    samui.h
+    samui.h \
+    clientwidget.h \
+    masterwidget.h
 
 FORMS += \
     samui.ui

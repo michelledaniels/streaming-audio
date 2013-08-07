@@ -8,22 +8,22 @@
 
 /* Begin PBXBuildFile section */
 		B66B1F87175FFDC9007FF96C /* samclient~.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B66B1F86175FFDC9007FF96C /* samclient~.cpp */; };
+		B68798EC17B1CF550068F249 /* QtCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B68798EB17B1CF550068F249 /* QtCore.framework */; };
+		B68798EE17B1CF5B0068F249 /* QtNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B68798ED17B1CF5B0068F249 /* QtNetwork.framework */; };
 		B6CCDF29178DFDC50058BE4F /* libsac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B6CCDF28178DFDC50058BE4F /* libsac.a */; };
 		B6CCDF2B178DFDE00058BE4F /* MaxAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6CCDF2A178DFDE00058BE4F /* MaxAPI.framework */; };
 		B6CCDF2D178DFDE90058BE4F /* MaxAudioAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6CCDF2C178DFDE90058BE4F /* MaxAudioAPI.framework */; };
-		B6CCDF2F178DFDFA0058BE4F /* QtCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6CCDF2E178DFDFA0058BE4F /* QtCore.framework */; };
-		B6CCDF31178DFDFF0058BE4F /* QtNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6CCDF30178DFDFF0058BE4F /* QtNetwork.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		22CF10220EE984600054F513 /* maxmspsdk.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = maxmspsdk.xcconfig; path = ../maxmspsdk.xcconfig; sourceTree = SOURCE_ROOT; };
 		2FBBEAE508F335360078DB84 /* samclient~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "samclient~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B66B1F86175FFDC9007FF96C /* samclient~.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "samclient~.cpp"; sourceTree = "<group>"; };
+		B68798EB17B1CF550068F249 /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = "../../../../../../../../../../../usr/local/Trolltech/Qt-4.8.5/lib/QtCore.framework"; sourceTree = "<group>"; };
+		B68798ED17B1CF5B0068F249 /* QtNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtNetwork.framework; path = "../../../../../../../../../../../usr/local/Trolltech/Qt-4.8.5/lib/QtNetwork.framework"; sourceTree = "<group>"; };
 		B6CCDF28178DFDC50058BE4F /* libsac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsac.a; path = ../../../../../lib/libsac.a; sourceTree = "<group>"; };
 		B6CCDF2A178DFDE00058BE4F /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = "../../../../../../../../../Software/Max/MaxSDK-6.1.1/c74support/max-includes/MaxAPI.framework"; sourceTree = "<group>"; };
 		B6CCDF2C178DFDE90058BE4F /* MaxAudioAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAudioAPI.framework; path = "../../../../../../../../../Software/Max/MaxSDK-6.1.1/c74support/msp-includes/MaxAudioAPI.framework"; sourceTree = "<group>"; };
-		B6CCDF2E178DFDFA0058BE4F /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = ../../../../../../../../../../../usr/local/Cellar/qt/4.8.4/lib/QtCore.framework; sourceTree = "<group>"; };
-		B6CCDF30178DFDFF0058BE4F /* QtNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtNetwork.framework; path = ../../../../../../../../../../../usr/local/Cellar/qt/4.8.4/lib/QtNetwork.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -34,8 +34,8 @@
 				B6CCDF29178DFDC50058BE4F /* libsac.a in Frameworks */,
 				B6CCDF2B178DFDE00058BE4F /* MaxAPI.framework in Frameworks */,
 				B6CCDF2D178DFDE90058BE4F /* MaxAudioAPI.framework in Frameworks */,
-				B6CCDF2F178DFDFA0058BE4F /* QtCore.framework in Frameworks */,
-				B6CCDF31178DFDFF0058BE4F /* QtNetwork.framework in Frameworks */,
+				B68798EC17B1CF550068F249 /* QtCore.framework in Frameworks */,
+				B68798EE17B1CF5B0068F249 /* QtNetwork.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -56,8 +56,8 @@
 		089C1671FE841209C02AAC07 /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				B6CCDF30178DFDFF0058BE4F /* QtNetwork.framework */,
-				B6CCDF2E178DFDFA0058BE4F /* QtCore.framework */,
+				B68798ED17B1CF5B0068F249 /* QtNetwork.framework */,
+				B68798EB17B1CF550068F249 /* QtCore.framework */,
 				B6CCDF2C178DFDE90058BE4F /* MaxAudioAPI.framework */,
 				B6CCDF2A178DFDE00058BE4F /* MaxAPI.framework */,
 				B6CCDF28178DFDC50058BE4F /* libsac.a */,
@@ -193,27 +193,19 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 22CF10220EE984600054F513 /* maxmspsdk.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
-				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../../../../../Software/Max/MaxSDK-6.1.1/c74support/max-includes\"",
-					"\"$(SRCROOT)/../../../../../../../../../Software/Max/MaxSDK-6.1.1/c74support/msp-includes\"",
-					/usr/local/Cellar/qt/4.8.4/lib,
+				ARCHS = (
+					i386,
+					x86_64,
 				);
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "$(inherited)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../lib\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = (
-					"$(C74_SYM_LINKER_FLAGS)",
-					"$(QT_LINKER_FLAGS)",
-				);
+				OTHER_LDFLAGS = "$(C74_SYM_LINKER_FLAGS)";
 				PRODUCT_NAME = "samclient~";
 				SDKROOT = "";
 			};
@@ -223,26 +215,18 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 22CF10220EE984600054F513 /* maxmspsdk.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
-				COPY_PHASE_STRIP = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../../../../../Software/Max/MaxSDK-6.1.1/c74support/max-includes\"",
-					"\"$(SRCROOT)/../../../../../../../../../Software/Max/MaxSDK-6.1.1/c74support/msp-includes\"",
-					/usr/local/Cellar/qt/4.8.4/lib,
+				ARCHS = (
+					i386,
+					x86_64,
 				);
+				COPY_PHASE_STRIP = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "$(inherited)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../lib\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = (
-					"$(C74_SYM_LINKER_FLAGS)",
-					"$(QT_LINKER_FLAGS)",
-				);
+				OTHER_LDFLAGS = "$(C74_SYM_LINKER_FLAGS)";
 				PRODUCT_NAME = "samclient~";
 				SDKROOT = "";
 			};
