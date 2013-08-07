@@ -12,6 +12,9 @@
 
 #include "sam.h"
 
+namespace sam
+{
+
 class MeterWidget : public QWidget
 {
     Q_OBJECT
@@ -74,5 +77,7 @@ protected:
     MeterWidget** m_metersIn;
     MeterWidget** m_metersOut;
 };
+
+} // end of namespace SAM
 
 #endif // CLIENTWIDGET_H

@@ -13,6 +13,9 @@
 #include "samui.h"
 #include "ui_samui.h"
 
+namespace sam
+{
+
 SamUI::SamUI(const SamParams& params, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::SamUI),
@@ -291,3 +294,5 @@ void SamUI::disconnect_client(int id)
     disconnect(m_clients[id], SIGNAL(muteChanged(int, bool)), m_sam, SLOT(setAppMute(int, bool)));
     disconnect(m_clients[id], SIGNAL(soloChanged(int, bool)), m_sam, SLOT(setAppSolo(int, bool)));
 }
+
+} // end of namespace SAM

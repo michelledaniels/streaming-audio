@@ -15,9 +15,11 @@
 
 #include "jack_util.h"
 
+namespace sam
+{
+
 static const int MAX_PORT_NAME = 32;
 static const int MAX_CMD_LEN = 64;
-
 
 bool JackServerIsRunning()
 {
@@ -121,3 +123,4 @@ bool PortIsOutput(const jack_port_t* port)
     return ((portFlags & JackPortIsOutput) == JackPortIsOutput);
 }
 
+} // end of namespace SAM

@@ -13,6 +13,9 @@
 
 #include "rtpreceiver.h"
 
+namespace sam
+{
+
 static const quint16 MAX_DROPOUT = 3000;
 static const quint16 MAX_MISORDER = 100;
 static const quint16 MAX_LATE = 200;
@@ -619,3 +622,5 @@ void RtpReceiver::handleXrun()
 
     // TODO: decide how to handle xruns
 }
+
+} // end of namespace SAM

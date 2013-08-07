@@ -10,6 +10,9 @@
 
 #include <osc.h>
 
+namespace sam
+{
+
 static const int CONNECT_TIMEOUT_MILLIS = 5000;
 static const int DISCONNECT_TIMEOUT_MILLIS = 1000;
 
@@ -670,4 +673,6 @@ void OscServer::handleOscMessage(OscMessage* msg, const char* sender)
 {
     emit messageReady(msg, sender);
 }
+
+} // end of namespace SAM
 

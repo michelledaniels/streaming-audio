@@ -18,6 +18,9 @@
 #include "sam_client.h"
 #include "osc.h"
 
+namespace sam
+{
+
 /**
  * @struct SamParams
  * This struct contains the parameters needed to intialize SAM
@@ -672,6 +675,8 @@ private:
     // for version checking
     bool m_verifyPatchVersion;      ///< Whether the patch version must match for version checking
 }; 
+
+} // end of namespace SAM
 
 #endif // SAM_H
 
