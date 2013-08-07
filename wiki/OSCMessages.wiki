@@ -21,7 +21,7 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 
 
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
-|| `/sam/app/register` || `siiiiiiiiiiii` || `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type`, `bufferSize`, `major version`, `minor version`, `patch version`, `replyPort` || `/sam/app/regconfirm` or `/sam/app/regdeny` || `bufferSize` is the buffer size this client wishes to send to SAM.  If SAM doesn't support that buffer size, its response in the regconfirm will reflect that. ||
+|| `/sam/app/register` || `siiiiiiiiiiiii` || `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type`, `bufferSize`, `packetQueueLength`, `major version`, `minor version`, `patch version`, `replyPort` || `/sam/app/regconfirm` or `/sam/app/regdeny` || `bufferSize` is the buffer size this client wishes to send to SAM.  If SAM doesn't support that buffer size, its response in the regconfirm will reflect that. `packetQueueLength` is the number of RTP packets that will be buffered in SAM before playback.  A longer queue helps prevent dropouts due to network/sender jitter but increases latency.  ||
 || `/sam/app/regconfirm` || `iii` || `id`, `sampleRate`, `bufferSize`, `rtpBasePort` || none || `bufferSize` may not be the same as what the client requested if SAM doesn't support the client's requested buffer size.  The client must use the buffer size returned here. ||
 || `/sam/app/regdeny` || `i`|| `errorCode` || none || error codes defined above ||
 || `/sam/app/unregister` || `i` || `id` || none || sending an `id` of `-1` tells SAM to unregister all clients ||
