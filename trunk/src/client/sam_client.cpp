@@ -616,8 +616,7 @@ bool StreamingAudioClient::sendAudio(float** in)
     }
 
     // send audio data
-    m_sender->sendAudio(m_channels, m_bufferSize, m_audioOut);
-    return true;
+    return m_sender->sendAudio(m_channels, m_bufferSize, m_audioOut);
 }
 
 bool StreamingAudioClient::interface_callback(unsigned int nchannels, unsigned int nframes, float** in, float** out, void* sac)
