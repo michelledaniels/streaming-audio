@@ -20,18 +20,19 @@ using namespace sam;
 
 void print_help()
 {
-    printf("Usage: [saminput --name or -n client name]\n");
-    printf("--ip or -i SAM ip\n");
-    printf("--port or -p SAM port\n");
-    printf("--channels or -c string containing list of input channels to use\n");
-    printf("--type or -t type of SAM stream\n");
-    printf("[--x or -x initial x position coordinate]\n");
-    printf("[--y or -y initial y position coordinate]\n");
-    printf("[--width or -w initial width for SAM stream]\n");
-    printf("[--height or -h initial height for SAM stream]\n");
-    printf("[--depth or -d initial depth for SAM stream]\n");
+    printf("Usage:\nsaminput --name or -n client name\n");
+    printf("\t--ip or -i SAM ip\n");
+    printf("\t--port or -p SAM port\n");
+    printf("\t--channels or -c string containing list of input channels to use\n");
+    printf("\t--type or -t type of SAM stream\n");
+    printf("\t[--x or -x initial x position coordinate]\n");
+    printf("\t[--y or -y initial y position coordinate]\n");
+    printf("\t[--width or -w initial width for SAM stream]\n");
+    printf("\t[--height or -h initial height for SAM stream]\n");
+    printf("\t[--depth or -d initial depth for SAM stream]\n");
+    printf("\t[--queue or -q receiver packet queue size]\n");
     printf("\nExample usage:\n");
-    printf("saminput -n \"Example Client\" -i \"127.0.0.1\" -p 7770 -c \"1-2\" -t 0\n");
+    printf("saminput -n \"Example Client\" -i \"127.0.0.1\" -p 7770 -c \"1-2\" -t 0 -q 2\n");
     printf("\n");
 }
 
@@ -69,6 +70,7 @@ int main(int argc, char *argv[])
     int width = 0;
     int height = 0;
     int depth = 0;
+    int packetQueueSize = -1;
 
     // parse command-line parameters
     while (true)
@@ -85,12 +87,13 @@ int main(int argc, char *argv[])
             {"width", optional_argument, NULL, 'w'},
             {"height", optional_argument, NULL, 'h'},
             {"depth", optional_argument, NULL, 'd'},
+            {"queue", optional_argument, NULL, 'q'},
             {NULL, 0, NULL, 0}
         };
 
         // getopt_long stores the option index here.
         int option_index = 0;
-        int c = getopt_long(argc, argv, "n:i:p:c:t:x:y:w:h:d:", long_options, &option_index);
+        int c = getopt_long(argc, argv, "n:i:p:c:t:x:y:w:h:d:q:", long_options, &option_index);
 
         // Detect the end of the options.
         if (c == -1) break;
@@ -215,6 +218,11 @@ int main(int argc, char *argv[])
             qWarning("setting type = %d", type);
             break;
 
+        case 'q':
+            packetQueueSize = atoi(optarg);
+            qWarning("setting packetQueueSize = %d", packetQueueSize);
+            break;
+
         default:
             print_help();
             exit(EXIT_SUCCESS);
@@ -235,6 +243,12 @@ int main(int argc, char *argv[])
     if (sac.init(numChannels, type, name, samIP, samPort) != SAC_SUCCESS)
     {
         qWarning("Couldn't initialize client");
+        exit(EXIT_FAILURE);
+    }
+
+    if (sac.setPacketQueueSize(packetQueueSize) != SAC_SUCCESS)
+    {
+        qWarning("Couldn't set packet queue size");
         exit(EXIT_FAILURE);
     }
 
