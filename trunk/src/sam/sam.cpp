@@ -336,7 +336,7 @@ int StreamingAudioManager::getNumApps()
     return count;
 }       
 
-int StreamingAudioManager::registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, StreamingAudioType type, QTcpSocket* socket, sam::SamErrorCode& errCode)
+int StreamingAudioManager::registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, StreamingAudioType type, int packetQueueSize, QTcpSocket* socket, sam::SamErrorCode& errCode)
 {
     // TODO: check for duplicates (an app already at the same IP/port)?
     
@@ -358,7 +358,10 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
         errCode = sam::SAM_ERR_MAX_CLIENTS;
         return -1;
     }
-    
+
+    // use global packet queue size if not specified
+    int queueSize = (packetQueueSize >= 0) ? packetQueueSize : m_packetQueueSize;
+
     // create a new app
     m_appState[port] = INITIALIZING;
     SamAppPosition pos;
@@ -367,7 +370,7 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
     pos.width = width;
     pos.height = height;
     pos.depth = depth;
-    m_apps[port] = new StreamingAudioApp(name, port, channels, pos, type, m_client, socket, m_rtpPort, m_delayMax, m_packetQueueSize, this);
+    m_apps[port] = new StreamingAudioApp(name, port, channels, pos, type, m_client, socket, m_rtpPort, m_delayMax, queueSize, this);
     connect(m_apps[port], SIGNAL(appClosed(int,int)), this, SLOT(cleanupApp(int,int)));
     connect(m_apps[port], SIGNAL(appDisconnected(int)), this, SLOT(closeApp(int)));
     if (!m_apps[port]->init())
@@ -1685,8 +1688,8 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
     sam::SamErrorCode code = sam::SAM_ERR_DEFAULT;
     if (version_check(majorVersion, minorVersion, patchVersion))
     {
-        printf("Registering app at hostname %s, port %d with name %s, %d channel(s), position [%d %d %d %d %d], type = %d\n\n", socket->peerAddress().toString().toAscii().data(), replyPort, name, channels, x, y, width, height, depth, type);
-        port = registerApp(name, channels, x, y, width, height, depth, type, socket, code);
+        printf("Registering app at hostname %s, port %d with name %s, %d channel(s), position [%d %d %d %d %d], type = %d, packet queue length = %d\n\n", socket->peerAddress().toString().toAscii().data(), replyPort, name, channels, x, y, width, height, depth, type, packetQueueLength);
+        port = registerApp(name, channels, x, y, width, height, depth, type, packetQueueLength, socket, code);
     }
     else
     {
