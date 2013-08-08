@@ -199,7 +199,7 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
                                                        depth,
                                                        m_type,
                                                        0, // placeholder for packet size/samples per packet requested
-                                                       0, // placeholder for requesting packet queue length
+                                                       -1, // placeholder for requesting packet queue length
                                                        VERSION_MAJOR,
                                                        VERSION_MINOR,
                                                        VERSION_PATCH,
