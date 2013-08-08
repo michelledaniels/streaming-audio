@@ -29,6 +29,7 @@ StreamingAudioClient::StreamingAudioClient() :
     m_samIP(NULL),
     m_samPort(0),
     m_payloadType(PAYLOAD_PCM_16),
+    m_packetQueueSize(-1),
     m_replyPort(0),
     m_driveExternally(false),
     m_interface(NULL),
@@ -50,6 +51,7 @@ StreamingAudioClient::StreamingAudioClient(unsigned int numChannels, StreamingAu
     m_samIP(NULL),
     m_samPort(samPort),
     m_payloadType(payloadType),
+    m_packetQueueSize(-1),
     m_replyPort(replyPort),
     m_driveExternally(driveExternally),
     m_interface(NULL),
@@ -163,6 +165,13 @@ int StreamingAudioClient::init(unsigned int numChannels, StreamingAudioType type
     return SAC_SUCCESS;
 }
 
+int StreamingAudioClient::setPacketQueueSize(int numPackets)
+{
+    if (m_port >= 0) return SAC_ERROR; // already registered: too late to set packet queue size
+    m_packetQueueSize = numPackets;
+    return SAC_SUCCESS;
+}
+
 int StreamingAudioClient::start(int x, int y, int width, int height, int depth, unsigned int timeout)
 {
     if (m_port >= 0) return SAC_ERROR; // already registered
@@ -199,7 +208,7 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
                                                        depth,
                                                        m_type,
                                                        0, // placeholder for packet size/samples per packet requested
-                                                       -1, // placeholder for requesting packet queue length
+                                                       m_packetQueueSize,
                                                        VERSION_MAJOR,
                                                        VERSION_MINOR,
                                                        VERSION_PATCH,

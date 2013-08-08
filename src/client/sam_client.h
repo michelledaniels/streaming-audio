@@ -118,7 +118,14 @@ public:
      *      audio sending externally.
      * @see ~StreamingAudioClient
      */
-    StreamingAudioClient(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort = 0, quint8 payloadType = PAYLOAD_PCM_16, bool driveExternally = false);
+    StreamingAudioClient(unsigned int numChannels,
+                         StreamingAudioType type,
+                         const char* name,
+                         const char* samIP,
+                         quint16 samPort,
+                         quint16 replyPort = 0,
+                         quint8 payloadType = PAYLOAD_PCM_16,
+                         bool driveExternally = false);
     
     /**
      * StreamingAudioClient destructor.
@@ -151,7 +158,22 @@ public:
      *      audio sending externally.
      * @return 0 on success, a non-zero ::SACReturn code on failure
      */
-    int init(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort = 0, quint8 payloadType = PAYLOAD_PCM_16, bool driveExternally = false);
+    int init(unsigned int numChannels,
+             StreamingAudioType type,
+             const char* name,
+             const char* samIP,
+             quint16 samPort,
+             quint16 replyPort = 0,
+             quint8 payloadType = PAYLOAD_PCM_16,
+             bool driveExternally = false);
+
+   /**
+    * Set the desired packet queue size.
+    * Must be called before start()
+    * @param numPackets >= 0 to specify the number of packets to buffer on receiving side, -1 to use SAM default
+    * @return 0 on success, a non-zero ::SACReturn code on failure
+    */
+    int setPacketQueueSize(int numPackets);
 
     /**
      * Register this client with SAM and block until response is received.
@@ -344,6 +366,7 @@ private:
     char* m_samIP;
     quint16 m_samPort;
     quint8 m_payloadType;
+    int m_packetQueueSize;
 
     // for OSC
     quint16 m_replyPort;              ///< OSC port for this client
