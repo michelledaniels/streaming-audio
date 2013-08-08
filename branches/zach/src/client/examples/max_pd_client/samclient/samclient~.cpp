@@ -426,7 +426,7 @@ void sac_create(t_samclient *x)
         // default constructor (recommended)
         x->sac = new sam::StreamingAudioClient();
         // initialize SAC
-        err = x->sac->init((unsigned int)(x->channels), (sam::StreamingAudioType)(x->type), x->name->s_name, x->ip->s_name, (unsigned short)(x->port), 0, PAYLOAD_PCM_16, true);
+        err = x->sac->init((unsigned int)(x->channels), (sam::StreamingAudioType)(x->type), x->name->s_name, x->ip->s_name, (unsigned short)(x->port), 0, sam::PAYLOAD_PCM_16, true);
     }
     
     // start SAC
@@ -780,7 +780,7 @@ void sac_create(t_samclient *x)
         // default constructor (recommended)
         x->sac = new sam::StreamingAudioClient();
         // initialize SAC
-        err = x->sac->init((unsigned int)(x->channels), (sam::StreamingAudioType)(x->type), x->name->s_name, x->ip->s_name, (unsigned short)(x->port), 0, PAYLOAD_PCM_16, true);
+        err = x->sac->init((unsigned int)(x->channels), (sam::StreamingAudioType)(x->type), x->name->s_name, x->ip->s_name, (unsigned short)(x->port), 0, sam::PAYLOAD_PCM_16, true);
     }
     
     // start SAC
