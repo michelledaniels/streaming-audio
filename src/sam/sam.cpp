@@ -47,7 +47,6 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_numOutputPorts(0),
     m_outputUsed(NULL),
     m_rtpPort(params.rtpPort),
-    m_outputPortOffset(params.outputPortOffset),
     m_outputJackClientName(NULL),
     m_outputJackPortBase(NULL),
     m_packetQueueSize(params.packetQueueSize),
@@ -190,7 +189,7 @@ void StreamingAudioManager::run()
     else
     {
         // start jackd
-        if (!start_jack(m_sampleRate, m_bufferSize, m_outputPortOffset + m_maxOutputChannels, m_jackDriver))
+        if (!start_jack(m_sampleRate, m_bufferSize, m_maxOutputChannels, m_jackDriver))
         {
             qWarning("Couldn't start JACK server process");
             emit startupError();
@@ -1810,10 +1809,6 @@ bool StreamingAudioManager::init_output_ports()
     qDebug("StreamingAudioManager::init_output_ports() counted %d outputs", m_numOutputPorts);
     jack_free(outputPorts);
     
-    // -- HACK --
-    //m_numOutputPorts -= m_outputPortOffset;
-    // -- END HACK --
-
     m_outputUsed = new int[m_numOutputPorts];
     for (int i = 0; i < m_numOutputPorts; i++)
     {
@@ -1971,7 +1966,7 @@ bool StreamingAudioManager::connect_app_ports(int port, const int* outputPorts)
 
         // connect the app's output port to the specified physical output
         char systemOut[MAX_PORT_NAME];
-        snprintf(systemOut, MAX_PORT_NAME, "%s:%s%d", m_outputJackClientName, m_outputJackPortBase, outputPorts[ch] + m_outputPortOffset);
+        snprintf(systemOut, MAX_PORT_NAME, "%s:%s%d", m_outputJackClientName, m_outputJackPortBase, outputPorts[ch]);
         const char* appPortName = m_apps[port]->getOutputPortName(ch);
         if (!appPortName) return false;
         int result = jack_connect(m_client, appPortName, systemOut);
