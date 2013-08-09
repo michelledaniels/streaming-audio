@@ -204,13 +204,6 @@ public:
     bool unregisterRenderer();
 
     /**
-     * Enable/disable an output channel
-     * @param ch the channel (1-indexed) to be enabled/disabled
-     * @param enabled true if the channel is to be enabled, false otherwise
-     */
-    void setOutEnabled(int ch, bool enabled);
-
-    /**
      * Get the name of an app.
      * @param id the port/unique ID of the app to be queried
      * @return name on success, NULL on failure
