@@ -27,7 +27,6 @@ namespace sam
 static const int MAX_PORT_NAME = 32;
 static const int MAX_CMD_LEN = 64;
 
-static const int OUTPUT_ENABLED_BASIC = -1;
 static const int OUTPUT_ENABLED_DISCRETE = -2;
 static const int OUTPUT_DISABLED = -3;
 
@@ -44,11 +43,14 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_apps(NULL),
     m_appState(NULL),
     m_isRunning(false),
-    m_numOutputPorts(0),
-    m_outputUsed(NULL),
+    m_maxBasicOutputs(0),
+    m_maxDiscreteOutputs(0),
+    m_discreteOutputUsed(NULL),
     m_rtpPort(params.rtpPort),
-    m_outputJackClientName(NULL),
-    m_outputJackPortBase(NULL),
+    m_outJackClientNameBasic(NULL),
+    m_outJackPortBaseBasic(NULL),
+    m_outJackClientNameDiscrete(NULL),
+    m_outJackPortBaseDiscrete(NULL),
     m_packetQueueSize(params.packetQueueSize),
     m_renderer(NULL),
     m_meterInterval(0),
@@ -80,13 +82,21 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_jackDriver = new char[len + 1];
     strncpy(m_jackDriver, params.jackDriver, len + 1);
 
-    len = strlen(params.outputJackClientName);
-    m_outputJackClientName = new char[len + 1];
-    strncpy(m_outputJackClientName, params.outputJackClientName, len + 1);
+    len = strlen(params.outJackClientNameBasic);
+    m_outJackClientNameBasic = new char[len + 1];
+    strncpy(m_outJackClientNameBasic, params.outJackClientNameBasic, len + 1);
 
-    len = strlen(params.outputJackPortBase);
-    m_outputJackPortBase = new char[len + 1];
-    strncpy(m_outputJackPortBase, params.outputJackPortBase, len + 1);
+    len = strlen(params.outJackPortBaseBasic);
+    m_outJackPortBaseBasic = new char[len + 1];
+    strncpy(m_outJackPortBaseBasic, params.outJackPortBaseBasic, len + 1);
+
+    len = strlen(params.outJackClientNameDiscrete);
+    m_outJackClientNameDiscrete = new char[len + 1];
+    strncpy(m_outJackClientNameDiscrete, params.outJackClientNameDiscrete, len + 1);
+
+    len = strlen(params.outJackPortBaseDiscrete);
+    m_outJackPortBaseDiscrete = new char[len + 1];
+    strncpy(m_outJackPortBaseDiscrete, params.outJackPortBaseDiscrete, len + 1);
 
     m_delayMax = int(m_sampleRate * (params.maxDelayMillis / 2000.0f)); // allocate half of max available delay for apps, half for global delay
     setDelay(params.delayMillis);
@@ -118,11 +128,35 @@ StreamingAudioManager::~StreamingAudioManager()
     qDebug("StreamingAudioManager destructor called");
 
     stop();
-    
-    if (m_outputUsed)
+
+    if (m_outJackClientNameBasic)
     {
-        delete[] m_outputUsed;
-        m_outputUsed = NULL;
+        delete[] m_outJackClientNameBasic;
+        m_outJackClientNameBasic = NULL;
+    }
+
+    if (m_outJackPortBaseBasic)
+    {
+        delete[] m_outJackPortBaseBasic;
+        m_outJackPortBaseBasic = NULL;
+    }
+
+    if (m_outJackClientNameDiscrete)
+    {
+        delete[] m_outJackClientNameDiscrete;
+        m_outJackClientNameDiscrete = NULL;
+    }
+
+    if (m_outJackPortBaseDiscrete)
+    {
+        delete[] m_outJackPortBaseDiscrete;
+        m_outJackPortBaseDiscrete = NULL;
+    }
+
+    if (m_discreteOutputUsed)
+    {
+        delete[] m_discreteOutputUsed;
+        m_discreteOutputUsed = NULL;
     }
     
     if (m_jackDriver)
@@ -760,11 +794,11 @@ bool StreamingAudioManager::setAppType(int port, StreamingAudioType type, sam::S
 
         // release old output ports used by this app
         // TODO: can use app's channel assigmments array to do this more efficiently ??  Would need to save a copy before it changes above...
-        for (int i = 0; i < m_numOutputPorts; i++)
+        for (int i = 0; i < m_maxDiscreteOutputs; i++)
         {
-            if (m_outputUsed[i] == port)
+            if (m_discreteOutputUsed[i] == port)
             {
-                m_outputUsed[i] = OUTPUT_ENABLED_DISCRETE;
+                m_discreteOutputUsed[i] = OUTPUT_ENABLED_DISCRETE;
             }
         }
         
@@ -1789,38 +1823,57 @@ int StreamingAudioManager::jack_process(jack_nframes_t nframes)
 
 bool StreamingAudioManager::init_output_ports()
 {
-    // get all jack ports that correspond to physical outputs
-    const char** outputPorts = jack_get_ports(m_client, m_outputJackClientName, NULL, JackPortIsInput);
-
-    if (!outputPorts)
+    // get all jack ports that correspond to the basic client
+    const char** outputPortsBasic = jack_get_ports(m_client, m_outJackClientNameBasic, NULL, JackPortIsInput);
+    if (!outputPortsBasic)
     {
-        qWarning("JACK client %s has no input ports", m_outputJackClientName);
+        qWarning("JACK client %s has no input ports", m_outJackClientNameBasic);
+        return false;
+    }
+    
+    // count the number of basic output ports available
+    const char** currentPortBasic = outputPortsBasic;
+    m_maxBasicOutputs = 0;
+    while (*currentPortBasic != NULL)
+    {
+        m_maxBasicOutputs++;
+        qDebug("StreamingAudioManager::init_output_ports() counted basic port %s", *currentPortBasic);
+        currentPortBasic++;
+    }
+    qDebug("StreamingAudioManager::init_output_ports() counted %d possible basic outputs", m_maxBasicOutputs);
+    jack_free(outputPortsBasic);
+    
+    // get all jack ports that correspond to the discrete client
+    const char** outputPortsDiscrete = jack_get_ports(m_client, m_outJackClientNameDiscrete, NULL, JackPortIsInput);
+    if (!outputPortsDiscrete)
+    {
+        qWarning("JACK client %s has no input ports", m_outJackClientNameDiscrete);
         return false;
     }
 
-    // count the number of physical output ports
-    const char** currentPort = outputPorts;
-    while (*currentPort != NULL)
+    // count the number of discrete output ports available
+    const char** currentPortDiscrete = outputPortsDiscrete;
+    m_maxDiscreteOutputs = 0;
+    while (*currentPortDiscrete != NULL)
     {
-        m_numOutputPorts++;
-        qDebug("StreamingAudioManager::init_output_ports() counted port %s", *currentPort);
-        currentPort++;
+        m_maxDiscreteOutputs++;
+        qDebug("StreamingAudioManager::init_output_ports() counted discrete port %s", *currentPortDiscrete);
+        currentPortDiscrete++;
     }
-    qDebug("StreamingAudioManager::init_output_ports() counted %d outputs", m_numOutputPorts);
-    jack_free(outputPorts);
+    qDebug("StreamingAudioManager::init_output_ports() counted %d possible discrete outputs", m_maxDiscreteOutputs);
+    jack_free(outputPortsDiscrete);
     
-    m_outputUsed = new int[m_numOutputPorts];
-    for (int i = 0; i < m_numOutputPorts; i++)
+    m_discreteOutputUsed = new int[m_maxDiscreteOutputs];
+    for (int i = 0; i < m_maxDiscreteOutputs; i++)
     {
-        m_outputUsed[i] = OUTPUT_DISABLED;
+        m_discreteOutputUsed[i] = OUTPUT_DISABLED;
     }
 
     for (int i = 0; i < m_basicChannels.size(); i++)
     {
-        if (m_basicChannels[i] <= m_numOutputPorts)
+        if (m_basicChannels[i] <= m_maxBasicOutputs)
         {
-            m_outputUsed[m_basicChannels[i]-1] = OUTPUT_ENABLED_BASIC; // outputUsed is 0-indexed, while channel lists are 1-indexed
-            qDebug("StreamingAudioManager::init_output_ports() enabling basic channel: m_outputUsed[%d] = %d", m_basicChannels[i]-1, m_outputUsed[m_basicChannels[i]-1]);
+            qDebug("StreamingAudioManager::init_output_ports() enabling basic channel %u", m_basicChannels[i]);
         }
         else
         {
@@ -1830,10 +1883,10 @@ bool StreamingAudioManager::init_output_ports()
 
     for (int i = 0; i < m_discreteChannels.size(); i++)
     {
-        if (m_discreteChannels[i] <= m_numOutputPorts)
+        if (m_discreteChannels[i] <= m_maxDiscreteOutputs)
         {
-            m_outputUsed[m_discreteChannels[i]-1] = OUTPUT_ENABLED_DISCRETE;
-            qDebug("StreamingAudioManager::init_output_ports() enabling discrete channel: m_outputUsed[%d] = %d", m_discreteChannels[i]-1, m_outputUsed[m_discreteChannels[i]-1]);
+            m_discreteOutputUsed[m_discreteChannels[i]-1] = OUTPUT_ENABLED_DISCRETE; // outputUsed is 0-indexed, while channel lists are 1-indexed
+            qDebug("StreamingAudioManager::init_output_ports() enabling discrete channel: m_discreteOutputUsed[%d] = %d", m_discreteChannels[i]-1, m_discreteOutputUsed[m_discreteChannels[i]-1]);
         }
         else
         {
@@ -1892,6 +1945,15 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
     case sam::TYPE_BASIC:
     {
         int numChannels = channels > m_basicChannels.size() ? m_basicChannels.size() : channels;
+        if (numChannels == 0)
+        {
+            qWarning("StreamingAudioManager::allocate_output_ports no basic ports");
+            return false;
+        }
+        else if (numChannels < channels)
+        {
+            qWarning("StreamingAudioManager::allocate_output_ports %d basic outputs requested, using only %d: SAM number of basic channels = %d", channels, numChannels, m_basicChannels.size());
+        }
         // assign a basic port for each app output channel
         for (int ch = 0; ch < numChannels; ch++)
         {
@@ -1915,27 +1977,27 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
         {
             // assign the next available output
             bool portFound = false;
-            for (int k = nextFreeOutput; k < m_numOutputPorts; k++)
+            for (int k = nextFreeOutput; k < m_maxDiscreteOutputs; k++)
             {
-                qDebug("StreamingAudioManager::allocate_output_ports m_outputUsed[%d] = %d", k, m_outputUsed[k]);
-                if (m_outputUsed[k] != OUTPUT_ENABLED_DISCRETE) continue;
+                qDebug("StreamingAudioManager::allocate_output_ports m_discreteOutputUsed[%d] = %d", k, m_discreteOutputUsed[k]);
+                if (m_discreteOutputUsed[k] != OUTPUT_ENABLED_DISCRETE) continue;
                 m_apps[port]->setChannelAssignment(ch, k + 1);
-                m_outputUsed[k] = port;
+                m_discreteOutputUsed[k] = port;
                 nextFreeOutput = k + 1; // for the next port don't search the slots we already searched
                 portFound = true;
                 break;
             }
             if (!portFound)
             {
-                qWarning("StreamingAudioManager::allocate_output_ports no ports available out of %d physical outputs!", m_numOutputPorts);
+                qWarning("StreamingAudioManager::allocate_output_ports no ports available out of %d discrete outputs!", m_maxDiscreteOutputs);
                 
                 // release output ports already allocated to this app
                 // TODO: also undo channel assignment changes !?!
-                for (int i = 0; i < m_numOutputPorts; i++)
+                for (int i = 0; i < m_maxDiscreteOutputs; i++)
                 {
-                    if (m_outputUsed[i] == port)
+                    if (m_discreteOutputUsed[i] == port)
                     {
-                        m_outputUsed[i] = OUTPUT_ENABLED_DISCRETE;
+                        m_discreteOutputUsed[i] = OUTPUT_ENABLED_DISCRETE;
                     }
                 }
                 
@@ -1952,7 +2014,7 @@ bool StreamingAudioManager::connect_app_ports(int port, const int* outputPorts)
 {
     qDebug("StreamingAudioManager::connect_app_ports starting");
     
-    if (!m_outputJackClientName || !m_outputJackPortBase)
+    if (!m_outJackClientNameBasic || !m_outJackPortBaseBasic || !m_outJackClientNameDiscrete || !m_outJackPortBaseDiscrete)
     {
         qWarning("StreamingAudioManager::connect_app_ports JACK client or port to connect to was unspecified");
         return false;
@@ -1966,7 +2028,14 @@ bool StreamingAudioManager::connect_app_ports(int port, const int* outputPorts)
 
         // connect the app's output port to the specified physical output
         char systemOut[MAX_PORT_NAME];
-        snprintf(systemOut, MAX_PORT_NAME, "%s:%s%d", m_outputJackClientName, m_outputJackPortBase, outputPorts[ch]);
+        if (m_apps[port]->getType() == TYPE_BASIC)
+        {
+            snprintf(systemOut, MAX_PORT_NAME, "%s:%s%d", m_outJackClientNameBasic, m_outJackPortBaseBasic, outputPorts[ch]);
+        }
+        else
+        {
+            snprintf(systemOut, MAX_PORT_NAME, "%s:%s%d", m_outJackClientNameDiscrete, m_outJackPortBaseDiscrete, outputPorts[ch]);
+        }
         const char* appPortName = m_apps[port]->getOutputPortName(ch);
         if (!appPortName) return false;
         int result = jack_connect(m_client, appPortName, systemOut);
@@ -1982,7 +2051,7 @@ bool StreamingAudioManager::connect_app_ports(int port, const int* outputPorts)
             // release output ports allocated to this app
             for (int i = 0; i < channels; i++)
             {
-                m_outputUsed[i] = -1;
+                m_discreteOutputUsed[outputPorts[i]] = OUTPUT_DISABLED;
             }
 
             return false;
@@ -2089,11 +2158,11 @@ void StreamingAudioManager::cleanupApp(int port, int type)
     if (type > sam::TYPE_BASIC)
     {
         // release output ports used by this app
-        for (int i = 0; i < m_numOutputPorts; i++)
+        for (int i = 0; i < m_maxDiscreteOutputs; i++)
         {
-            if (m_outputUsed[i] == port)
+            if (m_discreteOutputUsed[i] == port)
             {
-                m_outputUsed[i] = OUTPUT_ENABLED_DISCRETE;
+                m_discreteOutputUsed[i] = OUTPUT_ENABLED_DISCRETE;
             }
         }
     }

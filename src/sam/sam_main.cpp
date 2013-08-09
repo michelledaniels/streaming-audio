@@ -156,12 +156,20 @@ int main(int argc, char* argv[])
     params.renderHost = renderHostBytes.data();
     params.renderPort = settings.value("RenderPort", 0).toInt();
     params.packetQueueSize = settings.value("PacketQueueSize", 4).toInt();
-    QString outputJackClientName = settings.value("OutputJackClientName", "system").toString();
-    QByteArray outputJackClientBytes = outputJackClientName.toAscii();
-    params.outputJackClientName = outputJackClientBytes.data();
-    QString outputJackPortBase = settings.value("OutputJackPortBase", "playback_").toString();
-    QByteArray outputJackPortBytes = outputJackPortBase.toAscii();
-    params.outputJackPortBase = outputJackPortBytes.data();
+
+    QString outputJackClientNameBasic = settings.value("OutputJackClientNameBasic", "system").toString();
+    QByteArray outputJackClientBytesBasic = outputJackClientNameBasic.toAscii();
+    params.outJackClientNameBasic = outputJackClientBytesBasic.data();
+    QString outputJackPortBaseBasic = settings.value("OutputJackPortBaseBasic", "playback_").toString();
+    QByteArray outputJackPortBytesBasic = outputJackPortBaseBasic.toAscii();
+    params.outJackPortBaseBasic = outputJackPortBytesBasic.data();
+    QString outputJackClientNameDiscrete = settings.value("OutputJackClientNameDiscrete", "system").toString();
+    QByteArray outputJackClientBytesDiscrete = outputJackClientNameDiscrete.toAscii();
+    params.outJackClientNameDiscrete = outputJackClientBytesDiscrete.data();
+    QString outputJackPortBaseDiscrete = settings.value("OutputJackPortBaseDiscrete", "playback_").toString();
+    QByteArray outputJackPortBytesDiscrete = outputJackPortBaseDiscrete.toAscii();
+    params.outJackPortBaseDiscrete = outputJackPortBytesDiscrete.data();
+
     params.maxClients = settings.value("MaxClients", 100).toInt();
     params.meterIntervalMillis = settings.value("MeterIntervalMillis", 1000.0f).toFloat();
     params.verifyPatchVersion = settings.value("VerifyPatchVersion", true).toBool();
@@ -303,9 +311,11 @@ int main(int argc, char* argv[])
     }
     for (int i = 0; i < params.discreteChannels.size(); i++)
     {
-        if (params.basicChannels.contains(params.discreteChannels[i]))
+        bool jackClientNamesMatch = (strcmp(params.outJackClientNameBasic, params.outJackClientNameDiscrete) == 0);
+        bool jackPortNamesMatch = (strcmp(params.outJackPortBaseBasic, params.outJackPortBaseDiscrete) == 0);
+        if (jackClientNamesMatch && jackPortNamesMatch && params.basicChannels.contains(params.discreteChannels[i]))
         {
-            qWarning("Error: channel %d can't be both basic and discrete", params.discreteChannels[i]);
+            qWarning("Error: channel %d can't be both basic and discrete when JACK output client and port names are the same", params.discreteChannels[i]);
             exit(EXIT_FAILURE);
         }
         qWarning("Configuring with discrete channel %u", params.discreteChannels[i]);
@@ -325,8 +335,10 @@ int main(int argc, char* argv[])
     printf("Render host: %s\n", params.renderHost);
     printf("Render OSC port: %u\n", params.renderPort);
     printf("Packet queue size: %u\n", params.packetQueueSize);
-    printf("Output JACK client name: %s\n", params.outputJackClientName);
-    printf("OutputJackPortBase: %s\n", params.outputJackPortBase);
+    printf("Output JACK client name (Basic): %s\n", params.outJackClientNameBasic);
+    printf("Output JACK port base (Basic): %s\n", params.outJackPortBaseBasic);
+    printf("Output JACK client name (Discrete): %s\n", params.outJackClientNameDiscrete);
+    printf("Output JACK port base (Discrete): %s\n", params.outJackPortBaseDiscrete);
     printf("Max clients: %d\n", params.maxClients);
     printf("Meter interval in millis: %f\n", params.meterIntervalMillis);
     printf("Verify patch version: %d\n", params.verifyPatchVersion);
