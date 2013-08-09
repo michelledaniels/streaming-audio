@@ -33,7 +33,6 @@ struct SamParams
     char* jackDriver;      ///< The driver for JACK to use
     quint16 oscPort;       ///< OSC server port
     quint16 rtpPort;       ///< Base JackTrip port
-    int outputPortOffset;  ///< offset for starting output port/channel
     int maxOutputChannels; ///< the maximum number of output channels to use
     float volume;          ///< initial global volume
     float delayMillis;     ///< initial global delay in milliseconds
@@ -644,7 +643,6 @@ private:
     int m_numOutputPorts;             ///< number of output JACK ports
     int* m_outputUsed;                ///< which output ports are in use (by which app)
     quint16 m_rtpPort;                ///< base port to use for RTP streaming
-    int m_outputPortOffset;           ///< the first channel will be offset by this amount
     char* m_outputJackClientName;     ///< jack client name to which SAM will connect outputs
     char* m_outputJackPortBase;       ///< base jack port name to which SAM will connect outputs
     quint32 m_packetQueueSize;        ///< default client packet queue size

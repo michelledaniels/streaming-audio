@@ -40,14 +40,13 @@ void print_help()
     printf("[--driver or -d driver to use for JACK (ie coreaudio, alsa, etc.)]\n");
     printf("[--oscport or -o OSC port]\n");
     printf("[--jtport or -j base JackTrip port]\n");
-    printf("[--outoffset or -f output port offset]\n");
     printf("[--maxout or -m max number of output channels to use]\n");
     printf("[--gui or '-g' run in gui mode]\n");
     printf("[--help or '-h' print help]\n");
     printf("\nLinux example usage:\n");
-    printf("sam -n 2 -r 48000 -p 256 -d alsa -o 7770 -j 4464 -f 0 -m 32\n");
+    printf("sam -n 2 -r 48000 -p 256 -d alsa -o 7770 -j 4464 -m 32\n");
     printf("OS X example usage:\n");
-    printf("sam -n 2 -r 48000 -p 256 -d coreaudio -o 7770 -j 4464 -f 0 -m 32\n");
+    printf("sam -n 2 -r 48000 -p 256 -d coreaudio -o 7770 -j 4464 -m 32\n");
     printf("\n");
 }
 
@@ -148,7 +147,6 @@ int main(int argc, char* argv[])
     params.jackDriver = driverBytes.data();
     params.oscPort = settings.value("OscPort", 7770).toInt();
     params.rtpPort = settings.value("RtpPort", 4464).toInt();
-    params.outputPortOffset = settings.value("OutputPortOffset", 0).toInt();
     params.maxOutputChannels = settings.value("MaxOutputChannels", 32768).toInt();
     params.volume = settings.value("Volume", 1.0f).toFloat();
     params.delayMillis = settings.value("DelayMillis", 0.0f).toFloat();
@@ -167,6 +165,12 @@ int main(int argc, char* argv[])
     params.maxClients = settings.value("MaxClients", 100).toInt();
     params.meterIntervalMillis = settings.value("MeterIntervalMillis", 1000.0f).toFloat();
     params.verifyPatchVersion = settings.value("VerifyPatchVersion", true).toBool();
+
+    int outputPortOffset = settings.value("OutputPortOffset", -1).toInt();
+    if (outputPortOffset >= 0)
+    {
+        qWarning("WARNING: OutputPortOffset is no longer a valid config file parameter. Specify desired channels using BasicChannels and DiscreteChannels instead.");
+    }
 
     if (params.maxClients <= 0)
     {
@@ -235,7 +239,7 @@ int main(int argc, char* argv[])
             break;
 
         case 'f':
-            params.outputPortOffset = atoi(optarg);
+            qWarning("WARNING: outoffset or -f is no longer a valid parameter. Specify desired channels using BasicChannels and DiscreteChannels in sam.conf instead.");
             break;
 
         case 'm':
@@ -255,9 +259,9 @@ int main(int argc, char* argv[])
 
     if (basicChOverride || !settings.contains("BasicChannels"))
     {
-        // populate channel list based on numBasicChannels and outputPortOffset
-        unsigned int maxChannel = params.maxOutputChannels > params.outputPortOffset + params.numBasicChannels ? params.outputPortOffset + params.numBasicChannels : params.maxOutputChannels;
-        for (unsigned int ch = params.outputPortOffset + 1; ch <= maxChannel; ch++)
+        // populate channel list based on numBasicChannels
+        unsigned int maxChannel = params.maxOutputChannels > params.numBasicChannels ? params.numBasicChannels : params.maxOutputChannels;
+        for (unsigned int ch = 1; ch <= maxChannel; ch++)
         {
             params.basicChannels.append(ch);
         }
@@ -280,8 +284,8 @@ int main(int argc, char* argv[])
 
     if (!settings.contains("DiscreteChannels"))
     {
-        // populate channel list based on numBasicChannels, outputPortOffset, and maxOutputChannels
-        for (unsigned int ch = params.outputPortOffset + params.numBasicChannels + 1; ch <= params.maxOutputChannels; ch++)
+        // populate channel list based on numBasicChannels and maxOutputChannels
+        for (unsigned int ch = params.numBasicChannels + 1; ch <= params.maxOutputChannels; ch++)
         {
             params.discreteChannels.append(ch);
         }
@@ -314,7 +318,6 @@ int main(int argc, char* argv[])
     printf("JACK driver: %s\n", params.jackDriver);
     printf("OSC server port: %u\n", params.oscPort);
     printf("Base RTP port: %u\n", params.rtpPort);
-    printf("Output port offset: %d\n", params.outputPortOffset);
     printf("Max output channels: %d\n", params.maxOutputChannels);
     printf("Volume: %f\n", params.volume);
     printf("Delay in millis: %f\n", params.delayMillis);
