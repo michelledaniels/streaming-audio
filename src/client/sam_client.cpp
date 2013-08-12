@@ -40,29 +40,6 @@ StreamingAudioClient::StreamingAudioClient() :
 {
 }
 
-StreamingAudioClient::StreamingAudioClient(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort, quint8 payloadType, bool driveExternally) :
-    QObject(),
-    m_channels(numChannels),
-    m_bufferSize(0),
-    m_sampleRate(0),
-    m_type(type),
-    m_port(-1),
-    m_name(NULL),
-    m_samIP(NULL),
-    m_samPort(samPort),
-    m_payloadType(payloadType),
-    m_packetQueueSize(-1),
-    m_replyPort(replyPort),
-    m_driveExternally(driveExternally),
-    m_interface(NULL),
-    m_sender(NULL),
-    m_audioCallback(NULL),
-    m_audioCallbackArg(NULL),
-    m_audioOut(NULL)
-{ 
-    init(numChannels, type, name, samIP, samPort, replyPort, payloadType, driveExternally);
-}
-
 StreamingAudioClient::~StreamingAudioClient()
 {
     // unregister with SAM
