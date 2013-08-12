@@ -16,6 +16,8 @@
 namespace sam
 {
 
+static const int STATUS_BAR_TIMEOUT = 0; //2000;
+
 SamUI::SamUI(const SamParams& params, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::SamUI),
@@ -108,6 +110,11 @@ void SamUI::addClient(int id)
     m_clients[id] = new ClientWidget(id, m_sam->getAppName(id), params, this);
     connect_client(id);
     m_clientLayout->addWidget(m_clients[id]);
+    
+    QStatusBar* sb = statusBar();
+    QString msg("Client added with ID ");
+    msg.append(QString::number(id));
+    sb->showMessage(msg, STATUS_BAR_TIMEOUT);
 }
 
 void SamUI::removeClient(int id)
@@ -130,6 +137,11 @@ void SamUI::removeClient(int id)
     {
         qWarning("SamUI::removeClient tried to remove non-existent client widget");
     }
+    
+    QStatusBar* sb = statusBar();
+    QString msg("Client removed with ID ");
+    msg.append(QString::number(id));
+    sb->showMessage(msg, STATUS_BAR_TIMEOUT);
 }
 
 void SamUI::setAppVolume(int id, float volume)
@@ -210,6 +222,9 @@ void SamUI::onSamButtonClicked()
             connect(m_sam, SIGNAL(delayChanged(float)), m_master, SLOT(setDelay(float)));
 
             m_samButton->setText("Stop SAM");
+            
+            QStatusBar* sb = statusBar();
+            sb->showMessage("Started SAM", STATUS_BAR_TIMEOUT);  
         }
         else
         {
@@ -231,6 +246,8 @@ void SamUI::onSamButtonClicked()
                 disconnect(m_sam, SIGNAL(delayChanged(float)), m_master, SLOT(setDelay(float)));
 
                 m_samButton->setText("Start SAM");
+                QStatusBar* sb = statusBar();
+                sb->showMessage("Stopped SAM", STATUS_BAR_TIMEOUT);
             }
         }
     }
@@ -262,6 +279,9 @@ void SamUI::onSamStartupError()
     }
 
     int ret = QMessageBox::critical(this, "Streaming Audio Manager Error", "Error starting SAM.");
+    
+    QStatusBar* sb = statusBar();
+    sb->showMessage("Error starting SAM", STATUS_BAR_TIMEOUT);
 }
 
 void SamUI::on_actionAbout_triggered()
