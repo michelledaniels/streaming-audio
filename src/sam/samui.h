@@ -61,6 +61,8 @@ public slots:
      * Remove client.
      */
     void removeClient(int);
+    
+    void onSamStartupError();
 
     void setAppVolume(int, float);
     void setAppMute(int, bool);

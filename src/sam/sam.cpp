@@ -285,8 +285,6 @@ bool StreamingAudioManager::stop()
     qDebug("StreamingAudioManager::Stop");
     qDebug() << "Thread = " << thread() << ", SAM thread = " << m_samThread;
 
-    if (!m_isRunning) return false;
-
     for (int i = 0; i < m_maxClients; i++)
     {
         if (m_apps[i])
@@ -309,18 +307,17 @@ bool StreamingAudioManager::stop()
     bool success = close_jack_client();
     success &= stop_jack();
     
-    // stop OSC server
-    m_tcpServer->close();
-    m_udpSocket->close();
-
+    // stop OSC servers
     if (m_udpSocket)
     {
+        m_udpSocket->close();
         delete m_udpSocket;
         m_udpSocket = NULL;
     }
 
     if (m_tcpServer)
     {
+        m_tcpServer->close();
         delete m_tcpServer;
         m_tcpServer = NULL;
     }
