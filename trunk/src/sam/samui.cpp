@@ -33,6 +33,7 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
 
     m_sam = new StreamingAudioManager(params);
 
+    connect(m_sam, SIGNAL(startupError()), this, SLOT(onSamStartupError()));
     connect(m_sam, SIGNAL(appAdded(int)), this, SLOT(addClient(int)));
     connect(m_sam, SIGNAL(appRemoved(int)), this, SLOT(removeClient(int)));
     connect(m_sam, SIGNAL(appVolumeChanged(int, float)), this, SLOT(setAppVolume(int,float)));
@@ -86,7 +87,7 @@ SamUI::~SamUI()
 
 void SamUI::doBeforeQuit()
 {
-    if (m_sam) m_sam->stop();
+    //if (m_sam) m_sam->stop();
 }
 
 void SamUI::addClient(int id)
@@ -98,37 +99,15 @@ void SamUI::addClient(int id)
         return;
     }
 
-    if (m_clients[id])
+    ClientParams params;
+    if (!m_sam->getAppParams(id, params))
     {
-        ClientParams params;
-        if (!m_sam->getAppParams(id, params))
-        {
-            qWarning("SamUI::addClient couldn't get client parameters");
-            return;
-        }
-        m_clientLayout->addWidget(m_clients[id], 0, Qt::AlignCenter);
-        m_clients[id]->setName(m_sam->getAppName(id));
-        m_clients[id]->setVolume(params.volume);
-        m_clients[id]->setMute(params.mute);
-        m_clients[id]->setSolo(params.solo);
-        m_clients[id]->setDelay(params.delay);
-        m_clients[id]->setPosition(params.pos.x, params.pos.y, params.pos.width, params.pos.height, params.pos.depth);
-
-        connect_client(id);
-        m_clients[id]->show();
+        qWarning("SamUI::addClient couldn't get client parameters");
+        return;
     }
-    else
-    {
-        ClientParams params;
-        if (!m_sam->getAppParams(id, params))
-        {
-            qWarning("SamUI::addClient couldn't get client parameters");
-            return;
-        }
-        m_clients[id] = new ClientWidget(id, m_sam->getAppName(id), params, this);
-        connect_client(id);
-        m_clientLayout->addWidget(m_clients[id]);
-    }
+    m_clients[id] = new ClientWidget(id, m_sam->getAppName(id), params, this);
+    connect_client(id);
+    m_clientLayout->addWidget(m_clients[id]);
 }
 
 void SamUI::removeClient(int id)
@@ -143,8 +122,9 @@ void SamUI::removeClient(int id)
 
     if (m_clients[id])
     {
-        m_clients[id]->hide();
         m_clientLayout->removeWidget(m_clients[id]);
+        delete m_clients[id];
+        m_clients[id] = NULL;
     }
     else
     {
@@ -260,6 +240,30 @@ void SamUI::onSamButtonClicked()
     }
 }
 
+void SamUI::onSamStartupError()
+{
+    if (!m_sam->stop())
+    {
+        qWarning("SamUI::onSamStartupError couldn't stop SAM");
+    }
+    else
+    {
+        // messages from master widget to SAM
+        disconnect(m_master, SIGNAL(volumeChanged(float)), m_sam, SLOT(setVolume(float)));
+        disconnect(m_master, SIGNAL(muteChanged(bool)), m_sam, SLOT(setMute(bool)));
+        disconnect(m_master, SIGNAL(delayChanged(float)), m_sam, SLOT(setDelay(float)));
+
+        // messages from SAM to master widget
+        disconnect(m_sam, SIGNAL(volumeChanged(float)), m_master, SLOT(setVolume(float)));
+        disconnect(m_sam, SIGNAL(muteChanged(bool)), m_master, SLOT(setMute(bool)));
+        disconnect(m_sam, SIGNAL(delayChanged(float)), m_master, SLOT(setDelay(float)));
+
+        m_samButton->setText("Start SAM");
+    }
+
+    int ret = QMessageBox::critical(this, "Streaming Audio Manager Error", "Error starting SAM.");
+}
+
 void SamUI::on_actionAbout_triggered()
 {
     QMessageBox msgBox;
@@ -271,7 +275,6 @@ void SamUI::on_actionAbout_triggered()
     info.append(QString::number(sam::VERSION_MINOR));
     info.append(".");
     info.append(QString::number(sam::VERSION_PATCH));
-    msgBox.setText(about);
     info.append("\nBuilt on ");
     info.append(__DATE__);
     info.append(" at ");
