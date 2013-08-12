@@ -97,36 +97,10 @@ public:
 
     /**
       * StreamingAudioClient default constructor.
-      * Initialization must be done separately with init().  This is the preferred
-      * method, since it allows the caller to handle any errors within init().
+      * After construction, initialize using init()
       */
     StreamingAudioClient();
 
-    /**
-     * StreamingAudioClient constructor.
-     * Includes initialization, but because a constructor has no return value
-     * to report initialization errors, the preferred approach is to use the
-     * default constructor and call init() separately.
-     * @param numChannels number of audio channels this client will send to SAM
-     * @param type the type of audio stream this client will send
-     * @param name the name of this client
-     * @param samIP the IP address of SAM
-     * @param samPort SAM's OSC port
-     * @param replyPort this client's port to listen on (if NULL, a port will be randomly chosen)
-     * @param payloadType PAYLOAD_PCM_16, PAYLOAD_PCM_24, or PAYLOAD_PCM_32
-     * @param driveExternally false to allow SAC to drive the audio sending or true to drive the
-     *      audio sending externally.
-     * @see ~StreamingAudioClient
-     */
-    StreamingAudioClient(unsigned int numChannels,
-                         StreamingAudioType type,
-                         const char* name,
-                         const char* samIP,
-                         quint16 samPort,
-                         quint16 replyPort = 0,
-                         quint8 payloadType = PAYLOAD_PCM_16,
-                         bool driveExternally = false);
-    
     /**
      * StreamingAudioClient destructor.
      * @see StreamingAudioClient
