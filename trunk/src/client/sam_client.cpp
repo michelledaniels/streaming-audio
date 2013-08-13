@@ -102,14 +102,18 @@ int StreamingAudioClient::init(unsigned int numChannels, StreamingAudioType type
 {
     if (m_port >= 0) return SAC_ERROR; // already initialized and registered
 
+    if (!name || !samIP)
+    {
+        qWarning("StreamingAudioClient::init both name and samIP must be specified");
+        return SAC_ERROR; // name and samIP must be specified
+    }
+    
     m_channels = numChannels;
     m_type = type;
     m_samPort = samPort;
     m_replyPort = replyPort;
     m_payloadType = payloadType;
     m_driveExternally = driveExternally;
-
-    // TODO: handle case where name or samIP are NULL??
 
     // copy name
     if (m_name)
