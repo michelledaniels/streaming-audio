@@ -21,10 +21,10 @@ static const quint8 RTCP_SR_PACKET_TYPE = 200; // sender report packet type
 static const quint8 RTCP_RR_PACKET_TYPE = 201; // receiver report packet type
 
 /**
- * @struct RtcpHandlerReport
- * An RtcpHandlerReport encapsulates an RTCP receiver report.
+ * @struct RtcpReceiverReport
+ * An RtcpReceiverReport encapsulates an RTCP receiver report.
  */
-struct RtcpHandlerReport // TODO: should be RtcpReceiverReport??
+struct RtcpReceiverReport
 {
     quint32 reporterSsrc;           ///< SSRC of reporter (receiver)
     quint32 reporteeSsrc;           ///< SSRC of reportee (sender)
@@ -157,8 +157,8 @@ protected:
     QHostAddress m_remoteHost;          ///< address of remote host to send reports to
     quint16 m_remotePort;               ///< port of remote host to send reports to
     
-    RtcpHandlerReport m_receiverReport; ///< current RTCP receiver report
-    RtcpSenderReport m_senderReport;    ///< current RTCP sender report
+    RtcpReceiverReport m_receiverReport; ///< current RTCP receiver report
+    RtcpSenderReport m_senderReport;     ///< current RTCP sender report
     
 };
 
