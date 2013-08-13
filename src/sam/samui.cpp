@@ -253,7 +253,9 @@ void SamUI::onSamButtonClicked()
     }
     else
     {
-        // TODO: display error
+        QStatusBar* sb = statusBar();
+        sb->showMessage("SAM not initialized - cannot start.", STATUS_BAR_TIMEOUT);
+        int ret = QMessageBox::critical(this, "Streaming Audio Manager Error", "SAM not initialized - cannot start.");
     }
 }
 
