@@ -95,10 +95,15 @@ public slots:
         {
             // register a client
             qDebug("SamTester::testSam() registering a client");
-            StreamingAudioClient* client = new StreamingAudioClient(2, TYPE_BASIC, CLIENT_NAME, m_samAddress, m_samPort);
+            StreamingAudioClient* client = new StreamingAudioClient();
+            if (client->init(2, TYPE_BASIC, CLIENT_NAME, m_samAddress, m_samPort) != SAC_SUCCESS)
+            {
+                qWarning("SamTester::testSam() ERROR: couldn't intialize a client.");
+                delete client;
+            }
             if (client->start(0, 0, 0, 0, 0) != SAC_SUCCESS)
             {
-                qDebug("SamTester::testSam() ERROR: couldn't register a client.");
+                qWarning("SamTester::testSam() ERROR: couldn't register a client.");
                 delete client;
             }
             else

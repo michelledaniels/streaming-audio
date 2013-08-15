@@ -27,27 +27,28 @@ namespace sam
  */
 struct SamParams
 {
-    int sampleRate;        ///< The sampling rate for JACK
-    int bufferSize;        ///< The buffer size for JACK
-    int numBasicChannels;  ///< The number of basic (non-spatialized) channels
-    char* jackDriver;      ///< The driver for JACK to use
-    quint16 oscPort;       ///< OSC server port
-    quint16 rtpPort;       ///< Base JackTrip port
-    int outputPortOffset;  ///< offset for starting output port/channel
-    int maxOutputChannels; ///< the maximum number of output channels to use
-    float volume;          ///< initial global volume
-    float delayMillis;     ///< initial global delay in milliseconds
-    float maxDelayMillis;  ///< maximum delay in milliseconds (half allocated for global delay, half for per-clientd delay)
-    char* renderHost;      ///< host for the renderer
-    quint16 renderPort;    ///< port for the renderer
-    quint32 packetQueueSize; ///< default client packet queue size
-    char* outputJackClientName; ///< jack client name to which SAM will connect outputs
-    char* outputJackPortBase;   ///< base jack port name to which SAM will connect outputs
-    QList<unsigned int> basicChannels; ///< list of basic channels to use
+    int sampleRate;        		 ///< The sampling rate for JACK
+    int bufferSize;        		 ///< The buffer size for JACK
+    int numBasicChannels;  		 ///< The number of basic (non-spatialized) channels
+    char* jackDriver;      		 ///< The driver for JACK to use
+    quint16 oscPort;       		 ///< OSC server port
+    quint16 rtpPort;       		 ///< Base JackTrip port
+    int maxOutputChannels; 		 ///< the maximum number of output channels to use
+    float volume;          		 ///< initial global volume
+    float delayMillis;     		 ///< initial global delay in milliseconds
+    float maxDelayMillis;  		 ///< maximum delay in milliseconds (half allocated for global delay, half for per-clientd delay)
+    char* renderHost;      		 ///< host for the renderer
+    quint16 renderPort;    		 ///< port for the renderer
+    quint32 packetQueueSize; 		 ///< default client packet queue size
+    char* outJackClientNameBasic; 	 ///< jack client name to which SAM will connect outputs
+    char* outJackPortBaseBasic;   	 ///< base jack port name to which SAM will connect outputs
+    char* outJackClientNameDiscrete; 	 ///< jack client name to which SAM will connect outputs
+    char* outJackPortBaseDiscrete;   	 ///< base jack port name to which SAM will connect outputs
+    QList<unsigned int> basicChannels; 	 ///< list of basic channels to use
     QList<unsigned int> discreteChannels; ///< list of discrete channels to use
-    int maxClients;        ///< maximum number of clients that can be connected simultaneously
-    float meterIntervalMillis; ///< milliseconds between meter broadcasts to subscribers
-    bool verifyPatchVersion;   ///< whether or not the patch versions have to match during version check
+    int maxClients;        		 ///< maximum number of clients that can be connected simultaneously
+    float meterIntervalMillis; 		 ///< milliseconds between meter broadcasts to subscribers
+    bool verifyPatchVersion;   		 ///< whether or not the patch versions have to match during version check
 };
 
 /**
@@ -160,11 +161,12 @@ public:
      * @param height initial height of corresponding SAGE window
      * @param depth initial depth of corresponding SAGE window
      * @param type the app's streaming type
+     * @param packetQueueSize number of packets to buffer in receiver, or -1 to use SAM default
      * @param socket the TCP socket through which the app/client connected to SAM
      * @param errCode if an error occurs, the SamErrorCode which best describes the error.  Otherwise undefined.
      * @return unique port for this stream or -1 on error
      */
-    int registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, sam::StreamingAudioType type, QTcpSocket* socket, sam::SamErrorCode& errCode);
+    int registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, sam::StreamingAudioType type, int packetQueueSize, QTcpSocket* socket, sam::SamErrorCode& errCode);
 
     /**
      * Unregister an app
@@ -202,13 +204,6 @@ public:
      * @return true on success, false on failure
      */
     bool unregisterRenderer();
-
-    /**
-     * Enable/disable an output channel
-     * @param ch the channel (1-indexed) to be enabled/disabled
-     * @param enabled true if the channel is to be enabled, false otherwise
-     */
-    void setOutEnabled(int ch, bool enabled);
 
     /**
      * Get the name of an app.
@@ -640,13 +635,15 @@ private:
     QList<unsigned int> m_basicChannels; ///< list of basic channels to use
     QList<unsigned int> m_discreteChannels; ///< list of discrete channels to use
 
-    int m_numOutputPorts;             ///< number of output JACK ports
-    int* m_outputUsed;                ///< which output ports are in use (by which app)
-    quint16 m_rtpPort;                ///< base port to use for RTP streaming
-    int m_outputPortOffset;           ///< the first channel will be offset by this amount
-    char* m_outputJackClientName;     ///< jack client name to which SAM will connect outputs
-    char* m_outputJackPortBase;       ///< base jack port name to which SAM will connect outputs
-    quint32 m_packetQueueSize;        ///< default client packet queue size
+    int m_maxBasicOutputs;             ///< max number of output JACK ports for basic JACK client
+    int m_maxDiscreteOutputs;          ///< max number of output JACK ports for discrete JACK client
+    int* m_discreteOutputUsed;         ///< which output ports are in use (by which app)
+    quint16 m_rtpPort;                 ///< base port to use for RTP streaming
+    char* m_outJackClientNameBasic;    ///< jack client name to which SAM will connect outputs
+    char* m_outJackPortBaseBasic;      ///< base jack port name to which SAM will connect outputs
+    char* m_outJackClientNameDiscrete; ///< jack client name to which SAM will connect outputs
+    char* m_outJackPortBaseDiscrete;   ///< base jack port name to which SAM will connect outputs
+    quint32 m_packetQueueSize;         ///< default client packet queue size
 
     // subscribers
     QVector<OscAddress*> m_uiSubscribers;   ///< list of subscribers to UI parameters

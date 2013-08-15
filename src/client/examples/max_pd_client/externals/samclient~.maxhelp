@@ -8,7 +8,7 @@
 			"architecture" : "x64"
 		}
 ,
-		"rect" : [ 274.0, 44.0, 726.0, 452.0 ],
+		"rect" : [ 274.0, 44.0, 722.0, 465.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -159,7 +159,7 @@
 							"architecture" : "x64"
 						}
 ,
-						"rect" : [ 526.0, 49.0, 483.0, 365.0 ],
+						"rect" : [ 526.0, 49.0, 517.0, 367.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -179,6 +179,51 @@
 						"digest" : "",
 						"tags" : "",
 						"boxes" : [ 							{
+								"box" : 								{
+									"fontname" : "Arial",
+									"fontsize" : 12.0,
+									"frgb" : 0.0,
+									"id" : "obj-23",
+									"maxclass" : "comment",
+									"numinlets" : 1,
+									"numoutlets" : 0,
+									"patching_rect" : [ 390.0, 212.0, 107.0, 20.0 ],
+									"presentation_rect" : [ 406.0, 212.0, 0.0, 0.0 ],
+									"text" : "packet queue size"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontname" : "Arial",
+									"fontsize" : 12.0,
+									"id" : "obj-25",
+									"maxclass" : "number",
+									"numinlets" : 1,
+									"numoutlets" : 2,
+									"outlettype" : [ "int", "bang" ],
+									"parameter_enable" : 0,
+									"patching_rect" : [ 412.5, 231.5, 50.0, 20.0 ],
+									"presentation_rect" : [ 401.5, 231.5, 0.0, 0.0 ]
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontname" : "Arial",
+									"fontsize" : 12.0,
+									"id" : "obj-26",
+									"maxclass" : "message",
+									"numinlets" : 2,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 412.5, 261.5, 62.0, 18.0 ],
+									"presentation_rect" : [ 401.5, 261.5, 0.0, 0.0 ],
+									"text" : "pqsize $1"
+								}
+
+							}
+, 							{
 								"box" : 								{
 									"fontname" : "Arial",
 									"fontsize" : 12.0,
@@ -739,6 +784,25 @@
 							}
 , 							{
 								"patchline" : 								{
+									"destination" : [ "obj-26", 0 ],
+									"disabled" : 0,
+									"hidden" : 0,
+									"source" : [ "obj-25", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-34", 0 ],
+									"disabled" : 0,
+									"hidden" : 0,
+									"midpoints" : [ 422.0, 294.5, 33.5, 294.5 ],
+									"source" : [ "obj-26", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
 									"destination" : [ "obj-30", 0 ],
 									"disabled" : 0,
 									"hidden" : 0,
@@ -861,12 +925,12 @@
 					"fontsize" : 12.0,
 					"frgb" : 0.0,
 					"id" : "obj-5",
-					"linecount" : 9,
+					"linecount" : 10,
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 422.0, 302.0, 276.0, 127.0 ],
-					"text" : "@name [name of client] (default \"samclient\")\n@ip [SAM ip address] (default \"127.0.0.1\")\n@port [SAM port] (default 7770)\n@type [SAM renderer type] (default 0)\n@x_pos [initial x position coordinate] (default 0)\n@y_pos [initial y position coordinate] (default 0)\n@width [initial width for SAM stream] (default 0)\n@height [initial height for SAM stream] (default 0)\n@depth [initial depth for SAM stream] (default 0)"
+					"patching_rect" : [ 422.0, 302.0, 276.0, 141.0 ],
+					"text" : "@name [name of client] (default \"samclient\")\n@ip [SAM ip address] (default \"127.0.0.1\")\n@port [SAM port] (default 7770)\n@type [SAM renderer type] (default 0)\n@x_pos [initial x position coordinate] (default 0)\n@y_pos [initial y position coordinate] (default 0)\n@width [initial width for SAM stream] (default 0)\n@height [initial height for SAM stream] (default 0)\n@depth [initial depth for SAM stream] (default 0)\n@pqsize [initial packet queue size] (default -1)"
 				}
 
 			}
