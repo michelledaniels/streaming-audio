@@ -52,6 +52,7 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_outJackClientNameDiscrete(NULL),
     m_outJackPortBaseDiscrete(NULL),
     m_packetQueueSize(params.packetQueueSize),
+    m_clockSkewThreshold(params.clockSkewThreshold),
     m_renderer(NULL),
     m_meterInterval(0),
     m_nextMeterNotify(0),
@@ -400,7 +401,7 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
     pos.width = width;
     pos.height = height;
     pos.depth = depth;
-    m_apps[port] = new StreamingAudioApp(name, port, channels, pos, type, m_client, socket, m_rtpPort, m_delayMax, queueSize, this);
+    m_apps[port] = new StreamingAudioApp(name, port, channels, pos, type, m_client, socket, m_rtpPort, m_delayMax, queueSize, m_clockSkewThreshold, this);
     connect(m_apps[port], SIGNAL(appClosed(int,int)), this, SLOT(cleanupApp(int,int)));
     connect(m_apps[port], SIGNAL(appDisconnected(int)), this, SLOT(closeApp(int)));
     if (!m_apps[port]->init())

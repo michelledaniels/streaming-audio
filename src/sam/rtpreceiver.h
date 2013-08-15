@@ -33,7 +33,17 @@ public:
     /**
      * Constructor.
      */
-    RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, quint32 reportInterval, quint32 ssrc, qint32 sampleRate, qint32 bufferSize, quint32 playqueueSize, jack_client_t* jackClient, QObject *parent = 0);
+    RtpReceiver(quint16 portRtp, 
+                quint16 portRtcpLocal, 
+                quint16 portRtcpRemote, 
+                quint32 reportInterval, 
+                quint32 ssrc, 
+                qint32 sampleRate, 
+                qint32 bufferSize,  
+                quint32 playqueueSize, 
+                qint32 clockSkewThreshold,
+                jack_client_t* jackClient, 
+                QObject *parent = 0);
 
     /**
      * Destructor.
@@ -195,6 +205,7 @@ protected:
     bool m_clockFirstTime;          ///< flag: true if this is the initial estimate, false otherwise
     quint32 m_clockDelayEstimate;   ///< current delay estimate
     quint32 m_clockActiveDelay;     ///< delay estimate when last adjustment was made
+    qint32 m_clockSkewThreshold;    ///< number of samples worth of clock skew that must be measured before clock skew compensation happens
 
     // for jitter estimates
     bool m_jitterFirstTime;         ///< flag: true if this is the initial estimate, false otherwise

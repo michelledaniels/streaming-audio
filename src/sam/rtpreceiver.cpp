@@ -23,7 +23,17 @@ static const quint16 MAX_LATE = 200;
 static const int MAX_PORT_NAME = 64;
 static const int JITTER_ADJUST_FACTOR = 3;
 
-RtpReceiver::RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, quint32 reportInterval, quint32 ssrc, qint32 sampleRate, qint32 bufferSize, quint32 packetQueueSize, jack_client_t* jackClient, QObject *parent) :
+RtpReceiver::RtpReceiver(quint16 portRtp, 
+                         quint16 portRtcpLocal, 
+                         quint16 portRtcpRemote, 
+                         quint32 reportInterval, 
+                         quint32 ssrc, 
+                         qint32 sampleRate, 
+                         qint32 bufferSize, 
+                         quint32 packetQueueSize, 
+                         qint32 clockSkewThreshold,
+                         jack_client_t* jackClient, 
+                         QObject *parent) :
     QObject(parent),
     m_socketRtp(NULL),
     m_portRtp(portRtp),
@@ -45,6 +55,7 @@ RtpReceiver::RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtc
     m_clockFirstTime(true),
     m_clockDelayEstimate(0),
     m_clockActiveDelay(0),
+    m_clockSkewThreshold(clockSkewThreshold),
     m_jitterFirstTime(true),
     m_transitTimePrev(0),
     m_jitter(0),
@@ -410,33 +421,27 @@ qint32 RtpReceiver::adjust_for_clock_skew(RtpPacket* packet)
 
     qint32 delayDiff = m_clockActiveDelay - m_clockDelayEstimate;
     //qWarning("RtpReceiver::adjust_for_clock_skew: m_clockActiveDelay = %u, m_clockDelayEstimate = %u, delayDiff = %d, ssrc = %u, RTP port = %u, packet queue length = %d", m_clockActiveDelay, m_clockDelayEstimate, delayDiff, m_ssrc, m_portRtp, packet_queue_length());
-    qint32 threshold = m_bufferSamples;
-    if (delayDiff >= threshold)
+    if (delayDiff >= m_clockSkewThreshold)
     {
         // sender is fast compared to receiver
         QDateTime currentTime = QDateTime::currentDateTime();
         QString currentTimeString = currentTime.toString();
         QByteArray currentTimeAscii = currentTimeString.toAscii();
         qWarning("[%s] Receiver is slower than sender: compensating for clock skew! ssrc = %u, RTP port = %u, system playtime = %u, packet queue length = %d", currentTimeAscii.data(), m_ssrc, m_portRtp, m_playtime, packet_queue_length());
-        //reset_timestamp_offset(m_bufferSamples);
-        m_timestampOffset -= m_bufferSamples;
+        m_timestampOffset -= m_clockSkewThreshold;
         m_clockActiveDelay = m_clockDelayEstimate;
-        return -m_bufferSamples;
+        return -m_clockSkewThreshold;
     }
-    else if (delayDiff <= -m_bufferSamples)
+    else if (delayDiff <= -m_clockSkewThreshold)
     {
         // sender is slow compared to receiver
         QDateTime currentTime = QDateTime::currentDateTime();
         QString currentTimeString = currentTime.toString();
         QByteArray currentTimeAscii = currentTimeString.toAscii();
         qWarning("[%s] Receiver is faster than sender: compensating for clock skew! ssrc = %u, RTP port = %u, system playtime = %u, packet queue length = %d", currentTimeAscii.data(), m_ssrc, m_portRtp, m_playtime, packet_queue_length());
-        //reset_timestamp_offset(-m_bufferSamples);
-        //qWarning("Old timestamp offset = %u", m_timestampOffset);
-        //m_timestampOffset = packet->m_arrivalTime - packet->m_timestamp;
-        m_timestampOffset += m_bufferSamples;
-        //qWarning("NEW timestamp offset = %u", m_timestampOffset);
+        m_timestampOffset += m_clockSkewThreshold;
         m_clockActiveDelay = m_clockDelayEstimate;
-        return m_bufferSamples;
+        return m_clockSkewThreshold;
     }
 
     return 0;
