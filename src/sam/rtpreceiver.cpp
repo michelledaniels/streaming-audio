@@ -23,8 +23,6 @@ static const quint16 MAX_LATE = 200;
 static const int MAX_PORT_NAME = 64;
 static const int JITTER_ADJUST_FACTOR = 3;
 
-static const bool USE_AUDIO_TIMESTAMP = false;
-
 RtpReceiver::RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtcpRemote, quint32 reportInterval, quint32 ssrc, qint32 sampleRate, qint32 bufferSize, quint32 packetQueueSize, jack_client_t* jackClient, QObject *parent) :
     QObject(parent),
     m_socketRtp(NULL),
@@ -59,7 +57,6 @@ RtpReceiver::RtpReceiver(quint16 portRtp, quint16 portRtcpLocal, quint16 portRtc
     m_reportInterval(reportInterval),
     m_lastSenderTimestamp(0),
     m_rtcpHandler(NULL),
-    m_audioTimestamp(0),
     m_jackClient(jackClient)
 {
     // init RTP socket
@@ -100,8 +97,6 @@ bool RtpReceiver::start()
         qDebug("RtpReceiver::start() RTP socket binded to port %d", m_portRtp);
     }
     
-    m_timer.start();
-    
     // start timer for RTCP packet transmission
     QTimer* rtcpTimer = new QTimer(this);
     connect(rtcpTimer, SIGNAL(timeout()), this, SLOT(sendRtcpReport()));
@@ -114,7 +109,6 @@ bool RtpReceiver::start()
     connect(m_rtcpHandler, SIGNAL(senderReportReceived(quint32)), this, SLOT(handleSenderReport(quint32)));
     return m_rtcpHandler->start();
 }
-
 
 // ---------- SLOTS ----------
 void RtpReceiver::readPendingDatagramsRtp()
@@ -221,24 +215,15 @@ RtpPacket* RtpReceiver::read_datagram()
     quint16 senderPort;
     m_socketRtp->readDatagram(datagram.data(), datagram.size(), &m_sender, &senderPort);
 
-    // handle RTP packet
-    RtpPacket* packet = new RtpPacket();
-    qint64 timeElapsed = m_timer.elapsed();
-    //quint32 elapsedSamples = (timeElapsed / 1000.0) * m_sampleRate; // + 4294900000; // TODO: eventually this will wrap?
-
+    // Get current timestamp from JACK
     // TODO: verify that m_jackClient is not NULL?
     jack_nframes_t elapsedSamples = jack_frame_time(m_jackClient);
 
     //qDebug() << "\nDATAGRAM RECEIVED on RTP port: time elapsed = " << timeElapsed << "ms, " << elapsedSamples << "samples";
     
-    if (USE_AUDIO_TIMESTAMP)
-    {
-        packet->read(datagram, m_audioTimestamp); // TODO: this should return false if not valid RTP packet
-    }
-    else
-    {
-        packet->read(datagram, elapsedSamples); // TODO: this should return false if not valid RTP packet
-    }
+    // handle RTP packet
+    RtpPacket* packet = new RtpPacket();
+    packet->read(datagram, elapsedSamples); // TODO: this should return false if not valid RTP packet
     m_packetsReceived++;
     m_packetsReceivedThisInt++; // includes late or duplicated packets
     
@@ -261,11 +246,6 @@ quint32 RtpReceiver::update_timestamp_offset(RtpPacket* packet)
     }
     
     return currentOffset;
-}
-
-void RtpReceiver::reset_timestamp_offset(qint32 diff)
-{
-    m_timestampOffset += diff;//= packet->m_arrivalTime - packet->m_timestamp;
 }
 
 void RtpReceiver::init_stats(RtpPacket* packet, quint32 currentOffset)
@@ -430,7 +410,7 @@ qint32 RtpReceiver::adjust_for_clock_skew(RtpPacket* packet)
 
     qint32 delayDiff = m_clockActiveDelay - m_clockDelayEstimate;
     //qWarning("RtpReceiver::adjust_for_clock_skew: m_clockActiveDelay = %u, m_clockDelayEstimate = %u, delayDiff = %d, ssrc = %u, RTP port = %u, packet queue length = %d", m_clockActiveDelay, m_clockDelayEstimate, delayDiff, m_ssrc, m_portRtp, packet_queue_length());
-    qint32 threshold = USE_AUDIO_TIMESTAMP ? m_bufferSamples * 2 : m_bufferSamples;
+    qint32 threshold = m_bufferSamples;
     if (delayDiff >= threshold)
     {
         // sender is fast compared to receiver
@@ -608,8 +588,7 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
 
     //m_playtime += frames;
     m_playtime = jack_last_frame_time(m_jackClient);
-    m_audioTimestamp += frames;
-
+    
     return 0;
 }
 
