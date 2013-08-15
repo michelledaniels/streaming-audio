@@ -127,12 +127,6 @@ protected:
     quint32 update_timestamp_offset(RtpPacket* packet);
     
     /**
-     * Set the timestamp offset to the current offset.
-     * @param diff difference to be added to previous offset
-     */
-    void reset_timestamp_offset(qint32 diff);
-    
-    /**
      * Initialize all receiver stats.
      * @param packet current packet
      * @param currentOffset timestamp offset for current packet
@@ -177,7 +171,6 @@ protected:
     QUdpSocket* m_socketRtp;        ///< The socket receiving incoming RTP UDP datagrams
     quint16 m_portRtp;              ///< The port to listen on
     quint16 m_remotePortRtcp;       ///< The remote port to send RTCP packets to
-    QElapsedTimer m_timer;          ///< Timer for timestamping incoming packets
     QElapsedTimer m_reportTimer;    ///< Timer for measuring time since last sender report was received
     quint32 m_ssrc;                 ///< This receiver's SSRC
     QHostAddress m_sender;          ///< Sender's host address
@@ -195,7 +188,6 @@ protected:
     qint64 m_numMissed;             ///< number of consecutive missing packets
 
     RtpPacket* m_packetQueue;       ///< linked list/queue of packets received
-
     qint32 m_bufferSamples;         ///< audio buffer size for playback
     quint32 m_packetQueueSize;      ///< size of packet queue
 
@@ -222,8 +214,6 @@ protected:
     RtcpHandler* m_rtcpHandler;         ///< RTCP handler
     
     QMutex m_queueMutex;                ///< mutex for safely adding/removing/playing from packet queue
-
-    quint32 m_audioTimestamp;           ///< timestamp based on audio clock
 
     jack_client_t* m_jackClient;        ///< pointer to parent's JACK client (do not delete!)
 };
