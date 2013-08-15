@@ -4,7 +4,7 @@
  Developed by Zachary Seldess, Sonic Arts R&D, Calit2, UC San Diego
  */
 
-#define MSP //<-- Comment out for Pd build
+//#define MSP //<-- Comment out for Pd build
 
 #ifndef SAC_NO_JACK
 #define SAC_NO_JACK
