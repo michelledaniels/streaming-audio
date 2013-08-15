@@ -27,7 +27,19 @@ static const int MAX_PORT_NAME = 128;
 
 static const quint32 REPORT_INTERVAL = 1000;
 
-StreamingAudioApp::StreamingAudioApp(const char* name, int port, int channels, const SamAppPosition& pos, StreamingAudioType type, jack_client_t* client, QTcpSocket* socket, quint16 rtpBasePort, int maxDelay, quint32 packetQueueSize, StreamingAudioManager* sam, QObject* parent) :
+StreamingAudioApp::StreamingAudioApp(const char* name, 
+                                     int port, 
+                                     int channels, 
+                                     const SamAppPosition& pos, 
+                                     StreamingAudioType type, 
+                                     jack_client_t* client, 
+                                     QTcpSocket* socket, 
+                                     quint16 rtpBasePort, 
+                                     int maxDelay, 
+                                     quint32 packetQueueSize, 
+                                     qint32 clockSkewThreshold,
+                                     StreamingAudioManager* sam, 
+                                     QObject* parent) :
     QObject(parent),
     m_name(NULL),
     m_port(port),
@@ -59,6 +71,7 @@ StreamingAudioApp::StreamingAudioApp(const char* name, int port, int channels, c
     m_receiver(NULL),
     m_rtpBasePort(rtpBasePort),
     m_packetQueueSize(packetQueueSize),
+    m_clockSkewThreshold(clockSkewThreshold),
     m_socket(socket)
 {
     qDebug("StreamingAudioApp::StreamingAudioApp app port = %d", m_port);
@@ -306,7 +319,7 @@ bool StreamingAudioApp::init()
 
     // start receiver
     quint16 portOffset = m_port * 4;
-    m_receiver = new RtpReceiver(portOffset + m_rtpBasePort, portOffset + m_rtpBasePort + 1, portOffset + m_rtpBasePort + 3, REPORT_INTERVAL, 1000 + m_port, jack_get_sample_rate(m_jackClient), jack_get_buffer_size(m_jackClient), m_packetQueueSize, m_jackClient, NULL);
+    m_receiver = new RtpReceiver(portOffset + m_rtpBasePort, portOffset + m_rtpBasePort + 1, portOffset + m_rtpBasePort + 3, REPORT_INTERVAL, 1000 + m_port, jack_get_sample_rate(m_jackClient), jack_get_buffer_size(m_jackClient), m_packetQueueSize, m_clockSkewThreshold, m_jackClient, NULL);
 
     connect(m_sam, SIGNAL(xrun()), m_receiver, SLOT(handleXrun()));
 

@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
     params.renderHost = renderHostBytes.data();
     params.renderPort = settings.value("RenderPort", 0).toInt();
     params.packetQueueSize = settings.value("PacketQueueSize", 4).toInt();
-
+    
     QString outputJackClientNameBasic = settings.value("OutputJackClientNameBasic", "system").toString();
     QByteArray outputJackClientBytesBasic = outputJackClientNameBasic.toAscii();
     params.outJackClientNameBasic = outputJackClientBytesBasic.data();
@@ -264,6 +264,8 @@ int main(int argc, char* argv[])
             exit(EXIT_SUCCESS);
         }
     }
+    
+    params.clockSkewThreshold = settings.value("ClockSkewThreshold", params.bufferSize).toInt(); // read this after parsing command-line params in case buffer size is specified on command line
 
     if (basicChOverride || !settings.contains("BasicChannels"))
     {
@@ -335,6 +337,7 @@ int main(int argc, char* argv[])
     printf("Render host: %s\n", params.renderHost);
     printf("Render OSC port: %u\n", params.renderPort);
     printf("Packet queue size: %u\n", params.packetQueueSize);
+    printf("Clock skew threshold: %d\n", params.clockSkewThreshold);
     printf("Output JACK client name (Basic): %s\n", params.outJackClientNameBasic);
     printf("Output JACK port base (Basic): %s\n", params.outJackPortBaseBasic);
     printf("Output JACK client name (Discrete): %s\n", params.outJackClientNameDiscrete);

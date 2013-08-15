@@ -31,7 +31,19 @@ public:
 
     /** Constructor.
      */
-    StreamingAudioApp(const char* name, int port, int channels, const SamAppPosition& pos, StreamingAudioType type, jack_client_t* client, QTcpSocket* socket, quint16 rtpBasePort, int maxDelay, quint32 m_packetQueueSize, StreamingAudioManager* sam, QObject* parent = 0);
+    StreamingAudioApp(const char* name, 
+                      int port, 
+                      int channels, 
+                      const SamAppPosition& pos, 
+                      StreamingAudioType type, 
+                      jack_client_t* client, 
+                      QTcpSocket* socket, 
+                      quint16 rtpBasePort, 
+                      int maxDelay, 
+                      quint32 m_packetQueueSize, 
+                      qint32 clockSkewThreshold,
+                      StreamingAudioManager* sam, 
+                      QObject* parent = 0);
 
     /**
      * Destructor.
@@ -432,11 +444,12 @@ private:
     QVector<OscAddress*> m_meterSubscribers;    ///< OSC addresses subscribed to meter updates
     
     // RTP-related parameters
-    RtpReceiver* m_receiver;    ///< RTP receiver for this app/client
-    float** m_audioData;        ///< temp buffer for received audio data
-    quint16 m_rtpBasePort;      ///< base RTP and RTCP port for this app/client
+    RtpReceiver* m_receiver;     ///< RTP receiver for this app/client
+    float** m_audioData;         ///< temp buffer for received audio data
+    quint16 m_rtpBasePort;       ///< base RTP and RTCP port for this app/client
     quint32 m_packetQueueSize;   ///< packet queue size
-
+    qint32 m_clockSkewThreshold; ///< number of samples of clock skew required before compensation
+    
     // For OSC
     QTcpSocket* m_socket;       ///< TCP socket for sending and listening to OSC messages to/from this app/client
 };
