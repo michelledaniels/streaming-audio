@@ -9,7 +9,7 @@ Dependencies:
 
 
 Installation:	
-	1. In max_pd_clients/ directory, run './configure' followed by 'make'.
+	1. Run './configure'
 
 	2. Update the following variables in maxmspsdk.xcconfig:
 		C74SUPPORT (MaxSDK-6.1.3 /c74support directory)
