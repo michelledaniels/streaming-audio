@@ -1,0 +1,19 @@
+samclient~ - SAM client external for Pd
+	Developed by Zachary Seldess, Sonic Arts R&D, Qualcomm Institute, Calit2, UC San Diego
+
+
+Dependencies: 
+	streaming-audio (http://code.google.com/p/streaming-audio/)
+	Qt (http://qt-project.org)
+	Pd (http://puredata.info)
+
+Installation:
+	1. Run './configure'
+
+	2. Update the following variables in samclient/makefile:
+		QTSDK_DIR (QT SDK install directory)
+		SA_DIR (Streaming-audio install directory)
+	
+	3. Place makefile.subdir and samclient/ in <Pd application/Contents/Resources/
+
+	4. Run make inside samclient directory to build Pd external
