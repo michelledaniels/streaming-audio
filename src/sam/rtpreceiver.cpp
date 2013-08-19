@@ -152,7 +152,7 @@ void RtpReceiver::readPendingDatagramsRtp()
         qint32 clockOffset = adjust_for_clock_skew(packet);
         qint32 jitterOffset = adjust_for_jitter(packet);
         packet->m_playoutTime = basePlayoutTime + clockOffset + jitterOffset; // TODO: make sure this can't try to go negative??
-        //qWarning("RtpReceiver::readPendingDatagramsRtp received packet with sequence number %u, timestamp %u, set playtime to %u, clockOffset = %d, jitterOffset = %d, current playtime = %u", packet->m_sequenceNum, packet->m_timestamp, packet->m_playoutTime, clockOffset, jitterOffset, m_playtime);
+        //qWarning("RtpReceiver::readPendingDatagramsRtp received packet with sequence number %u, timestamp %u, arrival time %u, set playtime to %u, clockOffset = %d, jitterOffset = %d, current playtime = %u", packet->m_sequenceNum, packet->m_timestamp, packet->m_arrivalTime, packet->m_playoutTime, clockOffset, jitterOffset, m_playtime);
 
         
         // filter out late packets (take into account wrapping of playtime
@@ -251,8 +251,8 @@ quint32 RtpReceiver::update_timestamp_offset(RtpPacket* packet)
     {
         qDebug("RtpReceiver::update_timestamp_offset: timestamp offset UPDATED: previous offset = %u, new offset = %u, ssrc = %u, RTP port = %d", m_timestampOffset, currentOffset, m_ssrc, m_portRtp);
         m_timestampOffset = currentOffset;
-        qDebug("RtpReceiver::update_timestamp_offset: previous playtime = %u, new playtime = %u, offset difference = %u, ssrc = %u, RTP port = %d", m_playtime, m_playtime + offsetDiff, offsetDiff, m_ssrc, m_portRtp);
-        m_playtime += offsetDiff; // also update playtime
+        //qWarning("RtpReceiver::update_timestamp_offset: previous playtime = %u, new playtime = %u, offset difference = %u, ssrc = %u, RTP port = %d", m_playtime, m_playtime + offsetDiff, offsetDiff, m_ssrc, m_portRtp);
+        //m_playtime += offsetDiff; // also update playtime
         //qDebug("RtpReceiver::update_timestamp_offset: timestamp offset BYPASSING UPDATE: offset = %u, new offset should be = %u", m_timestampOffset, currentOffset);
     }
     
@@ -267,7 +267,7 @@ void RtpReceiver::init_stats(RtpPacket* packet, quint32 currentOffset)
     m_jitterFirstTime = true;
     m_transitTimePrev = 0;
     m_jitter = 0;
-    m_playtime = packet->m_arrivalTime;
+    //m_playtime = packet->m_arrivalTime;
     m_timestampOffset = currentOffset;
     m_sequenceMax = packet->m_sequenceNum;
     m_sequenceWrapCount = 0;
@@ -345,7 +345,7 @@ void RtpReceiver::insert_packet_in_queue(RtpPacket* packet)
         // TODO: could recycle the used packet to use for next incoming packet
         RtpPacket* used = m_packetQueue;
         m_packetQueue = m_packetQueue->m_next;
-        //qDebug("RtpReceiver::insert_packet_in_queue REMOVED PACKET from queue: sequence number = %u, playtime = %u", used->m_sequenceNum, used->m_playoutTime);
+        //qWarning("RtpReceiver::insert_packet_in_queue REMOVED PACKET from queue: sequence number = %u, playtime = %u", used->m_sequenceNum, used->m_playoutTime);
         delete used;
     }
     locker.unlock();
@@ -355,7 +355,7 @@ void RtpReceiver::insert_packet_in_queue(RtpPacket* packet)
     {
         // queue is empty - start new one
         m_packetQueue = packet;
-        //qDebug("RtpReceiver::insert_packet_in_queue INSERTED PACKET in empty queue: sequence number = %u, playtime = %u", packet->m_sequenceNum, packet->m_playoutTime);
+        //qWarning("RtpReceiver::insert_packet_in_queue INSERTED PACKET in empty queue: sequence number = %u, playtime = %u", packet->m_sequenceNum, packet->m_playoutTime);
         return;
     }
     
@@ -376,7 +376,7 @@ void RtpReceiver::insert_packet_in_queue(RtpPacket* packet)
             // insert packet before current packet
             packet->m_next = currentPacket;
             if (previousPacket) previousPacket->m_next = packet;
-            //qDebug("RtpReceiver::insert_packet_in_queue INSERTED PACKET before current packet: sequence number = %u, playtime = %u", packet->m_sequenceNum, packet->m_playoutTime);
+            //qWarning("RtpReceiver::insert_packet_in_queue INSERTED PACKET before current packet: sequence number = %u, playtime = %u", packet->m_sequenceNum, packet->m_playoutTime);
             break;
         }
         else
@@ -392,7 +392,7 @@ void RtpReceiver::insert_packet_in_queue(RtpPacket* packet)
                 // add the packet to the end of the queue
                 packet->m_next = NULL;
                 currentPacket->m_next = packet;
-                //qDebug("RtpReceiver::insert_packet_in_queue INSERTED PACKET at end of queue: sequence number = %u, playtime = %u", packet->m_sequenceNum, packet->m_playoutTime);
+                //qWarning("RtpReceiver::insert_packet_in_queue INSERTED PACKET at end of queue: sequence number = %u, playtime = %u", packet->m_sequenceNum, packet->m_playoutTime);
                 break;
             }
         }
@@ -498,6 +498,10 @@ qint32 RtpReceiver::adjust_for_jitter(RtpPacket* packet)
 
 int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
 {
+    m_playtime = jack_last_frame_time(m_jackClient);
+    
+    //qWarning("\nRtpReceiver::receiveAudio ssrc = %u, RTP port = %u, system playtime = %u, packet queue length = %d", m_ssrc, m_portRtp, m_playtime, packet_queue_length());
+    
     // TODO: check that audio is not NULL?
     
     // ============== START LOCKED SECTION ===============
@@ -554,14 +558,14 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
         {
             // the next packet in the queue is also playable: skip this one and remove from queue
             // TODO: could do some kind of interpolation to compensate for skipping packets??
-            qWarning("RtpReceiver::receiveAudio SKIPPING PACKET: system playtime = %u, skipped packet with playtime = %u, ssrc = %u, RTP port = %d", m_playtime, packet->m_playoutTime, m_ssrc, m_portRtp);
+            qWarning("RtpReceiver::receiveAudio SKIPPING PACKET: system playtime = %u, skipped packet with playtime = %u, next packet playtime = %u, ssrc = %u, RTP port = %d", m_playtime, packet->m_playoutTime, next->m_playoutTime, m_ssrc, m_portRtp);
 
             // flag skipped packet for removal from queue (to be done by network thread to avoid conflicts)
             packet->m_used = true;
 
             // advance to next packet in queue
-            next = packet->m_next;
-            packet = next;              
+            packet = next;  
+            next = packet->m_next;            
         }
 
         if (packet && !packet->m_used)
@@ -577,7 +581,6 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
         }
         else
         {
-            // TODO: this code may not be needed (never reached?)
             qWarning("RtpReceiver::receiveAudio NO UNUSED PACKETS ready to play: playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_playtime, m_ssrc, m_portRtp);
             // output silence
             // TODO: change this to memcpy of pre-stored zeros
@@ -591,9 +594,6 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
         }
     }
 
-    //m_playtime += frames;
-    m_playtime = jack_last_frame_time(m_jackClient);
-    
     return 0;
 }
 
