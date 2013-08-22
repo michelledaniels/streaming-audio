@@ -1,4 +1,5 @@
 #summary Developer's Guide
+#labels prin
 
 = Developer's Guide =
 <wiki:toc max_depth="3" />
@@ -76,6 +77,37 @@ sac.setPhysicalInputs(inputChannels);
 Here, `inputChannels` is an array of `unsigned int`s indicating the input channels that will be used.  
 
 The call to `setPhysicalInputs` must be made after the client has already been initialized and started and will return an error otherwise.
+
+
+=== Driving Audio Externally ===
+(Introduced in version 0.6)
+In some cases, you may wish to drive the audio streaming with an external clock rather than with the internal JACK-based clock or virtual clock.  To enable this, initialize the SAC instance with the driveExternally flag set to true.  Do not call `setAudioCallback()` or `setPhysicalInputs()`.
+
+{{{
+if (sac.init(numChannels, type, name, samIP, samPort, 0, PAYLOAD_PCM_16, true) != SAC_SUCCESS)
+{
+    printf("Couldn't initialize client");
+}
+
+}}}
+
+Then start the client as described above.  After starting the client, you must query the SAC instance for the buffer size and sample rate that SAM expects the client to use:
+
+{{{
+unsigned int bufferSize = sac.getBufferSize();
+unsigned int sampleRate = sac.getSampleRate();
+
+}}}
+
+You are then responsible for calling `sendAudio` once every `bufferSize` samples, at the `sampleRate` returned, providing a buffer of samples to send to SAM in the form `in[channels][sample]`.
+
+{{{
+if (sendAudio(buffer) != SAC_SUCCESS)
+{
+    printf("Couldn't send audio to SAM");
+}
+
+}}}
 
 === Starting a Client ===
 After successfully initializing the client, the client must be started:
