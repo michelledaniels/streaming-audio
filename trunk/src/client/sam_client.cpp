@@ -569,7 +569,7 @@ void StreamingAudioClient::handle_typedeny(int errorCode)
     // TODO: do something with the error code?
 }
 
-bool StreamingAudioClient::sendAudio(float** in)
+int StreamingAudioClient::sendAudio(float** in)
 { 
     if (m_audioCallback)
     {
@@ -607,7 +607,14 @@ bool StreamingAudioClient::sendAudio(float** in)
     }
 
     // send audio data
-    return m_sender->sendAudio(m_channels, m_bufferSize, m_audioOut);
+    if (m_sender->sendAudio(m_channels, m_bufferSize, m_audioOut))
+    {
+        return SAC_SUCCESS;
+    }
+    else
+    {
+        return SAC_ERROR;
+    }
 }
 
 bool StreamingAudioClient::interface_callback(unsigned int nchannels, unsigned int nframes, float** in, float** out, void* sac)
