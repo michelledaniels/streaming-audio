@@ -23,7 +23,7 @@ namespace sam
     
 static const int VERSION_MAJOR = 0;
 static const int VERSION_MINOR = 5;
-static const int VERSION_PATCH = 8;
+static const int VERSION_PATCH = 9;
 static const unsigned int SAC_DEFAULT_TIMEOUT = 10000; // in milliseconds
 
 /**
@@ -168,9 +168,9 @@ public:
      *      Format: in[ch][frame] using the number of channels specified at initialization time
      *      and buffer size (number of sample "frames" per channel) returned from getBufferSize()
      *      after successfully starting SAC.
-     * @return true on success, false on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure
      */
-    bool sendAudio(float** in);
+    int sendAudio(float** in);
 
     /**
      * Get the buffer size that should be used when driving audio sending from outside SAC.
