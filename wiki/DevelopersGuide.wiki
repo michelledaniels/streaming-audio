@@ -10,8 +10,24 @@
 == Developing Clients ==
 The streaming audio project operates under a client/server model.  The Streaming Audio Manager (SAM) is the server, and an arbitrary number of Streaming Audio Clients (SACs) can connect and send audio to a single SAM instance.  The Streaming Audio Client Library provides the functionality necessary for connecting a client and streaming audio to SAM.  The SAC library encapsulates OSC message sending and receiving between the client and SAM as well as RTP audio streaming from the client to SAM.  Multiple SACs can be instantiated in a single application to stream audio to multiple SAMs, provided that the multiple SAMs have been configured to use different ranges of RTP ports.
 
+
 === Example Clients ===
 Two example SAM clients are available in the src/client/examples directory.  The `samugen` client can be built without JACK if desired, and demonstrates how to send client-generated audio to SAM via an audio callback.  The `saminput` client requires JACK and pulls audio from the physical audio interface inputs rather than generating audio in the client itself using an audio callback.  Both clients are simple command-line applications that use Qt and generate makefiles using `qmake`.  
+
+=== Dependencies ===
+The SAC library uses Qt 4, version 4.7 or higher, although it will probably build successfully against Qt 5 as well.  The default SAC build links dynamically against the Qt libraries, so client applications must also link against them.  If using qmake, the .pro files for the example clients described above are good references.  
+
+SAC also links dynamically against the JACK Audio Connection Kit, unless you define SAC_NO_JACK when running qmake on libsac.pro.
+
+To account for these dependencies, if you are writing your own makefile, you will probably need to add a variation of the following for headers:
+{{{
+-I/usr/include/QtCore -I/usr/include/QtNetwork -I$(SAM_ROOT)/src -I$(SAM_ROOT)/src/client
+}}}
+
+and a variation of the following for the linker:
+{{{
+-L/usr/lib64/qt48 -lQtNetwork -lQtCore -L$(SAM_ROOT)/lib -lsac -ljack
+}}}
 
 
 === Initializing a Client ===
