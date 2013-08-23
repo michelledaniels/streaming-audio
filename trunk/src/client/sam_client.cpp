@@ -160,7 +160,7 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
     
     printf("\n");
     printf("--------------------------------------\n");
-    printf("Sage Audio Client version %d.%d.%d\n", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+    printf("Streaming Audio Client version %d.%d.%d\n", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
     printf("Built on %s at %s\n", __DATE__, __TIME__);
     printf("Copyright UCSD 2011-2013\n");
     printf("Connecting to SAM at IP %s, port %d\n", m_samIP, m_samPort);
