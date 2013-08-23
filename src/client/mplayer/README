@@ -1,8 +1,12 @@
 The "sam" audio output plugin for mplayer allows you to send the audio output from mplayer streaming over the network to SAM instead of to your local sound card for playback.
 
-An example configure script and Makefile are included in this directory (for SVN-r36428-4.2.1).  To use them, copy them to your mplayer source directory to replace the default configure script and Makefile.  Otherwise, follow the directions below to modify the default files:
+An example configure script and Makefile are included in this directory (for SVN-r36428-4.2.1).  To use them, copy them to your mplayer source directory to replace the default configure script and Makefile.  Similarly, copy audio_out.c to replace mplayer/libao2/audio_out.c.  Otherwise, follow the directions below to modify the default files.
+
+Disclaimer: this has only been verified to work on OS X 10.8.4
 
 To build mplayer with the "sam" audio output plugin:
+
+0) Build the streaming audio client library (./configure && make in SAM root directory)
 
 1) download the latest mplayer source
 
@@ -46,10 +50,18 @@ $def_sam
 9) Add the following line to mplayer/Makefile after the equivalent for JACK:
 SRCS_MPLAYER-$(SAM)          += libao2/ao_sam.cpp	
 
-9) Run the modified configure script with SAM enabled:
+9) Add the following line to mplayer/libao2/audio_out.c:
+extern const ao_functions_t audio_out_sam;
+
+10) Add the following lines to mplayer/libao2/audio_out.c:
+#ifdef CONFIG_SAM
+    &audio_out_sam,
+#endif
+
+10) Run the modified configure script with SAM enabled:
 ./configure --enable-sam
 
-10) make
+11) make
 
 
 
