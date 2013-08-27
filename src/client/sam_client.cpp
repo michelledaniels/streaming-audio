@@ -213,7 +213,21 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
         qWarning("StreamingAudioClient::start() couldn't read OSC message from SAM");
         return SAC_OSC_ERROR;
     }
+
+    // set up listening for OSC messages
+    OscTcpSocketReader* reader = new OscTcpSocketReader(&m_socket);
+    connect(&m_socket, SIGNAL(readyRead()), reader, SLOT(readFromSocket()));
+    connect(&m_socket, SIGNAL(disconnected()), reader, SLOT(deleteLater()));
+    connect(reader, SIGNAL(messageReady(OscMessage*, const char*, QAbstractSocket*)), this, SLOT(handleOscMessage(OscMessage*, const char*, QAbstractSocket*)));
     
+    msg.clear();
+    msg.init("/sam/subscribe/volume", "ii", m_port, m_replyPort);
+    if (!OscClient::sendFromSocket(&msg, &m_socket))
+    {
+        qWarning("StreamingAudioClient::start() Couldn't send OSC message");
+        return SAC_OSC_ERROR;
+    }
+
     return ((m_port >= 0) ? SAC_SUCCESS : SAC_REQUEST_DENIED);
 }       
 
@@ -366,9 +380,9 @@ int StreamingAudioClient::setPhysicalInputs(unsigned int* inputChannels)
 #endif
 }
 
-void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender)
+void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender, QAbstractSocket* socket)
 {
-    qDebug("StreamingAudioClient::handleOscMessage sender = %s", sender);
+    qWarning("StreamingAudioClient::handleOscMessage sender = %s", sender);
     // check prefix
     int prefixLen = 5; // prefix is "/sam/"
     const char* address = msg->getAddress();
@@ -680,7 +694,7 @@ bool StreamingAudioClient::read_from_socket()
             }
             else
             {
-                handleOscMessage(oscMsg, m_socket.peerAddress().toString().toAscii().data());
+                handleOscMessage(oscMsg, m_socket.peerAddress().toString().toAscii().data(), &m_socket);
             }
 
             start = end + 1;
