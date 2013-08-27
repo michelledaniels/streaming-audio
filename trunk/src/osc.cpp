@@ -511,7 +511,7 @@ OscTcpSocketReader::~OscTcpSocketReader()
 
 void OscTcpSocketReader::readFromSocket()
 {
-    //qDebug("OscTcpSocketReader::readFromSocket");
+    qWarning("OscTcpSocketReader::readFromSocket");
     QTcpSocket* socket = (QTcpSocket*)QObject::sender();
     if (socket != m_socket)
     {

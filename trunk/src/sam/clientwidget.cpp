@@ -70,7 +70,6 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidg
     m_metersOut(NULL)
 {
     m_name.append(name);
-    setMinimumSize(200, 400);
 
     QGroupBox *clientBox = new QGroupBox(this);
     QVBoxLayout* clientLayout = new QVBoxLayout(clientBox);
@@ -136,6 +135,8 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidg
     connect(m_soloCheckBox, SIGNAL(toggled(bool)), this, SLOT(on_soloCheckBox_toggled(bool)));
 
     clientBox->setLayout(clientLayout);
+
+    setMinimumSize(m_channels * 50, 400);
 }
 
 void ClientWidget::setName(const char* name)
@@ -197,19 +198,19 @@ void ClientWidget::setMeter(int ch, float rmsIn, float peakIn, float rmsOut, flo
 void ClientWidget::on_volumeSlider_valueChanged(int val)
 {
     float fval = val / (float)VOLUME_SLIDER_SCALE;
-    qWarning("ClientWidget::on_volumeSlider_valueChanged fval = %f", fval);
+    //qWarning("ClientWidget::on_volumeSlider_valueChanged fval = %f", fval);
     emit volumeChanged(m_id, fval);
 }
 
 void ClientWidget::on_muteCheckBox_toggled(bool checked)
 {
-    qWarning("ClientWidget::on_muteCheckBox_toggled checked = %d", checked);
+    //qWarning("ClientWidget::on_muteCheckBox_toggled checked = %d", checked);
     emit muteChanged(m_id, checked);
 }
 
 void ClientWidget::on_soloCheckBox_toggled(bool checked)
 {
-    qWarning("ClientWidget::on_soloCheckBox_toggled checked = %d", checked);
+    //qWarning("ClientWidget::on_soloCheckBox_toggled checked = %d", checked);
     emit soloChanged(m_id, checked);
 }
 

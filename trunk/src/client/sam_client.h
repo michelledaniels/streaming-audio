@@ -291,11 +291,12 @@ public:
 
 public slots:
     /**
-     * Handle an incoming OSC message
-     * @param msg the message to handle
-     * @param sender sender IP address/hostname
+     * Handle an OSC message.
+     * @param msg the OSC message to handle
+     * @param sender the name of the host that sent the message
+     * @param socket the socket the message was received through
      */
-    void handleOscMessage(OscMessage* msg, const char* sender);
+    void handleOscMessage(OscMessage* msg, const char* sender, QAbstractSocket* socket);
 
 private:
     
