@@ -73,7 +73,6 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     mainLayout->addWidget(clientScrollArea);
     clientScrollArea->setMinimumSize(400, 300);
     setCentralWidget(mainBox);
-
 }
 
 SamUI::~SamUI()
