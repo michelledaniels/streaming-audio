@@ -298,6 +298,17 @@ public slots:
      */
     void handleOscMessage(OscMessage* msg, const char* sender, QAbstractSocket* socket);
 
+    /**
+     * Handle the case where we get disconnected from SAM.
+     */
+    void samDisconnected();
+
+signals:
+    /**
+     * Emitted when a response from SAM is received.
+     */
+    void responseReceived();
+
 private:
     
     /**
@@ -325,13 +336,6 @@ private:
      */
     static bool interface_callback(unsigned int nchannels, unsigned int nframes, float** in, float** out, void* sac);
 
-    
-    /**
-     * Read data from the TCP socket.
-     * @return true on success, false on failure (malformed message, etc.)
-     */
-    bool read_from_socket();
-    
     unsigned int m_channels;
     unsigned int m_bufferSize;
     unsigned int m_sampleRate;
@@ -347,6 +351,7 @@ private:
     quint16 m_replyPort;              ///< OSC port for this client
     QTcpSocket m_socket;              ///< Socket for sending and receiving OSC messages
     QByteArray m_data;                ///< temporary storage for received data
+    bool m_responseReceived;          ///< whether or not SAM responded to register request
     
     // for audio interface
     bool m_driveExternally;           ///< true to drive with an external clock tick, false to use internal SAC driver.
