@@ -1671,7 +1671,14 @@ void StreamingAudioManager::osc_set_type(OscMessage* msg, const char* sender, QA
         OscMessage msg;
         int respondType = idIsValid(port) ? m_apps[port]->getType() : -1;
         msg.init("/sam/type/deny", "iii", port, respondType, errorCode);
-        if (!OscClient::sendUdp(&msg, &replyAddr))
+        if (socket->socketType() == QAbstractSocket::TcpSocket)
+        {
+            if (!OscClient::sendFromSocket(&msg, socket))
+            {
+                qWarning("Couldn't send OSC message");
+            }
+        }
+        else if (!OscClient::sendUdp(&msg, &replyAddr))
         {
             qWarning("Couldn't send OSC message");
         }

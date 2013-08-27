@@ -9,6 +9,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QTcpSocket>
+#include <QTimer>
 
 #include "sam_client.h"
 
@@ -31,6 +32,7 @@ StreamingAudioClient::StreamingAudioClient() :
     m_payloadType(PAYLOAD_PCM_16),
     m_packetQueueSize(-1),
     m_replyPort(0),
+    m_responseReceived(false),
     m_driveExternally(false),
     m_interface(NULL),
     m_sender(NULL),
@@ -177,6 +179,12 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
     m_replyPort = m_socket.localPort();
     qDebug("StreamingAudioClient::start() replyPort set to %d\n", m_replyPort);
     
+    // set up listening for OSC messages
+    OscTcpSocketReader* reader = new OscTcpSocketReader(&m_socket);
+    connect(&m_socket, SIGNAL(readyRead()), reader, SLOT(readFromSocket()));
+    connect(&m_socket, SIGNAL(disconnected()), reader, SLOT(deleteLater()));
+    connect(reader, SIGNAL(messageReady(OscMessage*, const char*, QAbstractSocket*)), this, SLOT(handleOscMessage(OscMessage*, const char*, QAbstractSocket*)));
+    connect(&m_socket, SIGNAL(disconnected()), this, SLOT(samDisconnected()));
     
     qDebug("StreamingAudioClient::start() Sending register message to SAM: name = %s, channels = %d, position = [%d, %d, %d, %d, %d], type = %d", m_name, m_channels, x, y, width, height, depth, m_type);
 
@@ -199,37 +207,27 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
         qWarning("StreamingAudioClient::start() Couldn't send OSC message");
         return SAC_OSC_ERROR;
     }
-    
+
     qDebug("StreamingAudioClient::start() Finished sending register message to SAM, now waiting for response...");
-    if (!m_socket.waitForReadyRead(timeout))
+
+    // wait on response from SAM
+    QEventLoop loop;
+    connect(this, SIGNAL(responseReceived()), &loop, SLOT(quit()));
+    QTimer::singleShot(timeout, &loop, SLOT(quit()));
+    loop.exec();
+
+    if (!m_responseReceived)
     {
         qWarning("StreamingAudioClient::start() timed out waiting for response to register request");
         return SAC_TIMEOUT;
     }
-    
-    qDebug("StreamingAudioClient::start() Received response from SAM");
-    if (!read_from_socket()) // TODO: what if response doesn't arrive all at once? Is that possible?
+    else if (m_port < 0)
     {
-        qWarning("StreamingAudioClient::start() couldn't read OSC message from SAM");
-        return SAC_OSC_ERROR;
+       return SAC_REQUEST_DENIED;
     }
 
-    // set up listening for OSC messages
-    OscTcpSocketReader* reader = new OscTcpSocketReader(&m_socket);
-    connect(&m_socket, SIGNAL(readyRead()), reader, SLOT(readFromSocket()));
-    connect(&m_socket, SIGNAL(disconnected()), reader, SLOT(deleteLater()));
-    connect(reader, SIGNAL(messageReady(OscMessage*, const char*, QAbstractSocket*)), this, SLOT(handleOscMessage(OscMessage*, const char*, QAbstractSocket*)));
-    
-    msg.clear();
-    msg.init("/sam/subscribe/volume", "ii", m_port, m_replyPort);
-    if (!OscClient::sendFromSocket(&msg, &m_socket))
-    {
-        qWarning("StreamingAudioClient::start() Couldn't send OSC message");
-        return SAC_OSC_ERROR;
-    }
-
-    return ((m_port >= 0) ? SAC_SUCCESS : SAC_REQUEST_DENIED);
-}       
+    return SAC_SUCCESS;
+}
 
 int StreamingAudioClient::setMute(bool isMuted)
 {
@@ -293,6 +291,7 @@ int StreamingAudioClient::setType(StreamingAudioType type, unsigned int timeout)
     if (m_port < 0) return SAC_NOT_REGISTERED; // not yet registered
     if (m_type == type) return SAC_SUCCESS; // type already set
     
+    m_responseReceived = false;
     OscMessage msg;
     msg.init("/sam/set/type", "iii", m_port, type, m_replyPort);
     if (!OscClient::sendFromSocket(&msg, &m_socket))
@@ -300,21 +299,19 @@ int StreamingAudioClient::setType(StreamingAudioType type, unsigned int timeout)
         qWarning("StreamingAudioClient::setType() Couldn't send OSC message");
         return SAC_OSC_ERROR;
     }
-    
-    qDebug("StreamingAudioClient::setType() Finished sending set/type message to SAM, now waiting for response...");
-    if (!m_socket.waitForReadyRead(timeout))
+
+    // wait on response from SAM
+    QEventLoop loop;
+    connect(this, SIGNAL(responseReceived()), &loop, SLOT(quit()));
+    QTimer::singleShot(timeout, &loop, SLOT(quit()));
+    loop.exec();
+
+    if (!m_responseReceived)
     {
         qWarning("StreamingAudioClient::setType() timed out waiting for response to set/type request");
         return SAC_TIMEOUT;
     }
-    
-    qDebug("StreamingAudioClient::setType() Received response from SAM");
-    if (!read_from_socket())
-    {
-        qWarning("StreamingAudioClient::setType() couldn't read OSC message from SAM");
-        return SAC_OSC_ERROR;
-    }
-    
+
     return ((m_type == type) ? SAC_SUCCESS : SAC_REQUEST_DENIED);
 }
 
@@ -380,9 +377,14 @@ int StreamingAudioClient::setPhysicalInputs(unsigned int* inputChannels)
 #endif
 }
 
+void StreamingAudioClient::samDisconnected()
+{
+    qWarning("StreamingAudioClient SAM was disconnected");
+}
+
 void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender, QAbstractSocket* socket)
 {
-    qWarning("StreamingAudioClient::handleOscMessage sender = %s", sender);
+    //qWarning("StreamingAudioClient::handleOscMessage sender = %s", sender);
     // check prefix
     int prefixLen = 5; // prefix is "/sam/"
     const char* address = msg->getAddress();
@@ -448,11 +450,11 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
         // check third level of address
         if (qstrcmp(address + prefixLen + 4, "/confirm") == 0) // /sam/type/confirm
         {
-            if (msg->typeMatches("i"))
+            if (msg->typeMatches("ii"))
             {
                 OscArg arg;
-                msg->getArg(0, arg);
-                int type= arg.val.i;
+                msg->getArg(1, arg);
+                int type = arg.val.i; // for now ignore arg 0 (id)
                 qDebug() << "Received typeconfirm from SAM, type = " << type << endl;
                 handle_typeconfirm(type);
             }
@@ -464,11 +466,11 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
         }
         else if (qstrcmp(address + prefixLen + 4, "/deny") == 0) // /sam/type/deny
         {
-            if (msg->typeMatches("i"))
+            if (msg->typeMatches("iii"))
             {
                 OscArg arg;
-                msg->getArg(0, arg);
-                int errorCode = arg.val.i;
+                msg->getArg(2, arg);
+                int errorCode = arg.val.i; // for now ignore args 0 and 1 (id and type)
                 qDebug() << "Type change DENIED, error code = " << errorCode << endl;
                 handle_typedeny(errorCode);
             }
@@ -481,6 +483,47 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
         else
         {
             printf("Unknown OSC message:\n");
+            msg->print();
+        }
+    }
+    else if (qstrncmp(address + prefixLen, "val", 3) == 0)
+    {
+        // check third level of address
+        if (qstrcmp(address + prefixLen + 3, "/mute") == 0) // /sam/val/mute
+        {
+            if (msg->typeMatches("ii"))
+            {
+                OscArg arg;
+                msg->getArg(1, arg);
+                int mute = arg.val.i; // for now ignore arg 0 (id)
+                qDebug("Received message from SAM that client mute status is %d", mute);
+                // TODO: call on_mute_changed callbacks
+            }
+            else
+            {
+                printf("Unknown OSC message:\n");
+                msg->print();
+            }
+        }
+        else if (qstrcmp(address + prefixLen + 3, "/solo") == 0) // /sam/val/solo
+        {
+            if (msg->typeMatches("ii"))
+            {
+                OscArg arg;
+                msg->getArg(1, arg);
+                int solo = arg.val.i; // for now ignore arg 0 (id)
+                qDebug("Received message from SAM that client solo status is %d", solo);
+                // TODO: call on_solo_changed callbacks
+            }
+            else
+            {
+                printf("Unknown OSC message:\n");
+                msg->print();
+            }
+        }
+        else
+        {
+            printf("Unknown OSC message:");
             msg->print();
         }
     }
@@ -556,6 +599,8 @@ void StreamingAudioClient::handle_regconfirm(int port, unsigned int sampleRate, 
     }
 
     m_port = port;
+    m_responseReceived = true;
+    emit responseReceived();
 }
 
 void StreamingAudioClient::handle_regdeny(int errorCode)
@@ -567,6 +612,8 @@ void StreamingAudioClient::handle_regdeny(int errorCode)
     // TODO: what if we tried re-registering after a time-out, and then received a regconfirm/regdeny??
     
     // TODO: do something with the error code?
+    m_responseReceived = true;
+    emit responseReceived();
 }
 
 void StreamingAudioClient::handle_typeconfirm(int type)
@@ -574,13 +621,16 @@ void StreamingAudioClient::handle_typeconfirm(int type)
     qDebug() << "StreamingAudioClient::handle_typeconfirm, type = " << type << endl;
     
     m_type = (StreamingAudioType)type;
+    m_responseReceived = true;
+    emit responseReceived();
 }
 
 void StreamingAudioClient::handle_typedeny(int errorCode)
 {
-    qDebug() << "SAM type change DENIED: error = " << QString::number(errorCode) << endl;
-   
+    qWarning("SAM type change DENIED: error code = %d", errorCode);
     // TODO: do something with the error code?
+    m_responseReceived = true;
+    emit responseReceived();
 }
 
 int StreamingAudioClient::sendAudio(float** in)
@@ -635,73 +685,6 @@ bool StreamingAudioClient::interface_callback(unsigned int nchannels, unsigned i
 {
     // TODO: nchannels should match m_channels and nframes should match m_bufferSize
     return ((StreamingAudioClient*)sac)->sendAudio(in);
-}
-
-bool StreamingAudioClient::read_from_socket()
-{
-    int available = m_socket.bytesAvailable();
-    qDebug() << "StreamingAudioClient::readFromSocket() reading from TCP socket " << m_socket.socketDescriptor() << ", " << available << " bytes available";
-
-    QByteArray block = m_socket.readAll();
-    int start = block.startsWith(SLIP_END) ? 1 : 0;
-    if (m_data.isEmpty() && (start == 0))
-    {
-        qWarning("StreamingAudioClient::readFromSocket() Invalid message fragment received: %s", block.constData());
-        return false; // valid OSC messages must start with SLIP_END
-    }
-
-    if (start > 0)
-    {
-        m_data.clear();
-    }
-
-    int len = block.length();
-    while (start < len)
-    {
-        int end = block.indexOf(SLIP_END, start);
-        qDebug() << "start = " << start << ", end = " << end;
-        if (start == end)
-        {
-            start++;
-            continue;
-        }
-        if (end < 0)
-        {
-            // partial OSC message
-            QByteArray msg = block.right(len - start);
-            OscMessage::slipDecode(msg);
-            m_data.append(msg);
-            qDebug() << "StreamingAudioClient::readFromSocket() TCP partial message received = " << QString(m_data);
-            break;
-        }
-        else
-        {
-            // end of an OSC message
-            QByteArray msg = block.mid(start, end - start);
-            OscMessage::slipDecode(msg);
-            m_data.append(msg);
-            // TODO: process OSC message
-            qDebug() << "StreamingAudioClient::readFromSocket() TCP message: " << QString(m_data);
-            qDebug() << "StreamingAudioClient::readFromSocket() Message length = " << m_data.length();
-
-            OscMessage* oscMsg = new OscMessage();
-            bool success = oscMsg->read(m_data);
-            if (!success)
-            {
-                qDebug("StreamingAudioClient::readFromSocket() Couldn't read OSC message");
-                delete oscMsg;
-                return false;
-            }
-            else
-            {
-                handleOscMessage(oscMsg, m_socket.peerAddress().toString().toAscii().data(), &m_socket);
-            }
-
-            start = end + 1;
-            m_data.clear(); // prepare for new message
-        }
-    }
-    return true;
 }
 
 } // end of namespace sam
