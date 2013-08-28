@@ -38,7 +38,13 @@ StreamingAudioClient::StreamingAudioClient() :
     m_sender(NULL),
     m_audioCallback(NULL),
     m_audioCallbackArg(NULL),
-    m_audioOut(NULL)
+    m_audioOut(NULL),
+    m_muteCallback(NULL),
+    m_muteCallbackArg(NULL),
+    m_soloCallback(NULL),
+    m_soloCallbackArg(NULL),
+    m_disconnectCallback(NULL),
+    m_disconnectCallbackArg(NULL)
 {
 }
 
@@ -356,9 +362,37 @@ int StreamingAudioClient::setDelay(float delay)
 
 int StreamingAudioClient::setAudioCallback(SACAudioCallback callback, void* arg)
 { 
+    if (m_audioCallback) return SAC_ERROR; // callback already set
     m_audioCallback = callback; 
     m_audioCallbackArg = arg; 
     
+    return SAC_SUCCESS;
+}
+
+int StreamingAudioClient::setMuteCallback(SACMuteCallback callback, void* arg)
+{
+    if (m_muteCallback) return SAC_ERROR; // callback already set
+    m_muteCallback = callback;
+    m_muteCallbackArg = arg;
+
+    return SAC_SUCCESS;
+}
+
+int StreamingAudioClient::setSoloCallback(SACSoloCallback callback, void* arg)
+{
+    if (m_soloCallback) return SAC_ERROR; // callback already set
+    m_soloCallback = callback;
+    m_soloCallbackArg = arg;
+
+    return SAC_SUCCESS;
+}
+
+int StreamingAudioClient::setDisconnectCallback(SACDisconnectCallback callback, void* arg)
+{
+    if (m_disconnectCallback) return SAC_ERROR; // callback already set
+    m_disconnectCallback = callback;
+    m_disconnectCallbackArg = arg;
+
     return SAC_SUCCESS;
 }
 
@@ -380,6 +414,10 @@ int StreamingAudioClient::setPhysicalInputs(unsigned int* inputChannels)
 void StreamingAudioClient::samDisconnected()
 {
     qWarning("StreamingAudioClient SAM was disconnected");
+    if (m_disconnectCallback)
+    {
+        m_disconnectCallback(m_disconnectCallbackArg);
+    }
 }
 
 void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender, QAbstractSocket* socket)
@@ -497,7 +535,11 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
                 msg->getArg(1, arg);
                 int mute = arg.val.i; // for now ignore arg 0 (id)
                 qDebug("Received message from SAM that client mute status is %d", mute);
-                // TODO: call on_mute_changed callbacks
+                // call mute callback
+                if (m_muteCallback)
+                {
+                    m_muteCallback(mute, m_muteCallbackArg);
+                }
             }
             else
             {
@@ -513,7 +555,27 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
                 msg->getArg(1, arg);
                 int solo = arg.val.i; // for now ignore arg 0 (id)
                 qDebug("Received message from SAM that client solo status is %d", solo);
-                // TODO: call on_solo_changed callbacks
+                // call solo callback
+                if (m_soloCallback)
+                {
+                    m_soloCallback(solo, m_soloCallbackArg);
+                }
+            }
+            else
+            {
+                printf("Unknown OSC message:\n");
+                msg->print();
+            }
+        }
+        else if (qstrcmp(address + prefixLen + 3, "/type") == 0) // /sam/val/type
+        {
+            if (msg->typeMatches("ii"))
+            {
+                OscArg arg;
+                msg->getArg(1, arg);
+                int type = arg.val.i; // for now ignore arg 0 (id)
+                qWarning("Received message from SAM that client type is %d", type);
+                // TODO: call type callback
             }
             else
             {
