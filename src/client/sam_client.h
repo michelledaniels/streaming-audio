@@ -77,10 +77,36 @@ enum SACReturn
  * @param numChannels the number of channels of audio to write
  * @param nframes the number of sample frames to write
  * @param out pointer to output data out[numChannels][nframes]
- * @param arg pointer to client-supplied data
+ * @param arg pointer to user-supplied data
  * @return true on success, false on failure
  */
 typedef bool(*SACAudioCallback)(unsigned int numChannels, unsigned int nframes, float** out, void* arg);
+
+/**
+ * @typedef SACMuteCallback
+ * Prototype for a StreamingAudioClient mute callback function.
+ * This function is called whenever the client is muted or unmuted.
+ * @param mute true if client is muted, false otherwise
+ * @param arg pointer to user-supplied data
+ */
+typedef void(*SACMuteCallback)(bool mute, void* arg);
+
+/**
+ * @typedef SACSoloCallback
+ * Prototype for a StreamingAudioClient solo callback function.
+ * This function is called whenever the client solo status changes.
+ * @param solo true if client is solo'd, false otherwise
+ * @param arg pointer to user-supplied data
+ */
+typedef void(*SACSoloCallback)(bool solo, void* arg);
+
+/**
+ * @typedef SACDisconnectCallback
+ * Prototype for a StreamingAudioClient disconect callback function.
+ * This function is called when the connection with SAM is broken.
+ * @param arg pointer to user-supplied data
+ */
+typedef void(*SACDisconnectCallback)(void* arg);
 
 /**
  * @class StreamingAudioClient
@@ -262,10 +288,34 @@ public:
      * pthread_mutex_lock, sleep, wait, poll, select, pthread_join, pthread_cond_wait, etc, etc.
      * @param callback the function this client will call when audio samples are needed
      * @param arg each time the callback is called it will pass this as an argument
-     * @return 0 on success, a non-zero ::SACReturn code on failure
+     * @return 0 on success, a non-zero ::SACReturn code on failure (will fail if a callback has already been set)
      */
     int setAudioCallback(SACAudioCallback callback, void* arg);
     
+    /**
+     * Set mute callback.
+     * @param callback the function this client will call when muted or unmuted
+     * @param arg each time the callback is called it will pass this as an argument
+     * @return 0 on success, a non-zero ::SACReturn code on failure (will fail if a callback has already been set)
+     */
+    int setMuteCallback(SACMuteCallback callback, void* arg);
+
+    /**
+     * Set solo callback.
+     * @param callback the function this client will call when solo status changes
+     * @param arg each time the callback is called it will pass this as an argument
+     * @return 0 on success, a non-zero ::SACReturn code on failure (will fail if a callback has already been set)
+     */
+    int setSoloCallback(SACSoloCallback callback, void* arg);
+
+    /**
+     * Set disconnect callback.
+     * @param callback the function this client will call when disconnected
+     * @param arg each time the callback is called it will pass this as an argument
+     * @return 0 on success, a non-zero ::SACReturn code on failure (will fail if a callback has already been set)
+     */
+    int setDisconnectCallback(SACDisconnectCallback callback, void* arg);
+
     /**
      * Set physical audio inputs for this client.
      * NOTE: this method must be called AFTER registering otherwise it will fail.
@@ -361,9 +411,18 @@ private:
     RtpSender* m_sender;              ///< RTP streamer
 
     // for audio callback
-    SACAudioCallback m_audioCallback; ///< the audio callback
+    SACAudioCallback m_audioCallback; ///< the audio callback function
     void* m_audioCallbackArg;         ///< user-supplied data for audio callback
     float** m_audioOut;               ///< output audio buffer
+
+    // for other callbacks
+    SACMuteCallback m_muteCallback;             ///< the mute callback function
+    void* m_muteCallbackArg;                    ///< user-supplied data for mute callback
+    SACSoloCallback m_soloCallback;             ///< the solo callback function
+    void* m_soloCallbackArg;                    ///< user-supplied data for solo callback
+    SACDisconnectCallback m_disconnectCallback; ///< the disconnect callback function
+    void* m_disconnectCallbackArg;              ///< user-supplied data for disconnect callback
+
 };
 
 } // end of namespace sam

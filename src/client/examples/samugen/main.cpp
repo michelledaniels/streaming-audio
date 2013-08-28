@@ -58,6 +58,21 @@ bool sac_audio_callback(unsigned int numChannels, unsigned int nframes, float** 
     return true;
 }
 
+void sac_mute_callback(bool mute, void*)
+{
+    qWarning("samugen: mute callback called, mute = %d", mute);
+}
+
+void sac_solo_callback(bool solo, void*)
+{
+    qWarning("samugen: solo callback called, solo = %d", solo);
+}
+
+void sac_disconnect_callback(void*)
+{
+    qWarning("samugen: lost connection with SAM, shutting down...");
+    QCoreApplication::quit();
+}
 
 int main(int argc, char *argv[])
 {
@@ -204,6 +219,11 @@ int main(int argc, char *argv[])
 
     // register SAC callback
     sac.setAudioCallback(sac_audio_callback, NULL);
+
+    // register other callbacks
+    sac.setMuteCallback(sac_mute_callback, NULL);
+    sac.setSoloCallback(sac_solo_callback, NULL);
+    sac.setDisconnectCallback(sac_disconnect_callback, NULL);
     
     return a.exec();
 }

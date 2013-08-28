@@ -434,6 +434,12 @@ void StreamingAudioApp::setType(StreamingAudioType type)
             qWarning("Couldn't send OSC message");
         }
     }
+
+    // notify the client
+    if (!OscClient::sendFromSocket(&replyMsg, m_socket))
+    {
+        qWarning("Couldn't send OSC message");
+    }
 }
 
 void StreamingAudioApp::setPosition(const SamAppPosition& pos)
