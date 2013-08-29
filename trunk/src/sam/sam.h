@@ -76,7 +76,7 @@ struct ClientParams
     float volume;
     bool mute;
     bool solo;
-    float delay;
+    float delayMillis;
     SamAppPosition pos;
 };
 

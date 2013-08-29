@@ -27,7 +27,8 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     m_clientGroup(NULL),
     m_clientLayout(NULL),
     m_maxClients(params.maxClients),
-    m_clients(NULL)
+    m_clients(NULL),
+    m_maxClientDelayMillis(params.maxClientDelayMillis)
 {
     ui->setupUi(this);
 
@@ -49,7 +50,7 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     m_samButton = new QPushButton(QString("Start SAM"), this);
     connect(m_samButton, SIGNAL(clicked()), this, SLOT(onSamButtonClicked()));
 
-    m_master = new MasterWidget(1.0f, false, 0.0f, this);
+    m_master = new MasterWidget(1.0f, false, 0.0f, params.maxDelayMillis, this);
 
     m_clients = new ClientWidget*[m_maxClients];
     for (int i = 0; i < m_maxClients; i++)
@@ -88,6 +89,7 @@ SamUI::~SamUI()
 
 void SamUI::doBeforeQuit()
 {
+    //qWarning("SamUI::doBeforeQuit");
     //if (m_sam) m_sam->stop();
 }
 
@@ -106,7 +108,7 @@ void SamUI::addClient(int id)
         qWarning("SamUI::addClient couldn't get client parameters");
         return;
     }
-    m_clients[id] = new ClientWidget(id, m_sam->getAppName(id), params, this);
+    m_clients[id] = new ClientWidget(id, m_sam->getAppName(id), params, m_maxClientDelayMillis, this);
     connect_client(id);
     m_clientLayout->addWidget(m_clients[id]);
     
@@ -310,6 +312,7 @@ void SamUI::connect_client(int id)
     connect(m_clients[id], SIGNAL(volumeChanged(int, float)), m_sam, SLOT(setAppVolume(int, float)));
     connect(m_clients[id], SIGNAL(muteChanged(int, bool)), m_sam, SLOT(setAppMute(int, bool)));
     connect(m_clients[id], SIGNAL(soloChanged(int, bool)), m_sam, SLOT(setAppSolo(int, bool)));
+    connect(m_clients[id], SIGNAL(delayChanged(int, float)), m_sam, SLOT(setAppDelay(int, float)));
 }
 
 void SamUI::disconnect_client(int id)
@@ -317,6 +320,7 @@ void SamUI::disconnect_client(int id)
     disconnect(m_clients[id], SIGNAL(volumeChanged(int, float)), m_sam, SLOT(setAppVolume(int, float)));
     disconnect(m_clients[id], SIGNAL(muteChanged(int, bool)), m_sam, SLOT(setAppMute(int, bool)));
     disconnect(m_clients[id], SIGNAL(soloChanged(int, bool)), m_sam, SLOT(setAppSolo(int, bool)));
+    disconnect(m_clients[id], SIGNAL(delayChanged(int, float)), m_sam, SLOT(setAppDelay(int, float)));
 }
 
 } // end of namespace SAM

@@ -58,7 +58,7 @@ void MeterWidget::paintEvent(QPaintEvent* event)
     }
 }
 
-ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidget *parent) :
+ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, double maxDelayMillis, QWidget *parent) :
     QWidget(parent),
     m_channels(params.channels),
     m_id(id),
@@ -66,6 +66,7 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidg
     m_volumeSlider(NULL),
     m_muteCheckBox(NULL),
     m_soloCheckBox(NULL),
+    m_delaySpinBox(NULL),
     m_metersIn(NULL),
     m_metersOut(NULL)
 {
@@ -124,15 +125,32 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, QWidg
     levelBox->setLayout(levelLayout);
     clientLayout->addWidget(levelBox);
 
+    // init layout for controls
+    QWidget *controlBox = new QWidget(this);
+    QHBoxLayout* controlLayout = new QHBoxLayout(controlBox);
+
     // add mute/solo checkboxes
+    QWidget* checksBox = new QWidget(this);
+    QVBoxLayout* checksLayout = new QVBoxLayout(checksBox);
     m_muteCheckBox = new QCheckBox(QString("Mute"), this);
     m_muteCheckBox->setChecked(params.mute);
-    clientLayout->addWidget(m_muteCheckBox);
+    checksLayout->addWidget(m_muteCheckBox);
     connect(m_muteCheckBox, SIGNAL(toggled(bool)), this, SLOT(on_muteCheckBox_toggled(bool)));
     m_soloCheckBox = new QCheckBox(QString("Solo"), this);
     m_soloCheckBox->setChecked(params.solo);
-    clientLayout->addWidget(m_soloCheckBox);
+    checksLayout->addWidget(m_soloCheckBox);
     connect(m_soloCheckBox, SIGNAL(toggled(bool)), this, SLOT(on_soloCheckBox_toggled(bool)));
+    controlLayout->addWidget(checksBox);
+
+    // add delay spinbox
+    QLabel* delayLabel = new QLabel(QString("Delay (ms)"), this);
+    m_delaySpinBox = new QDoubleSpinBox(this);
+    m_delaySpinBox->setRange(0.0, maxDelayMillis);
+    m_delaySpinBox->setValue(params.delayMillis);
+    controlLayout->addWidget(delayLabel);
+    controlLayout->addWidget(m_delaySpinBox);
+    connect(m_delaySpinBox, SIGNAL(valueChanged(double)), this, SLOT(on_delaySpinBox_valueChanged(double)));
+    clientLayout->addWidget(controlBox);
 
     clientBox->setLayout(clientLayout);
 
@@ -163,7 +181,7 @@ void ClientWidget::setSolo(bool solo)
 
 void ClientWidget::setDelay(float delay)
 {
-
+    m_delaySpinBox->setValue(delay);
 }
 
 void ClientWidget::setPosition(int x, int y, int w, int h, int d)
@@ -212,6 +230,12 @@ void ClientWidget::on_soloCheckBox_toggled(bool checked)
 {
     //qWarning("ClientWidget::on_soloCheckBox_toggled checked = %d", checked);
     emit soloChanged(m_id, checked);
+}
+
+void ClientWidget::on_delaySpinBox_valueChanged(double val)
+{
+    //qWarning("ClientWidget::on_delaySpinBox_valueChanged val = %f", val);
+    emit delayChanged(m_id, (float)val);
 }
 
 } // end of namespace SAM

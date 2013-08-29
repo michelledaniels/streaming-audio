@@ -849,7 +849,7 @@ bool StreamingAudioManager::getAppParams(int id, ClientParams& params)
     params.volume = m_apps[id]->getVolume();
     params.mute = m_apps[id]->getMute();
     params.solo = m_apps[id]->getSolo();
-    params.delay = m_apps[id]->getDelay();
+    params.delayMillis = m_apps[id]->getDelay();
     params.pos = m_apps[id]->getPosition();
     return true;
 }

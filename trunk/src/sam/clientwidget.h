@@ -37,7 +37,7 @@ class ClientWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ClientWidget(int id, const char* name, ClientParams& params, QWidget *parent = 0);
+    explicit ClientWidget(int id, const char* name, ClientParams& params, double maxDelayMillis, QWidget *parent = 0);
 
     void setName(const char* name);
     void setVolume(float volume);
@@ -61,7 +61,7 @@ public slots:
     void on_volumeSlider_valueChanged(int);
     void on_muteCheckBox_toggled(bool);
     void on_soloCheckBox_toggled(bool);
-
+    void on_delaySpinBox_valueChanged(double);
 
 protected:
     QString m_name;
@@ -73,6 +73,7 @@ protected:
     QSlider* m_volumeSlider;
     QCheckBox* m_muteCheckBox;
     QCheckBox* m_soloCheckBox;
+    QDoubleSpinBox* m_delaySpinBox;
 
     MeterWidget** m_metersIn;
     MeterWidget** m_metersOut;
