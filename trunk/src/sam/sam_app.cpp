@@ -401,9 +401,10 @@ void StreamingAudioApp::setDelay(float delay)
     m_delayNext = m_sampleRate * (delay / 1000.0f);
     qDebug("StreamingAudioApp::setDelay requested delay = %d samples", m_delayNext);
     m_delayNext = (m_delayNext < 0) ? 0 : m_delayNext;
-    m_delayNext = (m_delayNext >= m_delayMax/2) ? m_delayMax/2 - 1 : m_delayNext;
+    // TODO: why is this max-1 and not max?
+    m_delayNext = (m_delayNext >= m_delayMax) ? m_delayMax - 1 : m_delayNext;
 
-    float delaySet = (m_delayNext / (float)m_sampleRate) * 1000; // actual delay set, in millis
+    float delaySet = ((m_delayNext * 1000.0f) / (float)m_sampleRate); // actual delay set, in millis
 
     // notify subscribers
     OscMessage replyMsg;
