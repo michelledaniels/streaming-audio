@@ -150,7 +150,8 @@ int main(int argc, char* argv[])
     params.maxOutputChannels = settings.value("MaxOutputChannels", 32768).toInt();
     params.volume = settings.value("Volume", 1.0f).toFloat();
     params.delayMillis = settings.value("DelayMillis", 0.0f).toFloat();
-    params.maxDelayMillis = settings.value("MaxDelayMillis", 2000).toFloat();
+    params.maxDelayMillis = settings.value("MaxDelayMillis", 1000).toFloat();
+    params.maxClientDelayMillis = settings.value("MaxClientDelayMillis", params.maxDelayMillis).toFloat();
     QString renderHost =  settings.value("RenderHost", "").toString();
     QByteArray renderHostBytes = renderHost.toAscii();
     params.renderHost = renderHostBytes.data();

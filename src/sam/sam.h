@@ -36,7 +36,8 @@ struct SamParams
     int maxOutputChannels;                ///< the maximum number of output channels to use
     float volume;                         ///< initial global volume
     float delayMillis;                    ///< initial global delay in milliseconds
-    float maxDelayMillis;                 ///< maximum delay in milliseconds (half allocated for global delay, half for per-clientd delay)
+    float maxDelayMillis;                 ///< maximum global delay in milliseconds
+    float maxClientDelayMillis;           ///< maximum per-client delay in milliseconds
     char* renderHost;                     ///< host for the renderer
     quint16 renderPort;                   ///< port for the renderer
     quint32 packetQueueSize; 		      ///< default client packet queue size
@@ -662,7 +663,8 @@ private:
     bool m_soloCurrent;             ///< the current solo status (true if any app is currently solo'd)
     int m_delayCurrent;             ///< the current delay (in samples)
     int m_delayNext;                ///< the requested delay (in samples)
-    int m_delayMax;                 ///< the maximum supported delay (in samples)
+    int m_delayMaxClient;           ///< the maximum supported delay (in samples)
+    int m_delayMaxGlobal;           ///< the maximum supported delay (in samples)
 
     // for OSC
     quint16 m_oscServerPort;        ///< port the OSC server will listen for messages on

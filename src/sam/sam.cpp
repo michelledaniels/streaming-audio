@@ -64,7 +64,8 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_soloCurrent(false),
     m_delayCurrent(0),
     m_delayNext(0),
-    m_delayMax(0),
+    m_delayMaxClient(0),
+    m_delayMaxGlobal(0),
     m_oscServerPort(params.oscPort),
     m_udpSocket(NULL),
     m_tcpServer(NULL),
@@ -99,7 +100,8 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_outJackPortBaseDiscrete = new char[len + 1];
     strncpy(m_outJackPortBaseDiscrete, params.outJackPortBaseDiscrete, len + 1);
 
-    m_delayMax = int(m_sampleRate * (params.maxDelayMillis / 2000.0f)); // allocate half of max available delay for apps, half for global delay
+    m_delayMaxClient = int(m_sampleRate * (params.maxClientDelayMillis / 1000.0f));
+    m_delayMaxGlobal = int(m_sampleRate * (params.maxDelayMillis / 1000.0f));
     setDelay(params.delayMillis);
 
     m_meterInterval = int(m_sampleRate * (params.meterIntervalMillis / 1000.0f));
@@ -401,7 +403,7 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
     pos.width = width;
     pos.height = height;
     pos.depth = depth;
-    m_apps[port] = new StreamingAudioApp(name, port, channels, pos, type, m_client, socket, m_rtpPort, m_delayMax, queueSize, m_clockSkewThreshold, this);
+    m_apps[port] = new StreamingAudioApp(name, port, channels, pos, type, m_client, socket, m_rtpPort, m_delayMaxClient, queueSize, m_clockSkewThreshold, this);
     connect(m_apps[port], SIGNAL(appClosed(int,int)), this, SLOT(cleanupApp(int,int)));
     connect(m_apps[port], SIGNAL(appDisconnected(int)), this, SLOT(closeApp(int)));
     if (!m_apps[port]->init())
@@ -502,7 +504,7 @@ bool StreamingAudioManager::registerUI(const char* host, quint16 port)
     address.host.setAddress(host);
     address.port = port;
     OscMessage msg;
-    msg.init("/sam/ui/regconfirm", "iifff", getNumApps(), m_muteNext, m_volumeNext, (m_delayNext * 1000.0f / (float)m_sampleRate), (m_delayMax * 1000.0f / (float)m_sampleRate));
+    msg.init("/sam/ui/regconfirm", "iifff", getNumApps(), m_muteNext, m_volumeNext, (m_delayNext * 1000.0f / (float)m_sampleRate), (m_delayMaxGlobal * 1000.0f / (float)m_sampleRate));
     if (!OscClient::sendUdp(&msg, &address))
     {
         qWarning("Couldn't send OSC message");
@@ -623,7 +625,7 @@ void StreamingAudioManager::setDelay(float delay)
     m_delayNext = m_sampleRate * (delay / 1000.0f);
     qDebug("StreamingAudioManager::setDelay requested delay = %d samples", m_delayNext);
     m_delayNext = (m_delayNext < 0) ? 0 : m_delayNext;
-    m_delayNext = (m_delayNext >= m_delayMax) ? m_delayMax - 1 : m_delayNext;
+    m_delayNext = (m_delayNext >= m_delayMaxGlobal) ? m_delayMaxGlobal - 1 : m_delayNext;
 
     float delaySet = ((m_delayNext * 1000.0f) / (float)m_sampleRate); // actual delay set, in millis
 
@@ -1293,8 +1295,16 @@ void StreamingAudioManager::handle_get_message(const char* address, OscMessage* 
     }
     else if ((validPort || (port == -1)) && qstrcmp(address, "/delay") == 0) // /sam/get/delay
     {
-        int delay = (port < 0) ? m_delayNext : m_apps[port]->getDelay();
-        float delayMillis = ((delay * 1000.0f) / (float)m_sampleRate);
+        float delayMillis = 0.0f;
+        if (port < 0)
+        {
+            int delay = m_delayNext;
+            delayMillis = ((delay * 1000.0f) / (float)m_sampleRate);
+        }
+        else
+        {
+            delayMillis = m_apps[port]->getDelay();
+        }
         replyMsg.init("/sam/val/delay", "if", port, delayMillis);
     }
     else if (validPort && qstrcmp(address, "/position") == 0) // /sam/get/position

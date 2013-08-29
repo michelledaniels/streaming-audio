@@ -128,7 +128,7 @@ public:
      * Get the delay.
      * @return the delay in milliseconds
      */
-    float getDelay() const { return (m_delayNext/ (float)m_sampleRate) * 1000; }
+    float getDelay() const { return  ((m_delayNext * 1000.0f) / (float)m_sampleRate); }
 
     /**
      * Set the position.
