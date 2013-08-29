@@ -407,6 +407,11 @@ signals:
      */
     void xrun();
 
+    /**
+     * Signal that a stop request has been received.
+     */
+    void stopConfirmed();
+
     void volumeChanged(float);
     void muteChanged(bool);
     void delayChanged(float);
@@ -634,6 +639,7 @@ private:
     StreamingAudioApp** m_apps;       ///< pointers to active StreamingAudioApps
     SamAppState* m_appState;          ///< the state for all StreamingAudioApps in m_apps
     bool m_isRunning;                 ///< flag to see if SAM is running
+    bool m_stopRequested;             ///< flag to see if there is a request to stop processing
     QList<unsigned int> m_basicChannels; ///< list of basic channels to use
     QList<unsigned int> m_discreteChannels; ///< list of discrete channels to use
 
