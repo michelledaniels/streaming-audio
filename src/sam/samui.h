@@ -98,6 +98,7 @@ private:
 
     int m_maxClients;
     ClientWidget** m_clients;
+    float m_maxClientDelayMillis;
 };
 
 } // end of namespace SAM

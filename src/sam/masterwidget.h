@@ -18,7 +18,7 @@ class MasterWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MasterWidget(float volume, bool mute, float delay, QWidget *parent = 0);
+    explicit MasterWidget(float volume, bool mute, float delay, float maxDelayMillis, QWidget *parent = 0);
 
     float getVolume() { return m_volumeSlider->value() / (float)VOLUME_SLIDER_SCALE; }
     bool getMute() { return m_muteCheckBox->isChecked(); }

@@ -12,7 +12,7 @@
 namespace sam
 {
 
-MasterWidget::MasterWidget(float volume, bool mute, float delay, QWidget *parent) :
+MasterWidget::MasterWidget(float volume, bool mute, float delay, float maxDelayMillis, QWidget *parent) :
     QWidget(parent),
     m_volumeSlider(NULL),
     m_muteCheckBox(NULL)
@@ -63,7 +63,7 @@ MasterWidget::MasterWidget(float volume, bool mute, float delay, QWidget *parent
     QLabel* delayLabel = new QLabel(QString("Delay (ms)"), this);
     m_delaySpinBox = new QDoubleSpinBox(this);
     m_delaySpinBox->setMinimum(0.0);
-    m_delaySpinBox->setMaximum(1000.0);
+    m_delaySpinBox->setMaximum(maxDelayMillis);
     m_delaySpinBox->setValue(delay);
     QWidget *delayBox = new QWidget(masterGroup);
     QHBoxLayout* delayLayout = new QHBoxLayout(delayBox);
