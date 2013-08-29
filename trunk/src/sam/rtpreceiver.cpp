@@ -227,7 +227,7 @@ RtpPacket* RtpReceiver::read_datagram()
     m_socketRtp->readDatagram(datagram.data(), datagram.size(), &m_sender, &senderPort);
 
     // Get current timestamp from JACK
-    // TODO: verify that m_jackClient is not NULL?
+    if (!m_jackClient) return NULL;
     jack_nframes_t elapsedSamples = jack_frame_time(m_jackClient);
 
     //qDebug() << "\nDATAGRAM RECEIVED on RTP port: time elapsed = " << timeElapsed << "ms, " << elapsedSamples << "samples";

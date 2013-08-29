@@ -15,6 +15,7 @@
 #include <sys/types.h>
 
 #include <QDebug>
+#include <QTimer>
 
 #include "sam.h"
 #include "sam_app.h"
@@ -43,6 +44,7 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_apps(NULL),
     m_appState(NULL),
     m_isRunning(false),
+    m_stopRequested(false),
     m_maxBasicOutputs(0),
     m_maxDiscreteOutputs(0),
     m_discreteOutputUsed(NULL),
@@ -285,8 +287,18 @@ void StreamingAudioManager::run()
 
 bool StreamingAudioManager::stop()
 {
-    qDebug("StreamingAudioManager::Stop");
+    qWarning("StreamingAudioManager::Stop");
     qDebug() << "Thread = " << thread() << ", SAM thread = " << m_samThread;
+
+    if (!m_isRunning) return true; // or better to return false?
+
+    m_stopRequested = true;
+
+    // wait for stop request to be acknowledged
+    QEventLoop loop;
+    connect(this, SIGNAL(stopConfirmed()), &loop, SLOT(quit()));
+    QTimer::singleShot(1000, &loop, SLOT(quit())); // timeout after a second
+    loop.exec();
 
     for (int i = 0; i < m_maxClients; i++)
     {
@@ -308,7 +320,12 @@ bool StreamingAudioManager::stop()
     
     // stop jack
     bool success = close_jack_client();
-    success &= stop_jack();
+    if (!success)
+    {
+        qWarning("StreamingAudioManager::stop couldn't close jack client");
+    }
+
+    success &= stop_jack(); // TODO: handle error case
     
     // stop OSC servers
     if (m_udpSocket)
@@ -1769,6 +1786,11 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
 
 int StreamingAudioManager::jack_process(jack_nframes_t nframes)
 {
+    if (m_stopRequested)
+    {
+        emit stopConfirmed();
+        return -1;
+    }
     bool updateMeters = (m_samplesElapsed > m_nextMeterNotify);
     if (updateMeters)
     {

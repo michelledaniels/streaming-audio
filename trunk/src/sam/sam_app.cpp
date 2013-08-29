@@ -123,20 +123,23 @@ StreamingAudioApp::~StreamingAudioApp()
     // free array of ports
     if (m_outputPorts)
     {
-        // unregister ports (this automatically disconnects ports)
-        for (int i = 0; i < m_channels; i++)
+        if (m_jackClient)
         {
-            if (m_outputPorts[i])
+            // unregister ports (this automatically disconnects ports)
+            for (int i = 0; i < m_channels; i++)
             {
-                jack_port_unregister(m_jackClient, m_outputPorts[i]);
-                m_outputPorts[i] = NULL;
+                if (m_outputPorts[i])
+                {
+                    jack_port_unregister(m_jackClient, m_outputPorts[i]);
+                    m_outputPorts[i] = NULL;
+                }
             }
         }
     
         delete[] m_outputPorts;
         m_outputPorts = NULL;
     }
-    
+
     if (m_channelAssign)
     {
         delete[] m_channelAssign;
@@ -268,7 +271,6 @@ StreamingAudioApp::~StreamingAudioApp()
     if (m_socket)
     {
         m_socket->close();
-        qDebug("StreamingAudioApp destructor socket closed for app = %d", m_port);
         m_socket->deleteLater(); // TODO: need this, or can delete on this thread??
         m_socket = NULL;
     }
