@@ -287,7 +287,7 @@ protected:
      * JACK buffer size changed callback.
      * JACK will call this callback if the system buffer size changes.
      */
-    static int jack_buffer_size_changed(jack_nframes_t nframes, void* sam);
+    static int jack_buffer_size_changed(jack_nframes_t nframes, void*);
 
     /**
      * JACK process callback.
@@ -295,20 +295,27 @@ protected:
      * special realtime thread once for each audio cycle.  
      * This is where muting, volume control, delay, and panning occurs.
      */
-    static int jack_process(jack_nframes_t nframes, void* sam);
+    static int jack_process(jack_nframes_t nframes, void*);
 
      /**
      * JACK sample rate changed callback.
      * JACK will call this callback if the system sample rate changes.
      */
-    static int jack_sample_rate_changed(jack_nframes_t nframes, void* sam);
+    static int jack_sample_rate_changed(jack_nframes_t nframes, void*);
 
     /**
      * JACK shutdown callback.
      * JACK calls this callback if the server ever shuts down or
      * decides to disconnect the client.
      */
-    static void jack_shutdown(void* sam);
+    static void jack_shutdown(void*);
+
+    /**
+     * JACK xrun callback.
+     * JACK will call this callback if an xrun occurs.
+     */
+    static int jack_xrun(void*);
+
     
     // for JACK
     jack_client_t* m_client;          ///< local JACK client

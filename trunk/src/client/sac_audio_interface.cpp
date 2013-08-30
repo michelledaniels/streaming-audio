@@ -219,6 +219,7 @@ bool JackAudioInterface::go()
     jack_set_process_callback(m_client, JackAudioInterface::jack_process, this);
     jack_set_sample_rate_callback(m_client, JackAudioInterface::jack_sample_rate_changed, this);
     jack_on_shutdown(m_client, JackAudioInterface::jack_shutdown, this);
+    jack_set_xrun_callback(m_client, JackAudioInterface::jack_xrun, this);
 
     qDebug() << "JackAudioInterface::start registered JACK callbacks" << endl;
 
@@ -524,6 +525,13 @@ void JackAudioInterface::jack_shutdown(void*)
 {
     qWarning() << "JackAudioInterface::jack_shutdown() JACK server shut down..." << endl;
     // TODO: pass this error along to parent app?
+}
+
+int JackAudioInterface::jack_xrun(void*)
+{
+    qWarning() << "JackAudioInterface::jack_xrun()" << endl;
+    // TODO: pass this error along to parent app?
+    return 0;
 }
 
 #endif // SAC_NO_JACK
