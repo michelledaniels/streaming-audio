@@ -82,7 +82,7 @@ SamUI::~SamUI()
 
     if (m_sam)
     {
-        delete m_sam;
+        m_sam->deleteLater();
         m_sam = NULL;
     }
 }
