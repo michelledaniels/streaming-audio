@@ -68,7 +68,8 @@ RtpReceiver::RtpReceiver(quint16 portRtp,
     m_reportInterval(reportInterval),
     m_lastSenderTimestamp(0),
     m_rtcpHandler(NULL),
-    m_jackClient(jackClient)
+    m_jackClient(jackClient),
+    m_zeros(NULL)
 {
     // init RTP socket
     m_socketRtp = new QUdpSocket(this);
@@ -76,11 +77,24 @@ RtpReceiver::RtpReceiver(quint16 portRtp,
     // init RTCP receiver
     QString host;
     m_rtcpHandler = new RtcpHandler(portRtcpLocal, m_ssrc, host, portRtcpRemote, this);
+
+    // init buffer of zeros
+    m_zeros = new float[m_bufferSamples];
+    for (int i = 0; i < m_bufferSamples; i++)
+    {
+        m_zeros[i] = 0.0f;
+    }
 }
 
 RtpReceiver::~RtpReceiver()
 {
     // sockets will be destroyed by parent
+
+    if (m_zeros)
+    {
+        delete[] m_zeros;
+        m_zeros = NULL;
+    }
 
     delete m_rtcpHandler;
     m_rtcpHandler = NULL;
@@ -540,13 +554,10 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
         }
 
         // output silence
-        // TODO: change this to memcpy of pre-stored zeros
+        // TODO: confirm that frames and m_bufferSamples are the same size?
         for (int ch = 0; ch < channels; ch++)
         {
-            for (int n = 0; n < frames; n++)
-            {
-                audio[ch][n] = 0.0f;
-            }
+            memcpy(audio[ch], m_zeros, frames * sizeof(float));
         }
     }
     else
@@ -583,13 +594,10 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
         {
             qWarning("RtpReceiver::receiveAudio NO UNUSED PACKETS ready to play: playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_playtime, m_ssrc, m_portRtp);
             // output silence
-            // TODO: change this to memcpy of pre-stored zeros
+            // TODO: confirm that frames and m_bufferSamples are the same size?
             for (int ch = 0; ch < channels; ch++)
             {
-                for (int n = 0; n < frames; n++)
-                {
-                    audio[ch][n] = 0.0f;
-                }
+                memcpy(audio[ch], m_zeros, frames * sizeof(float));
             }
         }
     }

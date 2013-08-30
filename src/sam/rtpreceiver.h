@@ -227,6 +227,8 @@ protected:
     QMutex m_queueMutex;                ///< mutex for safely adding/removing/playing from packet queue
 
     jack_client_t* m_jackClient;        ///< pointer to parent's JACK client (do not delete!)
+
+    float* m_zeros;                     ///< array of zeros for fast copying during audio callback
 };
 
 } // end of namespace SAM
