@@ -14,11 +14,12 @@ static const char* CLIENT_NAME = "test client";
 
 using namespace sam;
 
-class SamTester : public QObject
+// stress testing of client registering/unregistering/etc.
+class SamStressTester : public QObject
 {
     Q_OBJECT
 public:
-    SamTester(const char* samAddress, quint16 samPort, int interval, QObject* parent) :
+    SamStressTester(const char* samAddress, quint16 samPort, int interval, QObject* parent) :
         QObject(parent),
         m_samAddress(NULL),
         m_samPort(samPort)
@@ -30,11 +31,11 @@ public:
         qsrand(QTime::currentTime().msec());
 
         QTimer *timer = new QTimer(this);
-        connect(timer, SIGNAL(timeout()), this, SLOT(testSam()));
+        connect(timer, SIGNAL(timeout()), this, SLOT(stressTest()));
         timer->start(interval);
     }
 
-    ~SamTester()
+    ~SamStressTester()
     {
         if (!m_clients.isEmpty())
         {
@@ -48,18 +49,18 @@ public:
     }
 
 public slots:
-    void testSam()
+    void stressTest()
     {
         double val = qrand() / (double)RAND_MAX;
         double valIndex = qrand() / (double)RAND_MAX;
         int index = valIndex * m_clients.size();
-        qDebug("SamTester::testSam() val = %f", val);
+        qDebug("SamStressTester::testSam() val = %f", val);
         double numOptions = 7.0;
 
         if (val > (6/numOptions) && !m_clients.isEmpty())
         {
             // unregister a client
-            qDebug("SamTester::testSam() unregistering client at index %d out of %d clients", index, m_clients.size());
+            qDebug("SamStressTester::stressTest() unregistering client at index %d out of %d clients", index, m_clients.size());
             if (m_clients[index])
             {
                 delete m_clients[index];
@@ -70,40 +71,40 @@ public slots:
         else if (val > (5/numOptions) && val <= (6/numOptions) && !m_clients.isEmpty())
         {
             // change a client's mute status
-            qDebug("SamTester::testSam() changing mute status for client at index %d out of %d clients", index, m_clients.size());
+            qDebug("SamStressTester::stressTest() changing mute status for client at index %d out of %d clients", index, m_clients.size());
             if (m_clients[index]) m_clients[index]->setMute(val > 0.5 ? 0: 1);
         }
         else if (val > (4/numOptions) && val <= (5/numOptions) && !m_clients.isEmpty())
         {
             // change a client's volume
-            qDebug("SamTester::testSam() changing volume for client at index %d out of %d clients", index, m_clients.size());
+            qDebug("SamStressTester::stressTest() changing volume for client at index %d out of %d clients", index, m_clients.size());
             if (m_clients[index]) m_clients[index]->setVolume(val);
         }
         else if (val > (3/numOptions) && val <= (4/numOptions) && !m_clients.isEmpty())
         {
             // change a client's solo status
-            qDebug("SamTester::testSam() changing solo status for client at index %d out of %d clients", index, m_clients.size());
+            qDebug("SamStressTester::stressTest() changing solo status for client at index %d out of %d clients", index, m_clients.size());
             if (m_clients[index]) m_clients[index]->setSolo(val > 0.5 ? 0: 1);
         }
         else if (val > (2/numOptions) && val <= (3/numOptions) && !m_clients.isEmpty())
         {
             // change a client's delay
-            qDebug("SamTester::testSam() changing delay for client at index %d out of %d clients", index, m_clients.size());
+            qDebug("SamStressTester::stressTest() changing delay for client at index %d out of %d clients", index, m_clients.size());
             if (m_clients[index]) m_clients[index]->setDelay(val * 100);
         }
         else
         {
             // register a client
-            qDebug("SamTester::testSam() registering a client");
+            qDebug("SamStressTester::stressTest() registering a client");
             StreamingAudioClient* client = new StreamingAudioClient();
             if (client->init(2, TYPE_BASIC, CLIENT_NAME, m_samAddress, m_samPort) != SAC_SUCCESS)
             {
-                qWarning("SamTester::testSam() ERROR: couldn't intialize a client.");
+                qWarning("SamStressTester::stressTest()  ERROR: couldn't intialize a client.");
                 delete client;
             }
             if (client->start(0, 0, 0, 0, 0) != SAC_SUCCESS)
             {
-                qWarning("SamTester::testSam() ERROR: couldn't register a client.");
+                qWarning("SamStressTester::stressTest()  ERROR: couldn't register a client.");
                 delete client;
             }
             else
@@ -118,9 +119,68 @@ private:
     char* m_samAddress;
     quint16 m_samPort;
     QList<StreamingAudioClient*> m_clients;
-
 };
 
+// testing of many clients in parallel
+class SamParallelTester : public QObject
+{
+    Q_OBJECT
+public:
+    SamParallelTester(const char* samAddress, quint16 samPort, int interval, int maxClients, int channels, QObject* parent) :
+        QObject(parent),
+        m_samAddress(NULL),
+        m_samPort(samPort)
+    {
+        int len = strlen(samAddress) + 1;
+        m_samAddress = new char[len];
+        strncpy(m_samAddress, samAddress, len);
+
+        for (int i = 0; i < maxClients; i++)
+        {
+            // register a client
+            StreamingAudioClient* client = new StreamingAudioClient();
+            if (client->init(channels, TYPE_BASIC, CLIENT_NAME, m_samAddress, m_samPort) != SAC_SUCCESS)
+            {
+                qWarning("SamParallelTester ERROR: couldn't intialize a client.");
+                delete client;
+            }
+            if (client->start(0, 0, 0, 0, 0) != SAC_SUCCESS)
+            {
+                qWarning("SamParallelTester ERROR: couldn't register a client.");
+                delete client;
+            }
+            else
+            {
+                m_clients.append(client);
+            }
+
+            // wait until time to add next client (yes, there are more elegant ways to do this)
+            QEventLoop loop;
+            QTimer::singleShot(interval, &loop, SLOT(quit()));
+            loop.exec();
+        }
+        qWarning("SamParallelTester finished adding clients.");
+    }
+
+    ~SamParallelTester()
+    {
+        if (!m_clients.isEmpty())
+        {
+            for (int i = 0; i < m_clients.size(); i++)
+            {
+                delete m_clients[i];
+                m_clients[i] = NULL;
+            }
+            m_clients.clear();
+        }
+    }
+
+private:
+
+    char* m_samAddress;
+    quint16 m_samPort;
+    QList<StreamingAudioClient*> m_clients;
+};
 
 
 #endif // SAMTESTER_H
