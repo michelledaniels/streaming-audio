@@ -79,6 +79,7 @@ struct SacParams
         name(NULL),
         samIP(NULL),
         samPort(0),
+        replyIP(NULL),
         replyPort(0),
         payloadType(PAYLOAD_PCM_16),
         driveExternally(false),
@@ -91,6 +92,7 @@ struct SacParams
     const char* name;           ///< human-readable client name (for UIs)
     const char* samIP;          ///< IP address of SAM to connect to
     quint16 samPort;            ///< Port on which SAM receives OSC messages
+    const char* replyIP;        ///< local IP address from which to send and receive OSC messages
     quint16 replyPort;          ///< Local port for receiving OSC message replies (or 0 to have port assigned internally)
     quint8 payloadType;         ///< RTP payload type (16, 24, or 32-bit PCM)
     bool driveExternally;       ///< whether audio sending will be driven by external clock
@@ -429,6 +431,7 @@ private:
     int m_packetQueueSize;
 
     // for OSC
+    char* m_replyIP;
     quint16 m_replyPort;              ///< OSC port for this client
     QTcpSocket m_socket;              ///< Socket for sending and receiving OSC messages
     QByteArray m_data;                ///< temporary storage for received data
