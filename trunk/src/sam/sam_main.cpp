@@ -135,47 +135,89 @@ int main(int argc, char* argv[])
     // TODO: add jackd command/path parameter
     // set parameter defaults
     SamParams params;
-    params.numBasicChannels = settings.value("NumBasicChannels", 0).toInt();
-    params.sampleRate = settings.value("SampleRate", 48000).toInt();
-    params.bufferSize = settings.value("BufferSize", 256).toInt();
+    QVariant temp;
+    temp = settings.value("NumBasicChannels", 0);
+    params.numBasicChannels = temp.toInt();
+
+    temp = settings.value("SampleRate", 48000);
+    params.sampleRate = temp.toInt();
+
+    temp = settings.value("BufferSize", 256);
+    params.bufferSize = temp.toInt();
+
 #if defined __APPLE__
-    QString driver = settings.value("JackDriver", "coreaudio").toString();
+    temp = settings.value("JackDriver", "coreaudio");
+    QString driver = temp.toString();
 #else
-    QString driver = settings.value("JackDriver", "alsa").toString();
+    temp = settings.value("JackDriver", "alsa");
+    QString driver = temp.toString();
 #endif
-    QByteArray driverBytes = driver.toAscii();
+    QByteArray driverBytes = driver.toLocal8Bit();
     params.jackDriver = driverBytes.data();
-    params.oscPort = settings.value("OscPort", 7770).toInt();
-    params.rtpPort = settings.value("RtpPort", 4464).toInt();
-    params.maxOutputChannels = settings.value("MaxOutputChannels", 32768).toInt();
-    params.volume = settings.value("Volume", 1.0f).toFloat();
-    params.delayMillis = settings.value("DelayMillis", 0.0f).toFloat();
-    params.maxDelayMillis = settings.value("MaxDelayMillis", 1000).toFloat();
-    params.maxClientDelayMillis = settings.value("MaxClientDelayMillis", params.maxDelayMillis).toFloat();
-    QString renderHost =  settings.value("RenderHost", "").toString();
-    QByteArray renderHostBytes = renderHost.toAscii();
+
+    temp = settings.value("OscPort", 7770);
+    params.oscPort = temp.toInt();
+
+    temp = settings.value("RtpPort", 4464);
+    params.rtpPort = temp.toInt();
+
+    temp = settings.value("MaxOutputChannels", 32768);
+    params.maxOutputChannels = temp.toInt();
+
+    temp = settings.value("Volume", 1.0f);
+    params.volume = temp.toFloat();
+
+    temp = settings.value("DelayMillis", 0.0f);
+    params.delayMillis = temp.toFloat();
+
+    temp = settings.value("MaxDelayMillis", 1000);
+    params.maxDelayMillis = temp.toFloat();
+
+    temp = settings.value("MaxClientDelayMillis", params.maxDelayMillis);
+    params.maxClientDelayMillis = temp.toFloat();
+
+    temp = settings.value("RenderHost", "");
+    QString renderHost =  temp.toString();
+    QByteArray renderHostBytes = renderHost.toLocal8Bit();
     params.renderHost = renderHostBytes.data();
-    params.renderPort = settings.value("RenderPort", 0).toInt();
-    params.packetQueueSize = settings.value("PacketQueueSize", 4).toInt();
+
+    temp = settings.value("RenderPort", 0);
+    params.renderPort = temp.toInt();
+
+    temp = settings.value("PacketQueueSize", 4);
+    params.packetQueueSize = temp.toInt();
     
-    QString outputJackClientNameBasic = settings.value("OutputJackClientNameBasic", "system").toString();
-    QByteArray outputJackClientBytesBasic = outputJackClientNameBasic.toAscii();
+    temp = settings.value("OutputJackClientNameBasic", "system");
+    QString outputJackClientNameBasic = temp.toString();
+    QByteArray outputJackClientBytesBasic = outputJackClientNameBasic.toLocal8Bit();
     params.outJackClientNameBasic = outputJackClientBytesBasic.data();
-    QString outputJackPortBaseBasic = settings.value("OutputJackPortBaseBasic", "playback_").toString();
-    QByteArray outputJackPortBytesBasic = outputJackPortBaseBasic.toAscii();
+
+    temp = settings.value("OutputJackPortBaseBasic", "playback_");
+    QString outputJackPortBaseBasic = temp.toString();
+    QByteArray outputJackPortBytesBasic = outputJackPortBaseBasic.toLocal8Bit();
     params.outJackPortBaseBasic = outputJackPortBytesBasic.data();
-    QString outputJackClientNameDiscrete = settings.value("OutputJackClientNameDiscrete", "system").toString();
-    QByteArray outputJackClientBytesDiscrete = outputJackClientNameDiscrete.toAscii();
+
+    temp = settings.value("OutputJackClientNameDiscrete", "system");
+    QString outputJackClientNameDiscrete = temp.toString();
+    QByteArray outputJackClientBytesDiscrete = outputJackClientNameDiscrete.toLocal8Bit();
     params.outJackClientNameDiscrete = outputJackClientBytesDiscrete.data();
-    QString outputJackPortBaseDiscrete = settings.value("OutputJackPortBaseDiscrete", "playback_").toString();
-    QByteArray outputJackPortBytesDiscrete = outputJackPortBaseDiscrete.toAscii();
+
+    temp = settings.value("OutputJackPortBaseDiscrete", "playback_");
+    QString outputJackPortBaseDiscrete = temp.toString();
+    QByteArray outputJackPortBytesDiscrete = outputJackPortBaseDiscrete.toLocal8Bit();
     params.outJackPortBaseDiscrete = outputJackPortBytesDiscrete.data();
 
-    params.maxClients = settings.value("MaxClients", 100).toInt();
-    params.meterIntervalMillis = settings.value("MeterIntervalMillis", 1000.0f).toFloat();
-    params.verifyPatchVersion = settings.value("VerifyPatchVersion", true).toBool();
+    temp = settings.value("MaxClients", 100);
+    params.maxClients = temp.toInt();
 
-    int outputPortOffset = settings.value("OutputPortOffset", -1).toInt();
+    temp = settings.value("MeterIntervalMillis", 1000.0f);
+    params.meterIntervalMillis = temp.toFloat();
+
+    temp = settings.value("VerifyPatchVersion", true);
+    params.verifyPatchVersion = temp.toBool();
+
+    temp = settings.value("OutputPortOffset", -1);
+    int outputPortOffset = temp.toInt();
     if (outputPortOffset >= 0)
     {
         qWarning("WARNING: OutputPortOffset is no longer a valid config file parameter. Specify desired channels using BasicChannels and DiscreteChannels instead.");
@@ -187,7 +229,8 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    bool useGui = settings.value("UseGui", false).toBool();
+    temp = settings.value("UseGui", false);
+    bool useGui = temp.toBool();
 
     // parse command-line parameters which will override config file settings
     bool basicChOverride = false;
@@ -266,7 +309,8 @@ int main(int argc, char* argv[])
         }
     }
     
-    params.clockSkewThreshold = settings.value("ClockSkewThreshold", params.bufferSize).toInt(); // read this after parsing command-line params in case buffer size is specified on command line
+    temp = settings.value("ClockSkewThreshold", params.bufferSize);
+    params.clockSkewThreshold = temp.toInt(); // read this after parsing command-line params in case buffer size is specified on command line
 
     if (basicChOverride || !settings.contains("BasicChannels"))
     {
@@ -280,7 +324,8 @@ int main(int argc, char* argv[])
     else
     {
         // populate channel list from config file
-        QString basicChannelString = settings.value("BasicChannels", "").toString();
+        temp = settings.value("BasicChannels", "");
+        QString basicChannelString = temp.toString();
         qDebug() << "basic channel string: " << basicChannelString;
         if (!basicChannelString.isEmpty() && !parse_channels(params.basicChannels, basicChannelString, params.maxOutputChannels))
         {
@@ -304,7 +349,8 @@ int main(int argc, char* argv[])
     else
     {
         // populate discrete channel list from config file
-        QString discreteChannelString = settings.value("DiscreteChannels", "").toString();
+        temp = settings.value("DiscreteChannels", "");
+        QString discreteChannelString = temp.toString();
         qDebug() << "discrete channel string: " << discreteChannelString;
         if (!discreteChannelString.isEmpty() && !parse_channels(params.discreteChannels, discreteChannelString, params.maxOutputChannels))
         {

@@ -213,7 +213,9 @@ void StreamingAudioManager::run()
     
     if (!m_udpSocket->bind(m_oscServerPort))
     {
-        qWarning("StreamingAudioManager::run() UDP socket couldn't bind to port %d: %s", m_oscServerPort, m_udpSocket->errorString().toAscii().data());
+        QString errString = m_udpSocket->errorString();
+        QByteArray errArray = errString.toLocal8Bit();
+        qWarning("StreamingAudioManager::run() UDP socket couldn't bind to port %d: %s", m_oscServerPort, errArray.constData());
         emit startupError();
         return;
     }
@@ -1756,7 +1758,10 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
     sam::SamErrorCode code = sam::SAM_ERR_DEFAULT;
     if (version_check(majorVersion, minorVersion, patchVersion))
     {
-        printf("Registering app at hostname %s, port %d with name %s, %d channel(s), position [%d %d %d %d %d], type = %d, preset = %d, packet queue length = %d\n\n", socket->peerAddress().toString().toAscii().data(), replyPort, name, channels, x, y, width, height, depth, type, preset, packetQueueLength);
+        QHostAddress addr = socket->peerAddress();
+        QString addrString = addr.toString();
+        QByteArray addrBytes = addrString.toLocal8Bit();
+        printf("Registering app at hostname %s, port %d with name %s, %d channel(s), position [%d %d %d %d %d], type = %d, preset = %d, packet queue length = %d\n\n", addrBytes.constData(), replyPort, name, channels, x, y, width, height, depth, type, preset, packetQueueLength);
         port = registerApp(name, channels, x, y, width, height, depth, type, preset, packetQueueLength, socket, code);
     }
     else
@@ -2179,7 +2184,9 @@ void StreamingAudioManager::readPendingDatagrams()
         }
         else
         {
-            handleOscMessage(oscMsg, sender.toString().toAscii().data(), m_udpSocket);
+            QString senderStr = sender.toString();
+            QByteArray senderBytes = senderStr.toLocal8Bit();
+            handleOscMessage(oscMsg, senderBytes.constData(), m_udpSocket);
         }
     }
 }

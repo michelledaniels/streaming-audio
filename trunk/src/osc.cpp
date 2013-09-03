@@ -573,7 +573,9 @@ void OscTcpSocketReader::readFromSocket()
             }
             else
             {
-                QByteArray address = m_socket->peerAddress().toString().toLocal8Bit();
+                QHostAddress hostAddress =  m_socket->peerAddress();
+                QString addressString = hostAddress.toString();
+                QByteArray address = addressString.toLocal8Bit();
                 emit messageReady(oscMsg, address.constData(), socket);
             }
 
@@ -672,7 +674,8 @@ void OscServer::readPendingDatagrams()
         }
         else
         {
-            QByteArray senderArray = sender.toString().toLocal8Bit();
+            QString senderString = sender.toString();
+            QByteArray senderArray = senderString.toLocal8Bit();
             emit messageReady(oscMsg, senderArray.constData());
         }
     }
