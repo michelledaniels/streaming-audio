@@ -25,6 +25,7 @@ StreamingAudioClient::StreamingAudioClient() :
     m_bufferSize(0),
     m_sampleRate(0),
     m_type(TYPE_BASIC),
+    m_preset(0),
     m_port(-1),
     m_name(NULL),
     m_samIP(NULL),
@@ -106,6 +107,23 @@ StreamingAudioClient::~StreamingAudioClient()
     qDebug("End of StreamingAudioClient destructor");
 }
 
+int StreamingAudioClient::init(const SacParams& params)
+{
+    // init params that are not initialized in original init()
+    m_preset = params.preset;
+    m_packetQueueSize = params.packetQueueSize;
+
+    // init everything else with original init()
+    return init(params.numChannels,
+                params.type,
+                params.name,
+                params.samIP,
+                params.samPort,
+                params.replyPort,
+                params.payloadType,
+                params.driveExternally);
+}
+
 int StreamingAudioClient::init(unsigned int numChannels, StreamingAudioType type, const char* name, const char* samIP, quint16 samPort, quint16 replyPort, quint8 payloadType, bool driveExternally)
 {
     if (m_port >= 0) return SAC_ERROR; // already initialized and registered
@@ -154,13 +172,6 @@ int StreamingAudioClient::init(unsigned int numChannels, StreamingAudioType type
     return SAC_SUCCESS;
 }
 
-int StreamingAudioClient::setPacketQueueSize(int numPackets)
-{
-    if (m_port >= 0) return SAC_ERROR; // already registered: too late to set packet queue size
-    m_packetQueueSize = numPackets;
-    return SAC_SUCCESS;
-}
-
 int StreamingAudioClient::start(int x, int y, int width, int height, int depth, unsigned int timeout)
 {
     if (m_port >= 0) return SAC_ERROR; // already registered
@@ -195,13 +206,14 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
     qDebug("StreamingAudioClient::start() Sending register message to SAM: name = %s, channels = %d, position = [%d, %d, %d, %d, %d], type = %d", m_name, m_channels, x, y, width, height, depth, m_type);
 
     OscMessage msg;
-    msg.init("/sam/app/register", "siiiiiiiiiiiii", m_name, m_channels,
+    msg.init("/sam/app/register", "siiiiiiiiiiiiii", m_name, m_channels,
                                                        x,
                                                        y,
                                                        width,
                                                        height,
                                                        depth,
                                                        m_type,
+                                                       m_preset,
                                                        0, // placeholder for packet size/samples per packet requested
                                                        m_packetQueueSize,
                                                        VERSION_MAJOR,

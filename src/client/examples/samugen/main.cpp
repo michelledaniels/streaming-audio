@@ -22,14 +22,15 @@ void print_help()
     printf("--ip or -i SAM ip\n");
     printf("--port or -p SAM port\n");
     printf("--channels or -c number of channels to stream\n");
-    printf("--type or -t type of SAM stream\n");
+    printf("--type or -t rendering type\n");
     printf("[--x or -x initial x position coordinate]\n");
     printf("[--y or -y initial y position coordinate]\n");
     printf("[--width or -w initial width for SAM stream]\n");
     printf("[--height or -h initial height for SAM stream]\n");
     printf("[--depth or -d initial depth for SAM stream]\n");
+    printf("[--preset or -r rendering preset]\n");
     printf("\nExample usage:\n");
-    printf("samugen -n \"Example Client\" -i \"127.0.0.1\" -p 7770 -c 2 -t 0\n");
+    printf("samugen -n \"Example Client\" -i \"127.0.0.1\" -p 7770 -c 2 -t 0 -r 0\n");
     printf("\n");
 }
 
@@ -87,16 +88,18 @@ int main(int argc, char *argv[])
 
     StreamingAudioClient sac;
 
-    StreamingAudioType type = (StreamingAudioType)-1;
-    char* name = NULL;
-    char* samIP = NULL;
-    quint16 samPort = 0;
-    unsigned int numChannels = 0;
     int x = 0;
     int y = 0;
     int width = 0;
     int height = 0;
     int depth = 0;
+    SacParams params;
+    params.numChannels = 0;
+    params.type = (StreamingAudioType)-1;
+    params.name = NULL;
+    params.samIP = NULL;
+    params.samPort = 0;
+    params.preset = 0;
 
     // parse command-line parameters
     while (true)
@@ -113,12 +116,13 @@ int main(int argc, char *argv[])
             {"width", optional_argument, NULL, 'w'},
             {"height", optional_argument, NULL, 'h'},
             {"depth", optional_argument, NULL, 'd'},
+            {"preset", optional_argument, NULL, 'r'},
             {NULL, 0, NULL, 0}
         };
 
         // getopt_long stores the option index here.
         int option_index = 0;
-        int c = getopt_long(argc, argv, "n:i:p:c:t:x:y:w:h:d:", long_options, &option_index);
+        int c = getopt_long(argc, argv, "n:i:p:c:t:x:y:w:h:d:r:", long_options, &option_index);
 
         // Detect the end of the options.
         if (c == -1) break;
@@ -133,18 +137,18 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'n':
-            name = optarg;
-            qWarning("setting name = %s", name);
+            params.name = optarg;
+            qWarning("setting name = %s", params.name);
             break;
 
         case 'i':
-            samIP = optarg;
-            qWarning("setting samIP = %s", samIP);
+            params.samIP = optarg;
+            qWarning("setting samIP = %s", params.samIP);
             break;
 
         case 'p':
-            samPort = atoi(optarg);
-            qWarning("setting samPort = %u", samPort);
+            params.samPort = atoi(optarg);
+            qWarning("setting samPort = %u", params.samPort);
             break;
 
         case 'c':
@@ -154,8 +158,8 @@ int main(int argc, char *argv[])
             {
                 qCritical("Number of channels must be at least 1");
             }
-            numChannels = temp;
-            qWarning("setting number of channels = %u", numChannels);
+            params.numChannels = temp;
+            qWarning("setting number of channels = %u", params.numChannels);
             break;
         }
         case 'x':
@@ -184,8 +188,13 @@ int main(int argc, char *argv[])
             break;
 
         case 't':
-            type = (StreamingAudioType)atoi(optarg);
-            qWarning("setting type = %d", type);
+            params.type = (StreamingAudioType)atoi(optarg);
+            qWarning("setting type = %d", params.type);
+            break;
+
+        case 'r':
+            params.preset = atoi(optarg);
+            qWarning("setting preset = %d", params.preset);
             break;
 
         default:
@@ -194,7 +203,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (!name)
+    if (!params.name)
     {
         print_help();
         exit(EXIT_FAILURE);
@@ -205,7 +214,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, signalhandler);
     signal(SIGTERM, signalhandler);
 
-    if (sac.init(numChannels, type, name, samIP, samPort) != SAC_SUCCESS)
+    if (sac.init(params) != SAC_SUCCESS)
     {
         qWarning("Couldn't initialize client");
         exit(EXIT_FAILURE);

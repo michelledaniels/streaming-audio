@@ -36,6 +36,7 @@ public:
                       int channels, 
                       const SamAppPosition& pos, 
                       StreamingAudioType type, 
+                      int preset,
                       jack_client_t* client, 
                       QTcpSocket* socket, 
                       quint16 rtpBasePort, 
@@ -143,17 +144,29 @@ public:
     SamAppPosition getPosition() const { return m_position; }
 
     /**
-     * Set the type.
-     * @param type the type to be set
+     * Set the rendering type.
+     * @param type the rendering type to be set
      */
     void setType(StreamingAudioType type);
 
     /**
-     * Get the type level.
-     * @return the type level
+     * Get the rendering type.
+     * @return the rendering type
      */
     StreamingAudioType getType() const { return m_type; }
-    
+
+    /**
+     * Set the rendering preset.
+     * @param preset the preset to be set
+     */
+    void setPreset(int preset);
+
+    /**
+     * Get the rendering preset.
+     * @return the type level
+     */
+    int getPreset() const { return m_preset; }
+
     /**
      * Set a channel assignment.
      * @param appChannel the app's channel
@@ -408,6 +421,7 @@ private:
     int m_sampleRate;           ///< audio sample rate
     SamAppPosition m_position;  ///< app window position
     StreamingAudioType m_type;  ///< audio type
+    int m_preset;               ///< rendering preset
     bool m_deleteMe;            ///< indicates whether this app is ready to be deleted
     StreamingAudioManager* m_sam; ///< SAM
 

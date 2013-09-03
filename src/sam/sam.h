@@ -162,13 +162,14 @@ public:
      * @param width initial width of corresponding SAGE window
      * @param height initial height of corresponding SAGE window
      * @param depth initial depth of corresponding SAGE window
-     * @param type the app's streaming type
+     * @param type the app's rendering type
+     * @param preset the rendering preset for this type
      * @param packetQueueSize number of packets to buffer in receiver, or -1 to use SAM default
      * @param socket the TCP socket through which the app/client connected to SAM
      * @param errCode if an error occurs, the SamErrorCode which best describes the error.  Otherwise undefined.
      * @return unique port for this stream or -1 on error
      */
-    int registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, sam::StreamingAudioType type, int packetQueueSize, QTcpSocket* socket, sam::SamErrorCode& errCode);
+    int registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, sam::StreamingAudioType type, int preset, int packetQueueSize, QTcpSocket* socket, sam::SamErrorCode& errCode);
 
     /**
      * Unregister an app

@@ -67,6 +67,37 @@ enum SACReturn
 };
 
 /**
+ * @struct SacParams
+ * This struct contains the parameters needed to intialize a SAC
+ */
+struct SacParams
+{
+    SacParams() :
+        numChannels(0),
+        type(TYPE_BASIC),
+        preset(0),
+        name(NULL),
+        samIP(NULL),
+        samPort(0),
+        replyPort(0),
+        payloadType(PAYLOAD_PCM_16),
+        driveExternally(false),
+        packetQueueSize(-1)
+    {}
+
+    unsigned int numChannels;   ///< number of channels of audio to send to SAM
+    StreamingAudioType type;    ///< rendering type
+    unsigned int preset;        ///< rendering preset
+    const char* name;           ///< human-readable client name (for UIs)
+    const char* samIP;          ///< IP address of SAM to connect to
+    quint16 samPort;            ///< Port on which SAM receives OSC messages
+    quint16 replyPort;          ///< Local port for receiving OSC message replies (or 0 to have port assigned internally)
+    quint8 payloadType;         ///< RTP payload type (16, 24, or 32-bit PCM)
+    bool driveExternally;       ///< whether audio sending will be driven by external clock
+    int packetQueueSize;        ///< number of packets that will be queued on SAM's end before playback, or -1 to use SAM's internal default
+};
+
+/**
  * @typedef SACAudioCallback
  * Prototype for a StreamingAudioClient audio callback function.
  * This function is called whenever more audio data is needed.
@@ -145,8 +176,15 @@ public:
 
     /**
      * Init this StreamingAudioClient.
-     * If you use the default constructor, you must separately initialize with
-     * this method before calling start().
+     * This must be called before calling start().
+     * @param params ::SacParams struct of parameters
+     * @return 0 on success, a non-zero ::SACReturn code on failure
+     */
+    int init(const SacParams& params);
+
+    /**
+     * Init this StreamingAudioClient.
+     * This must be called before calling start().
      * @param numChannels number of audio channels this client will send to SAM
      * @param type the type of audio stream this client will send
      * @param name the name of this client
@@ -166,14 +204,6 @@ public:
              quint16 replyPort = 0,
              quint8 payloadType = PAYLOAD_PCM_16,
              bool driveExternally = false);
-
-   /**
-    * Set the desired packet queue size.
-    * Must be called before start()
-    * @param numPackets >= 0 to specify the number of packets to buffer on receiving side, -1 to use SAM default
-    * @return 0 on success, a non-zero ::SACReturn code on failure
-    */
-    int setPacketQueueSize(int numPackets);
 
     /**
      * Register this client with SAM and block until response is received.
@@ -390,6 +420,7 @@ private:
     unsigned int m_bufferSize;
     unsigned int m_sampleRate;
     StreamingAudioType m_type;
+    unsigned int m_preset;
     volatile int m_port;
     char* m_name;
     char* m_samIP;

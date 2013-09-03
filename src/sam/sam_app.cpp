@@ -32,6 +32,7 @@ StreamingAudioApp::StreamingAudioApp(const char* name,
                                      int channels, 
                                      const SamAppPosition& pos, 
                                      StreamingAudioType type, 
+                                     int preset,
                                      jack_client_t* client, 
                                      QTcpSocket* socket, 
                                      quint16 rtpBasePort, 
@@ -47,6 +48,7 @@ StreamingAudioApp::StreamingAudioApp(const char* name,
     m_sampleRate(0),
     m_position(pos),
     m_type(type),
+    m_preset(preset),
     m_deleteMe(false),
     m_sam(sam),
     m_channelAssign(NULL),
@@ -444,6 +446,29 @@ void StreamingAudioApp::setType(StreamingAudioType type)
         qWarning("Couldn't send OSC message");
     }
 }
+
+/*void StreamingAudioApp::setPreset(int preset)
+{
+    m_preset = preset;
+
+    // notify subscribers
+    OscMessage replyMsg;
+    replyMsg.init("/sam/val/preset", "ii", m_port, m_preset);
+    QVector<OscAddress*>::iterator it;
+    for (it = m_presetSubscribers.begin(); it != m_presetSubscribers.end(); it++)
+    {
+        if (!OscClient::sendUdp(&replyMsg, (OscAddress*)*it))
+        {
+            qWarning("Couldn't send OSC message");
+        }
+    }
+
+    // notify the client
+    if (!OscClient::sendFromSocket(&replyMsg, m_socket))
+    {
+        qWarning("Couldn't send OSC message");
+    }
+}*/
 
 void StreamingAudioApp::setPosition(const SamAppPosition& pos)
 {

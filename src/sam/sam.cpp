@@ -386,7 +386,7 @@ int StreamingAudioManager::getNumApps()
     return count;
 }       
 
-int StreamingAudioManager::registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, StreamingAudioType type, int packetQueueSize, QTcpSocket* socket, sam::SamErrorCode& errCode)
+int StreamingAudioManager::registerApp(const char* name, int channels, int x, int y, int width, int height, int depth, StreamingAudioType type, int preset, int packetQueueSize, QTcpSocket* socket, sam::SamErrorCode& errCode)
 {
     // TODO: check for duplicates (an app already at the same IP/port)?
     
@@ -420,7 +420,7 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
     pos.width = width;
     pos.height = height;
     pos.depth = depth;
-    m_apps[port] = new StreamingAudioApp(name, port, channels, pos, type, m_client, socket, m_rtpPort, m_delayMaxClient, queueSize, m_clockSkewThreshold, this);
+    m_apps[port] = new StreamingAudioApp(name, port, channels, pos, type, preset, m_client, socket, m_rtpPort, m_delayMaxClient, queueSize, m_clockSkewThreshold, this);
     connect(m_apps[port], SIGNAL(appClosed(int,int)), this, SLOT(cleanupApp(int,int)));
     connect(m_apps[port], SIGNAL(appDisconnected(int)), this, SLOT(closeApp(int)));
     if (!m_apps[port]->init())
@@ -454,7 +454,7 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
     {
         OscAddress* replyAddr = m_uiSubscribers.at(i);
         OscMessage replyMsg;
-        replyMsg.init("/sam/app/registered", "isiiiiiii", port,
+        replyMsg.init("/sam/app/registered", "isiiiiiiii", port,
                                                          m_apps[port]->getName(),
                                                          m_apps[port]->getNumChannels(),
                                                          pos.x,
@@ -462,7 +462,8 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
                                                          pos.width,
                                                          pos.height,
                                                          pos.depth,
-                                                         m_apps[port]->getType());
+                                                         m_apps[port]->getType(),
+                                                         m_apps[port]->getPreset());
         if (!OscClient::sendUdp(&replyMsg, replyAddr))
         {
             qWarning("Couldn't send OSC message");
@@ -994,7 +995,7 @@ void StreamingAudioManager::handle_app_message(const char* address, OscMessage* 
             return;
         }
     
-        if (msg->typeMatches("siiiiiiiiiiiii"))
+        if (msg->typeMatches("siiiiiiiiiiiiii"))
         {
             // register
             osc_register(msg, dynamic_cast<QTcpSocket*>(socket));
@@ -1736,16 +1737,18 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
     msg->getArg(7, arg);
     StreamingAudioType type = (StreamingAudioType)arg.val.i;
     msg->getArg(8, arg);
-    int bufferSize = arg.val.i; // placeholder for future use
+    int preset = arg.val.i;
     msg->getArg(9, arg);
-    int packetQueueLength = arg.val.i; // placeholder for future use
+    int bufferSize = arg.val.i; // placeholder for future use
     msg->getArg(10, arg);
-    int majorVersion = arg.val.i;
+    int packetQueueLength = arg.val.i; // placeholder for future use
     msg->getArg(11, arg);
-    int minorVersion = arg.val.i;
+    int majorVersion = arg.val.i;
     msg->getArg(12, arg);
-    int patchVersion = arg.val.i;
+    int minorVersion = arg.val.i;
     msg->getArg(13, arg);
+    int patchVersion = arg.val.i;
+    msg->getArg(14, arg);
     quint16 replyPort = arg.val.i;
 
     int port = -1;
@@ -1753,8 +1756,8 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
     sam::SamErrorCode code = sam::SAM_ERR_DEFAULT;
     if (version_check(majorVersion, minorVersion, patchVersion))
     {
-        printf("Registering app at hostname %s, port %d with name %s, %d channel(s), position [%d %d %d %d %d], type = %d, packet queue length = %d\n\n", socket->peerAddress().toString().toAscii().data(), replyPort, name, channels, x, y, width, height, depth, type, packetQueueLength);
-        port = registerApp(name, channels, x, y, width, height, depth, type, packetQueueLength, socket, code);
+        printf("Registering app at hostname %s, port %d with name %s, %d channel(s), position [%d %d %d %d %d], type = %d, preset = %d, packet queue length = %d\n\n", socket->peerAddress().toString().toAscii().data(), replyPort, name, channels, x, y, width, height, depth, type, preset, packetQueueLength);
+        port = registerApp(name, channels, x, y, width, height, depth, type, preset, packetQueueLength, socket, code);
     }
     else
     {
@@ -1942,6 +1945,7 @@ bool StreamingAudioManager::send_stream_added(StreamingAudioApp* app, OscAddress
     msg.init("/sam/stream/add", NULL);
     msg.addIntArg(app->getPort());
     msg.addIntArg(app->getType());
+    msg.addIntArg(app->getPreset());
 
     // count the number of channels used
     int channels = app->getNumChannels();
