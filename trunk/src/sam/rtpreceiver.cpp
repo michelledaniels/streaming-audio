@@ -145,7 +145,6 @@ void RtpReceiver::readPendingDatagramsRtp()
         if (!packet)
         {
             qWarning("RtpReceiver::readPendingDatagramsRtp received invalid RTP packet, ssrc = %u, RTP port = %d", m_ssrc, m_portRtp);
-            delete packet;
             break;
         }
         
