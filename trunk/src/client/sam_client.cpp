@@ -32,6 +32,7 @@ StreamingAudioClient::StreamingAudioClient() :
     m_samPort(0),
     m_payloadType(PAYLOAD_PCM_16),
     m_packetQueueSize(-1),
+    m_replyIP(NULL),
     m_replyPort(0),
     m_responseReceived(false),
     m_driveExternally(false),
@@ -103,6 +104,12 @@ StreamingAudioClient::~StreamingAudioClient()
         delete[] m_name;
         m_name = NULL;
     }
+
+    if (m_replyIP)
+    {
+        delete[] m_replyIP;
+        m_replyIP = NULL;
+    }
     
     qDebug("End of StreamingAudioClient destructor");
 }
@@ -112,6 +119,19 @@ int StreamingAudioClient::init(const SacParams& params)
     // init params that are not initialized in original init()
     m_preset = params.preset;
     m_packetQueueSize = params.packetQueueSize;
+
+    // copy reply IP address
+    if (params.replyIP)
+    {
+        if (m_replyIP)
+        {
+            delete[] m_replyIP;
+            m_replyIP = NULL;
+        }
+        size_t len = strlen(params.replyIP);
+        m_replyIP = new char[len + 1];
+        strncpy(m_replyIP, params.replyIP, len + 1);
+    }
 
     // init everything else with original init()
     return init(params.numChannels,
@@ -147,7 +167,7 @@ int StreamingAudioClient::init(unsigned int numChannels, StreamingAudioType type
         delete[] m_name;
         m_name = NULL;
     }
-    int len = strlen(name);
+    size_t len = strlen(name);
     m_name = new char[len + 1];
     strncpy(m_name, name, len + 1);
 
@@ -185,6 +205,26 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
     printf("Connecting to SAM at IP %s, port %d\n", m_samIP, m_samPort);
     printf("--------------------------------------\n\n");
     
+    // bind to local IP and port (Qt 5+ only)
+    if (m_replyIP || m_replyPort > 0)
+    {
+#if QT_VERSION >= 0x050000
+        if (m_replyIP)
+        {
+            QString replyIPStr(m_replyIP);
+            QHostAddress replyIPAddr(replyIPStr);
+            m_socket.bind(replyIPAddr, m_replyPort);
+        }
+        else
+        {
+            m_socket.bind(QHostAddress::Any, m_replyPort);
+        }
+#else
+        qWarning("Couldn't bind to specified local IP and port.  Qt version 5.0+ required.");
+        return SAC_ERROR;
+#endif
+    }
+
     QString samIPStr(m_samIP);
     m_socket.connectToHost(samIPStr, m_samPort);
     if (!m_socket.waitForConnected(timeout))
