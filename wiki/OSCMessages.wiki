@@ -34,7 +34,7 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 || `/sam/render/regconfirm`|| || || || ||
 || `/sam/render/regdeny` || `i` || `errorCode` || none || error codes defined above ||
 ||`/sam/render/unregister` || none  || none || none || ||
-|| `/sam/stream/add` || `iii...` || `id`, `type`, `channels`, followed by a list of all channels (type `i`) || none || Sent by SAM to the renderer when a new stream is added (app registered).  Specifies the output channels that stream is using. This is a variable-length message depending on the number of channels. ||
+|| `/sam/stream/add` || `iiii...` || `id`, `type`, `preset`, `channels`, followed by a list of all channels (type `i`) || none || Sent by SAM to the renderer when a new stream is added (app registered).  Specifies the output channels that stream is using. This is a variable-length message depending on the number of channels. ||
 || `/sam/stream/remove` || `i` || `id` || none || Sent by SAM when a stream is removed (app unregistered). ||
 
 == SAM/UI Messages == 
@@ -44,7 +44,7 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 || `/sam/ui/regconfirm` || `iifff` ||| `currentNumApps`, `globalMute`, `globalVolume`, `globalDelay`, `delayMax` || none || delay parameters are specified in milliseconds ||
 ||`/sam/ui/regdeny` || `i` || `errorCode` || none || error codes defined above ||
 ||`/sam/ui/unregister` || `i` ||| `replyPort` || none || ||
-||`/sam/app/registered` || `isiiiiiii` || `id`, `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type` || none || ||
+||`/sam/app/registered` || `isiiiiiiii` || `id`, `name`, `channels`, `x`, `y`, `width`, `height`, `depth`, `type`, `preset` || none || ||
 || `/sam/app/unregistered` || `i` || `id` || none || ||
 
 == Control Messages ==
