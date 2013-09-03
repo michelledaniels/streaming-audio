@@ -113,7 +113,8 @@ bool RtpReceiver::start()
 {
     if (!m_socketRtp->bind(m_portRtp))
     {
-        qWarning("RtpReceiver::start() RTP socket couldn't bind to port %d: %s", m_portRtp, m_socketRtp->errorString().toAscii().data());
+        QByteArray errArray = m_socketRtp->errorString().toLocal8Bit();
+        qWarning("RtpReceiver::start() RTP socket couldn't bind to port %d: %s", m_portRtp, errArray.constData());
         return false;
     }
     else
@@ -179,8 +180,8 @@ void RtpReceiver::readPendingDatagramsRtp()
                 m_firstPacket = true; // force a reset with the next packet
                 QDateTime currentTime = QDateTime::currentDateTime();
                 QString currentTimeString = currentTime.toString();
-                QByteArray currentTimeAscii = currentTimeString.toAscii();
-                qWarning("[%s] RtpReceiver::readPendingDatagramsRtp TOO MANY LATE PACKETS received, forcing reset: ssrc = %u, RTP port = %d", currentTimeAscii.data(), m_ssrc, m_portRtp);
+                QByteArray currentTimeBytes = currentTimeString.toLocal8Bit();
+                qWarning("[%s] RtpReceiver::readPendingDatagramsRtp TOO MANY LATE PACKETS received, forcing reset: ssrc = %u, RTP port = %d", currentTimeBytes.constData(), m_ssrc, m_portRtp);
             }
             delete packet;
             break;
@@ -440,8 +441,8 @@ qint32 RtpReceiver::adjust_for_clock_skew(RtpPacket* packet)
         // sender is fast compared to receiver
         QDateTime currentTime = QDateTime::currentDateTime();
         QString currentTimeString = currentTime.toString();
-        QByteArray currentTimeAscii = currentTimeString.toAscii();
-        qWarning("[%s] Receiver is slower than sender: compensating for clock skew! ssrc = %u, RTP port = %u, system playtime = %u, packet queue length = %d", currentTimeAscii.data(), m_ssrc, m_portRtp, m_playtime, packet_queue_length());
+        QByteArray currentTimeBytes = currentTimeString.toLocal8Bit();
+        qWarning("[%s] Receiver is slower than sender: compensating for clock skew! ssrc = %u, RTP port = %u, system playtime = %u, packet queue length = %d", currentTimeBytes.constData(), m_ssrc, m_portRtp, m_playtime, packet_queue_length());
         m_timestampOffset -= m_clockSkewThreshold;
         m_clockActiveDelay = m_clockDelayEstimate;
         return -m_clockSkewThreshold;
@@ -451,8 +452,8 @@ qint32 RtpReceiver::adjust_for_clock_skew(RtpPacket* packet)
         // sender is slow compared to receiver
         QDateTime currentTime = QDateTime::currentDateTime();
         QString currentTimeString = currentTime.toString();
-        QByteArray currentTimeAscii = currentTimeString.toAscii();
-        qWarning("[%s] Receiver is faster than sender: compensating for clock skew! ssrc = %u, RTP port = %u, system playtime = %u, packet queue length = %d", currentTimeAscii.data(), m_ssrc, m_portRtp, m_playtime, packet_queue_length());
+        QByteArray currentTimeBytes = currentTimeString.toLocal8Bit();
+        qWarning("[%s] Receiver is faster than sender: compensating for clock skew! ssrc = %u, RTP port = %u, system playtime = %u, packet queue length = %d", currentTimeBytes.constData(), m_ssrc, m_portRtp, m_playtime, packet_queue_length());
         m_timestampOffset += m_clockSkewThreshold;
         m_clockActiveDelay = m_clockDelayEstimate;
         return m_clockSkewThreshold;
@@ -609,8 +610,8 @@ void RtpReceiver::handleXrun()
 {
     QDateTime currentTime = QDateTime::currentDateTime();
     QString currentTimeString = currentTime.toString();
-    QByteArray currentTimeAscii = currentTimeString.toAscii();
-    qWarning("[%s] RtpReceiver::handleXrun: ssrc = %u, RTP port = %d", currentTimeAscii.data(), m_ssrc, m_portRtp);
+    QByteArray currentTimeBytes = currentTimeString.toLocal8Bit();
+    qWarning("[%s] RtpReceiver::handleXrun: ssrc = %u, RTP port = %d", currentTimeBytes.constData(), m_ssrc, m_portRtp);
 
     // TODO: decide how to handle xruns
 }

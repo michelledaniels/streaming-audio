@@ -934,7 +934,9 @@ bool StreamingAudioApp::subscribe(QVector<OscAddress*> &subscribers, const char*
 {
     for (int i = 0; i < subscribers.size(); i++)
     {
-        const char* host = subscribers[i]->host.toString().toAscii().data();
+        QString hostStr =  subscribers[i]->host.toString();
+        QByteArray hostBytes = hostStr.toLocal8Bit();
+        const char* host = hostBytes.constData();
         if (strcmp(host, hostRef) == 0 && (subscribers[i]->port == portRef))
         {
             // duplicate found - don't add again
@@ -957,7 +959,9 @@ bool StreamingAudioApp::unsubscribe(QVector<OscAddress*> &subscribers, const cha
     for (it = subscribers.begin(); it != subscribers.end(); it++)
     {
         OscAddress* addr = *it;
-        const char* host = (*it)->host.toString().toAscii().data();
+        QString hostStr = (*it)->host.toString();
+        QByteArray hostBytes = hostStr.toLocal8Bit();
+        const char* host = hostBytes.constData();
         quint16 port = (*it)->port;
         if (strcmp(host, hostRef) == 0 && (port == portRef))
         {
