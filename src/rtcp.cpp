@@ -38,7 +38,8 @@ bool RtcpHandler::start()
     m_socket = new QUdpSocket(this);
     if (!m_socket->bind(m_localPort))
     {
-        qWarning("RtcpHandler::start RTCP socket couldn't bind to port %d: %s", m_localPort, m_socket->errorString().toAscii().data());
+        QByteArray errArray = m_socket->errorString().toLocal8Bit();
+        qWarning("RtcpHandler::start RTCP socket couldn't bind to port %d: %s", m_localPort, errArray.constData());
         return false;
     }
     else
@@ -183,7 +184,8 @@ void RtcpHandler::sendReceiverReport(quint32 senderSsrc, qint64 firstSeqNumThisI
     // send packet
     if (m_socket->writeDatagram(data, m_remoteHost, m_remotePort) < 0)
     {
-        qWarning("RtcpHandler::sendReceiverReport couldn't write datagram: error %d: %s", m_socket->error(), m_socket->errorString().toAscii().data());
+        QByteArray errArray = m_socket->errorString().toLocal8Bit();
+        qWarning("RtcpHandler::sendReceiverReport couldn't write datagram: error %d: %s", m_socket->error(), errArray.constData());
     }
 }
 

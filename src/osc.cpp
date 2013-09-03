@@ -6,6 +6,7 @@
  * @copyright UCSD 2012
  */
 
+#include <QDataStream>
 #include <QDebug>
 
 #include <osc.h>
@@ -381,7 +382,8 @@ bool OscClient::init(QString& host, quint16 port, QAbstractSocket::SocketType so
     m_socket->connectToHost(host, port, QIODevice::WriteOnly);
     if (!m_socket->waitForConnected(CONNECT_TIMEOUT_MILLIS))
     {
-        qWarning("Couldn't connect to host: %s", m_socket->errorString().toAscii().data());
+        QByteArray errArray = m_socket->errorString().toLocal8Bit();
+        qWarning("Couldn't connect to host: %s", errArray.constData());
         return false;
     }
     return true;
@@ -392,7 +394,8 @@ bool OscClient::disconnect()
     m_socket->disconnectFromHost();
     if (m_socket->state() != QAbstractSocket::UnconnectedState && !m_socket->waitForDisconnected(DISCONNECT_TIMEOUT_MILLIS))
     {
-        qWarning("Couldn't disconnect from host: %s", m_socket->errorString().toAscii().data());
+        QByteArray errArray = m_socket->errorString().toLocal8Bit();
+        qWarning("Couldn't disconnect from host: %s", errArray.constData());
         return false;
     }
     return true;
@@ -409,7 +412,8 @@ bool OscClient::sendTcp(OscMessage* msg, OscAddress* dest)
     socket.connectToHost(dest->host, dest->port, QIODevice::WriteOnly);
     if (socket.state() != QAbstractSocket::ConnectedState && !socket.waitForConnected(CONNECT_TIMEOUT_MILLIS))
     {
-        qWarning("OscClient::SendTcp Couldn't connect to host: %s", socket.errorString().toAscii().data());
+        QByteArray errArray = socket.errorString().toLocal8Bit();
+        qWarning("OscClient::SendTcp Couldn't connect to host: %s", errArray.constData());
         return false;
     }
 
@@ -423,7 +427,8 @@ bool OscClient::sendTcp(OscMessage* msg, OscAddress* dest)
 
     if (socket.state() != QAbstractSocket::UnconnectedState && !socket.waitForDisconnected(DISCONNECT_TIMEOUT_MILLIS))
     {
-        qWarning("OscClient::SendTcp Couldn't disconnect from host: %s", socket.errorString().toAscii().data());
+        QByteArray errArray = socket.errorString().toLocal8Bit();
+        qWarning("OscClient::SendTcp Couldn't disconnect from host: %s", errArray.constData());
         return false;
     }
     return true;
@@ -435,7 +440,8 @@ bool OscClient::sendUdp(OscMessage* msg, OscAddress* dest)
     socket.connectToHost(dest->host, dest->port, QIODevice::WriteOnly);
     if (!socket.waitForConnected(CONNECT_TIMEOUT_MILLIS))
     {
-        qWarning("OscClient::SendUdp Couldn't connect to host: %s", socket.errorString().toAscii().data());
+        QByteArray errArray = socket.errorString().toLocal8Bit();
+        qWarning("OscClient::SendUdp Couldn't connect to host: %s", errArray.constData());
         return false;
     }
     
@@ -448,7 +454,8 @@ bool OscClient::sendUdp(OscMessage* msg, OscAddress* dest)
     socket.disconnectFromHost();
     if (socket.state() != QAbstractSocket::UnconnectedState && !socket.waitForDisconnected(DISCONNECT_TIMEOUT_MILLIS))
     {
-        qWarning("OscClient::SendUdp Couldn't disconnect from host: %s", socket.errorString().toAscii().data());
+        QByteArray errArray = socket.errorString().toLocal8Bit();
+        qWarning("OscClient::SendUdp Couldn't disconnect from host: %s", errArray.constData());
         return false;
     }
     return true;
@@ -566,7 +573,8 @@ void OscTcpSocketReader::readFromSocket()
             }
             else
             {
-                emit messageReady(oscMsg, m_socket->peerAddress().toString().toAscii().data(), socket);
+                QByteArray address = m_socket->peerAddress().toString().toLocal8Bit();
+                emit messageReady(oscMsg, address.constData(), socket);
             }
 
             start = end + 1;
@@ -618,7 +626,8 @@ bool OscServer::start()
 
     if (!m_udpSocket->bind(m_port))
     {
-        qWarning("OscServer::start(): UDP socket couldn't bind to port %d: %s", m_port, m_udpSocket->errorString().toAscii().data());
+        QByteArray errArray = m_udpSocket->errorString().toLocal8Bit();
+        qWarning("OscServer::start(): UDP socket couldn't bind to port %d: %s", m_port, errArray.constData());
         return false;
     }
     qDebug("OscServer::start(): UDP socket binded successfully to port %d", m_port);
@@ -663,7 +672,8 @@ void OscServer::readPendingDatagrams()
         }
         else
         {
-            emit messageReady(oscMsg, sender.toString().toAscii().data());
+            QByteArray senderArray = sender.toString().toLocal8Bit();
+            emit messageReady(oscMsg, senderArray.constData());
         }
     }
 }
