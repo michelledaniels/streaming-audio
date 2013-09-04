@@ -15,6 +15,7 @@
 #include <sys/types.h>
 
 #include <QDebug>
+#include <QHostInfo>
 #include <QTimer>
 
 #include "sam.h"
@@ -123,6 +124,15 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_basicChannels.append(params.basicChannels);
     m_discreteChannels.append(params.discreteChannels);
 
+    if (params.hostAddress.isEmpty())
+    {
+        m_hostAddress = QHostAddress::Any;
+    }
+    else
+    {
+        m_hostAddress.setAddress(params.hostAddress);
+    }
+
     m_samThread = new QThread();
     moveToThread(m_samThread);
     connect(m_samThread, SIGNAL(started()), this, SLOT(run()));
@@ -203,15 +213,13 @@ void StreamingAudioManager::run()
     connect(m_tcpServer, SIGNAL(newConnection()), this, SLOT(handleTcpConnection()));
 
     // bind OSC sockets
-    if (!m_tcpServer->listen(QHostAddress::Any, m_oscServerPort))
+    if (!m_tcpServer->listen(m_hostAddress, m_oscServerPort))
     {
         qWarning("StreamingAudioManager::run() TCP server couldn't listen on port %d", m_oscServerPort);
         emit startupError();
         return;
     }
-    qDebug("StreamingAudioManager::run() TCP server listening on port %d for OSC messages", m_oscServerPort);
-    
-    if (!m_udpSocket->bind(m_oscServerPort))
+    if (!m_udpSocket->bind(m_hostAddress, m_oscServerPort))
     {
         QString errString = m_udpSocket->errorString();
         QByteArray errArray = errString.toLocal8Bit();
@@ -219,8 +227,7 @@ void StreamingAudioManager::run()
         emit startupError();
         return;
     }
-    qDebug("StreamingAudioManager::run() UDP socket binded successfully to port %d.  Now listening for OSC messages.", m_oscServerPort);
-    
+
     // check for an already-running JACK server
     if (JackServerIsRunning())
     {
@@ -282,7 +289,26 @@ void StreamingAudioManager::run()
         return;
     }
     
-    printf("\nSAM is now running.  Send OSC messages to port %d.\n", m_oscServerPort);
+    if (m_hostAddress == QHostAddress::Any)
+    {
+        QHostInfo info = QHostInfo::fromName(QHostInfo::localHostName());
+        QList<QHostAddress> addresses = info.addresses();
+        printf("\nSAM is now running. Send OSC messages to host(s) ");
+        for (int i = 0; i < addresses.size(); i++)
+        {
+            QString hostString = addresses[i].toString();
+            QByteArray hostBytes = hostString.toLocal8Bit();
+            printf("%s, ", hostBytes.constData());
+        }
+        printf("port %u.\n\n", m_oscServerPort);
+    }
+    else
+    {
+        QHostAddress host = m_tcpServer->serverAddress();
+        QString hostString = host.toString();
+        QByteArray hostBytes = hostString.toLocal8Bit();
+        printf("\nSAM is now running.  Send OSC messages to host %s, port %u.\n\n", hostBytes.constData(), m_oscServerPort);
+    }
 
     m_isRunning = true;
 }
