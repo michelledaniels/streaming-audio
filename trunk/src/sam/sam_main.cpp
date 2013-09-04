@@ -232,6 +232,9 @@ int main(int argc, char* argv[])
     temp = settings.value("UseGui", false);
     bool useGui = temp.toBool();
 
+    temp = settings.value("HostAddress", "");
+    params.hostAddress = temp.toString();
+
     // parse command-line parameters which will override config file settings
     bool basicChOverride = false;
     while (true)
@@ -392,6 +395,8 @@ int main(int argc, char* argv[])
     printf("Max clients: %d\n", params.maxClients);
     printf("Meter interval in millis: %f\n", params.meterIntervalMillis);
     printf("Verify patch version: %d\n", params.verifyPatchVersion);
+    QByteArray hostBytes = params.hostAddress.toLocal8Bit();
+    printf("Host address: %s\n", hostBytes.constData());
 
     // TODO: check that all arguments are valid, non-null??
     if (useGui) // run in GUI mode
@@ -413,7 +418,7 @@ int main(int argc, char* argv[])
     }
     else // run without GUI
     {
-        printf("\nStarting SAM with no GUI...\n");
+        printf("\nStarting SAM...\n");
         QCoreApplication app(argc, argv);
         QCoreApplication::setOrganizationName("UCSD Sonic Arts");
         QCoreApplication::setOrganizationDomain("sonicarts.ucsd.edu");

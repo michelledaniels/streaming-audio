@@ -51,6 +51,7 @@ struct SamParams
     int maxClients;                       ///< maximum number of clients that can be connected simultaneously
     float meterIntervalMillis;            ///< milliseconds between meter broadcasts to subscribers
     bool verifyPatchVersion;              ///< whether or not the patch versions have to match during version check
+    QString hostAddress;                  ///< local host address to bind to (UDP)/listen on (TCP)
 };
 
 /**
@@ -677,6 +678,7 @@ private:
     quint16 m_oscServerPort;        ///< port the OSC server will listen for messages on
     QUdpSocket* m_udpSocket;        ///< UDP socket for receiving OSC messages
     QTcpServer* m_tcpServer;        ///< The server listening for incoming TCP connections
+    QHostAddress m_hostAddress;     ///< Local host address where OSC messages should be sent
 
     QThread* m_samThread;           ///< Thread for SAM's event loop
 
