@@ -277,6 +277,22 @@ public:
     bool unsubscribeType(const char* host, quint16 port);
     
     /**
+     * Subscribe to preset changes.
+     * @param host the host to be subscribed
+     * @param port the port on the host to be subscribed
+     * @return true on success, false on failure
+     */
+    bool subscribePreset(const char* host, quint16 port);
+
+    /**
+     * Unsubscribe from preset changes.
+     * @param host the host to be unsubscribed
+     * @param port the port on the host to be unsubscribed
+     * @return true on success, false on failure
+     */
+    bool unsubscribePreset(const char* host, quint16 port);
+
+    /**
      * Subscribe to metering stream.
      * @param host the host to be subscribed
      * @param port the port on the host to be subscribed
@@ -455,6 +471,7 @@ private:
     QVector<OscAddress*> m_delaySubscribers;    ///< OSC addresses subscribed to delay changes
     QVector<OscAddress*> m_positionSubscribers; ///< OSC addresses subscribed to position changes
     QVector<OscAddress*> m_typeSubscribers;     ///< OSC addresses subscribed to type changes
+    QVector<OscAddress*> m_presetSubscribers;   ///< OSC addresses subscribed to preset changes
     QVector<OscAddress*> m_meterSubscribers;    ///< OSC addresses subscribed to meter updates
     
     // RTP-related parameters

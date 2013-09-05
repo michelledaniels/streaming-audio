@@ -430,7 +430,7 @@ void StreamingAudioApp::setType(StreamingAudioType type)
 
     // notify subscribers
     OscMessage replyMsg;
-    replyMsg.init("/sam/val/type", "ii", m_port, m_type);
+    replyMsg.init("/sam/val/type", "iii", m_port, m_type, m_preset);
     QVector<OscAddress*>::iterator it;
     for (it = m_typeSubscribers.begin(); it != m_typeSubscribers.end(); it++)
     {
@@ -447,7 +447,7 @@ void StreamingAudioApp::setType(StreamingAudioType type)
     }
 }
 
-/*void StreamingAudioApp::setPreset(int preset)
+void StreamingAudioApp::setPreset(int preset)
 {
     m_preset = preset;
 
@@ -468,7 +468,7 @@ void StreamingAudioApp::setType(StreamingAudioType type)
     {
         qWarning("Couldn't send OSC message");
     }
-}*/
+}
 
 void StreamingAudioApp::setPosition(const SamAppPosition& pos)
 {
@@ -650,7 +650,7 @@ bool StreamingAudioApp::subscribeType(const char* host, quint16 port)
     {
         // send the current type
         OscMessage replyMsg;
-        replyMsg.init("/sam/val/type", "ii", m_port, m_type);
+        replyMsg.init("/sam/val/type", "iii", m_port, m_type, m_preset);
         OscAddress replyAddress;
         replyAddress.host.setAddress(host);
         replyAddress.port = port;
@@ -671,6 +671,36 @@ bool StreamingAudioApp::unsubscribeType(const char* host, quint16 port)
 {
     qDebug("StreamingAudioApp::unsubscribeType id = %d", m_port);
     return unsubscribe(m_typeSubscribers, host, port);
+}
+
+bool StreamingAudioApp::subscribePreset(const char* host, quint16 port)
+{
+    qDebug("StreamingAudioApp::subscribePreset id = %d", m_port);
+    if (subscribe(m_presetSubscribers, host, port))
+    {
+        // send the current preset
+        OscMessage replyMsg;
+        replyMsg.init("/sam/val/preset", "ii", m_port, m_preset);
+        OscAddress replyAddress;
+        replyAddress.host.setAddress(host);
+        replyAddress.port = port;
+        if (!OscClient::sendUdp(&replyMsg, &replyAddress))
+        {
+            qWarning("Couldn't send OSC message");
+            return false;
+        }
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool StreamingAudioApp::unsubscribePreset(const char* host, quint16 port)
+{
+    qDebug("StreamingAudioApp::unsubscribePreset id = %d", m_port);
+    return unsubscribe(m_presetSubscribers, host, port);
 }
 
 bool StreamingAudioApp::subscribeMeter(const char* host, quint16 port)
@@ -720,6 +750,7 @@ bool StreamingAudioApp::subscribeAll(const char* host, quint16 port)
     success &= subscribeDelay(host, port);
     success &= subscribePosition(host, port);
     success &= subscribeType(host, port);
+    success &= subscribePreset(host, port);
     success &= subscribeMeter(host, port);
     return success;
 }
@@ -732,6 +763,7 @@ bool StreamingAudioApp::unsubscribeAll(const char* host, quint16 port)
     success &= unsubscribeDelay(host, port);
     success &= unsubscribePosition(host, port);
     success &= unsubscribeType(host, port);
+    success &= unsubscribePreset(host, port);
     success &= unsubscribeMeter(host, port);
     return success;
 }

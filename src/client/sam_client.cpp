@@ -621,13 +621,31 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
         }
         else if (qstrcmp(address + prefixLen + 3, "/type") == 0) // /sam/val/type
         {
-            if (msg->typeMatches("ii"))
+            if (msg->typeMatches("iii"))
             {
                 OscArg arg;
                 msg->getArg(1, arg);
                 int type = arg.val.i; // for now ignore arg 0 (id)
-                qWarning("Received message from SAM that client type is %d", type);
+                msg->getArg(2, arg);
+                int preset = arg.val.i;
+                qWarning("Received message from SAM that client type is %d, preset is %d", type, preset);
                 // TODO: call type callback
+            }
+            else
+            {
+                printf("Unknown OSC message:\n");
+                msg->print();
+            }
+        }
+        else if (qstrcmp(address + prefixLen + 3, "/preset") == 0) // /sam/val/preset
+        {
+            if (msg->typeMatches("ii"))
+            {
+                OscArg arg;
+                msg->getArg(1, arg);
+                int preset = arg.val.i; // for now ignore arg 0 (id)
+                qWarning("Received message from SAM that client preset is %d", preset);
+                // TODO: call preset callback
             }
             else
             {
@@ -637,13 +655,13 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
         }
         else
         {
-            printf("Unknown OSC message:");
+            printf("Unknown OSC message:\n");
             msg->print();
         }
     }
     else
     {
-        printf("Unknown OSC message:");
+        printf("Unknown OSC message:\n");
         msg->print();
     }
     delete msg;

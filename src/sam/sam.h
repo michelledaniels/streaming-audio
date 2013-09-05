@@ -333,13 +333,22 @@ public slots:
     bool setAppPosition(int port, int x, int y, int width, int height, int depth);
 
     /**
-     * Set the type for an app.
+     * Set the rendering type for an app.
      * @param port the port/unique ID of the app to be updated
      * @param type the type to be set
+     * @param preset the preset to be set
      * @param error code on failure, otherwise undefined
      * @return true on success, false on failure
      */
-    bool setAppType(int port, sam::StreamingAudioType type, sam::SamErrorCode& errorCode);
+    bool setAppType(int port, sam::StreamingAudioType type, int preset, sam::SamErrorCode& errorCode);
+
+    /**
+     * Set the rendering preset for an app.
+     * @param port the port/unique ID of the app to be updated
+     * @param type the preset to be set
+     * @return true on success, false on failure
+     */
+    bool setAppPreset(int port, int preset);
 
     /**
      * Start running this StreamingAudioManager.
@@ -425,6 +434,7 @@ signals:
     void appDelayChanged(int, float);
     void appPositionChanged(int, int, int, int, int, int);
     void appTypeChanged(int, int);
+    void appPresetChanged(int, int);
 
 private:
 
@@ -567,6 +577,13 @@ private:
      * @param socket the socket the OSC message was sent to
      */
     void osc_set_type(OscMessage* msg, const char* sender, QAbstractSocket* socket);
+
+    /**
+     * Handle requests to set preset parameter
+     * @param msg the OSC message to handle
+     * @param sender the name of the host that sent the message
+     */
+    void osc_set_preset(OscMessage* msg, const char* sender);
 
     /**
      * Handle /sam/register OSC message.
