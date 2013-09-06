@@ -26,6 +26,7 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     m_samButton(NULL),
     m_clientGroup(NULL),
     m_clientLayout(NULL),
+    m_oscDirections(NULL),
     m_maxClients(params.maxClients),
     m_clients(NULL),
     m_maxClientDelayMillis(params.maxClientDelayMillis)
@@ -46,9 +47,12 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     connect(m_sam, SIGNAL(appPositionChanged(int, int, int, int, int, int)), this, SLOT(setAppPosition(int,int,int,int,int,int)));
     connect(m_sam, SIGNAL(appTypeChanged(int, int)), this, SLOT(setAppType(int, int)));
     connect(m_sam, SIGNAL(appMeterChanged(int, int, float, float, float, float)), this, SLOT(setAppMeter(int, int, float, float, float, float)));
+    connect(m_sam, SIGNAL(started()), this, SLOT(onSamStarted()));
 
     m_samButton = new QPushButton(QString("Start SAM"), this);
     connect(m_samButton, SIGNAL(clicked()), this, SLOT(onSamButtonClicked()));
+
+    m_oscDirections = new QLabel(this);
 
     m_master = new MasterWidget(1.0f, false, 0.0f, params.maxDelayMillis, this);
 
@@ -62,6 +66,7 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     QVBoxLayout* mainLayout = new QVBoxLayout(mainBox);
     mainBox->setLayout(mainLayout);
     mainLayout->addWidget(m_samButton, 0, Qt::AlignCenter);
+    mainLayout->addWidget(m_oscDirections, 0, Qt::AlignCenter);
     mainLayout->addWidget(m_master, 0, Qt::AlignCenter);
 
     QScrollArea* clientScrollArea = new QScrollArea(mainBox);
@@ -223,7 +228,6 @@ void SamUI::onSamButtonClicked()
             connect(m_sam, SIGNAL(delayChanged(float)), m_master, SLOT(setDelay(float)));
 
             m_samButton->setText("Stop SAM");
-            
             QStatusBar* sb = statusBar();
             sb->showMessage("Started SAM", STATUS_BAR_TIMEOUT);  
         }
@@ -247,6 +251,7 @@ void SamUI::onSamButtonClicked()
                 disconnect(m_sam, SIGNAL(delayChanged(float)), m_master, SLOT(setDelay(float)));
 
                 m_samButton->setText("Start SAM");
+                m_oscDirections->setText("");
                 QStatusBar* sb = statusBar();
                 sb->showMessage("Stopped SAM", STATUS_BAR_TIMEOUT);
             }
@@ -321,6 +326,11 @@ void SamUI::disconnect_client(int id)
     disconnect(m_clients[id], SIGNAL(muteChanged(int, bool)), m_sam, SLOT(setAppMute(int, bool)));
     disconnect(m_clients[id], SIGNAL(soloChanged(int, bool)), m_sam, SLOT(setAppSolo(int, bool)));
     disconnect(m_clients[id], SIGNAL(delayChanged(int, float)), m_sam, SLOT(setAppDelay(int, float)));
+}
+
+void SamUI::onSamStarted()
+{
+    m_oscDirections->setText(m_sam->getOscMessageString());
 }
 
 } // end of namespace SAM

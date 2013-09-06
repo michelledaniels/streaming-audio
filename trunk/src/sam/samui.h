@@ -10,6 +10,7 @@
 
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QMainWindow>
 #include <QPushButton>
 
@@ -63,6 +64,7 @@ public slots:
     void removeClient(int);
     
     void onSamStartupError();
+    void onSamStarted();
 
     void setAppVolume(int, float);
     void setAppMute(int, bool);
@@ -95,6 +97,7 @@ private:
     QPushButton* m_samButton;
     QGroupBox* m_clientGroup;
     QHBoxLayout* m_clientLayout;
+    QLabel* m_oscDirections;
 
     int m_maxClients;
     ClientWidget** m_clients;
