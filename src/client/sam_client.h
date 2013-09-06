@@ -45,10 +45,7 @@ enum SamErrorCode
  */
 enum StreamingAudioType
 {
-    TYPE_BASIC = 0,     ///< mono sources placed in center channel or equally in left/right, stereo sources played in front left and right, surround played in surround system
-    TYPE_SPATIAL,       ///< for mono and stereo sources that should be spatialized/tracked
-    TYPE_ARRAY,         ///< for sources that should be rendered by a speaker array
-    NUM_TYPES
+    TYPE_BASIC = 0
 };
 
 /**
