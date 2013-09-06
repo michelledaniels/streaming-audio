@@ -82,6 +82,27 @@ struct ClientParams
 };
 
 /**
+ * @struct RenderingPreset
+ * This struct contains the parameters describing a rendering preset
+ */
+struct RenderingPreset
+{
+    int id;
+    QString name;
+};
+
+/**
+ * @struct RenderingType
+ * This struct contains the parameters describing a rendering type
+ */
+struct RenderingType
+{
+    StreamingAudioType id;
+    QString name;
+    QList<RenderingPreset> presets;
+};
+
+/**
  * @enum SamAppState
  * The possible states for an app.
  */
@@ -668,6 +689,7 @@ private:
     bool m_stopRequested;             ///< flag to see if there is a request to stop processing
     QList<unsigned int> m_basicChannels; ///< list of basic channels to use
     QList<unsigned int> m_discreteChannels; ///< list of discrete channels to use
+    QList<RenderingType> m_renderingTypes;  ///< list of available rendering types
 
     int m_maxBasicOutputs;             ///< max number of output JACK ports for basic JACK client
     int m_maxDiscreteOutputs;          ///< max number of output JACK ports for discrete JACK client
