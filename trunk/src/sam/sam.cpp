@@ -2108,8 +2108,6 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
 
         break;
     }
-    case sam::TYPE_SPATIAL:
-    case sam::TYPE_ARRAY:
     default: // TODO: simplify to iterate through m_discreteChannel list instead
     {
         // find a free output port for each app output channel
