@@ -124,6 +124,15 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_basicChannels.append(params.basicChannels);
     m_discreteChannels.append(params.discreteChannels);
 
+    if (!m_basicChannels.isEmpty())
+    {
+        // add basic type to list of available rendering types
+        RenderingType type;
+        type.id = TYPE_BASIC;
+        type.name.append("Basic");
+        m_renderingTypes.append(type);
+    }
+
     if (params.hostAddress.isEmpty())
     {
         m_hostAddress = QHostAddress::Any;
