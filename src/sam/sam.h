@@ -225,6 +225,11 @@ public:
     bool getAppParams(int id, ClientParams& params);
 
     /**
+     * Get the string that describes where to send OSC messages.
+     */
+    QString& getOscMessageString() { return m_oscDirections; }
+
+    /**
      * JACK buffer size changed callback.
      * JACK will call this callback if the system buffer size changes.
      */
@@ -422,6 +427,8 @@ signals:
      * Signal that a stop request has been received.
      */
     void stopConfirmed();
+
+    void started();
 
     void volumeChanged(float);
     void muteChanged(bool);
@@ -696,6 +703,7 @@ private:
     QUdpSocket* m_udpSocket;        ///< UDP socket for receiving OSC messages
     QTcpServer* m_tcpServer;        ///< The server listening for incoming TCP connections
     QHostAddress m_hostAddress;     ///< Local host address where OSC messages should be sent
+    QString m_oscDirections;        ///< string that explains where to send OSC messages for SAM
 
     QThread* m_samThread;           ///< Thread for SAM's event loop
 

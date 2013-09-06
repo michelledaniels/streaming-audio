@@ -289,18 +289,26 @@ void StreamingAudioManager::run()
         return;
     }
     
+    m_oscDirections.clear();
     if (m_hostAddress == QHostAddress::Any)
     {
         QHostInfo info = QHostInfo::fromName(QHostInfo::localHostName());
         QList<QHostAddress> addresses = info.addresses();
         printf("\nSAM is now running. Send OSC messages to host(s) ");
+        m_oscDirections.append("Send OSC messages to host(s) ");
         for (int i = 0; i < addresses.size(); i++)
         {
-            QString hostString = addresses[i].toString();
-            QByteArray hostBytes = hostString.toLocal8Bit();
-            printf("%s, ", hostBytes.constData());
+            if (addresses[i].protocol() == QAbstractSocket::IPv4Protocol)
+            {
+                QString hostString = addresses[i].toString();
+                QByteArray hostBytes = hostString.toLocal8Bit();
+                printf("%s, ", hostBytes.constData());
+                m_oscDirections.append(hostString);
+                m_oscDirections.append(", ");
+            }
         }
         printf("port %u.\n\n", m_oscServerPort);
+        m_oscDirections.append("port " + QString::number(m_oscServerPort));
     }
     else
     {
@@ -308,9 +316,11 @@ void StreamingAudioManager::run()
         QString hostString = host.toString();
         QByteArray hostBytes = hostString.toLocal8Bit();
         printf("\nSAM is now running.  Send OSC messages to host %s, port %u.\n\n", hostBytes.constData(), m_oscServerPort);
+        m_oscDirections.append("Send OSC messages to host " + hostString + ", port " + QString::number(m_oscServerPort));
     }
 
     m_isRunning = true;
+    emit started();
 }
 
 bool StreamingAudioManager::stop()
