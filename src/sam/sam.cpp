@@ -423,6 +423,36 @@ bool StreamingAudioManager::idIsValid(int id)
     return true;
 }
 
+bool StreamingAudioManager::typeIsValid(StreamingAudioType type)
+{
+    for (unsigned int i = 0; i < m_renderingTypes.size(); i++)
+    {
+        if (m_renderingTypes[i].id == type)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool StreamingAudioManager::presetIsValid(StreamingAudioType type, int preset)
+{
+    for (unsigned int i = 0; i < m_renderingTypes.size(); i++)
+    {
+        if (m_renderingTypes[i].id == type)
+        {
+            for (unsigned int j = 0; j < m_renderingType[i].presets.size(); j++)
+            {
+                if (m_renderingTypes[i].presets[j].id == preset)
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 int StreamingAudioManager::getNumApps()
 {
     int count = 0;
@@ -821,6 +851,18 @@ bool StreamingAudioManager::setAppType(int port, StreamingAudioType type, int pr
         return true; // nothing else to do
     }
 
+    if (!typeIsValid(type))
+    {
+        errorCode = sam::SAM_ERR_INVALID_TYPE;
+        return false;
+    }
+
+    if (!presetIsValid(type, preset))
+    {
+        errorCode = sam::SAM_ERR_INVALID_PRESET;
+        return false;
+    }
+
     // re-assign ports if we are changing from basic to non-basic type and vice-versa
     if (typeOld == sam::TYPE_BASIC)
     {
@@ -1039,6 +1081,10 @@ void StreamingAudioManager::handleOscMessage(OscMessage* msg, const char* sender
     else if (qstrncmp(address + prefixLen, "unsubscribe", 11) == 0)
     {
         handle_unsubscribe_message(address + prefixLen + 11, msg, sender);
+    }
+    else if (qstrncmp(address + prefixLen, "type", 4) == 0)
+    {
+        handle_type_message(address + prefixLen + 4, msg, sender);
     }
     else
     {
@@ -1590,6 +1636,20 @@ void StreamingAudioManager::handle_unsubscribe_message(const char* address, OscM
     // TODO: error handling (invalid port, etc.)
 }
 
+void StreamingAudioManager::handle_type_message(const char* address, OscMessage* msg, const char* sender)
+{
+    if (qstrcmp(address, "/add") == 0) // /sam/type/add
+    {
+        // add a rendering type
+        osc_add_type(msg, sender);
+    }
+    else
+    {
+        printf("Unknown OSC message:\n");
+        msg->print();
+    }
+}
+
 bool StreamingAudioManager::start_jack(int sampleRate, int bufferSize, int outChannels, const char* driver)
 {
     // error checking
@@ -1890,6 +1950,101 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
         OscMessage msg;
         msg.init("/sam/app/regconfirm", "iiii", port, m_sampleRate, m_bufferSize, m_rtpPort);
         if (!OscClient::sendFromSocket(&msg, socket))
+        {
+            qWarning("Couldn't send OSC message");
+        }
+    }
+}
+
+void StreamingAudioManager::osc_add_type(OscMessage* msg, const char* sender)
+{
+    qDebug("SAM received message to add a rendering type");
+    qDebug("source host = %s", sender);
+
+    int numArgs = msg->getNumArgs();
+    if (numArgs < 3)
+    {
+        qWarning("/sam/add/type message must have at least 3 parameters, found %d:", numArgs);
+        msg->print();
+        return;
+    }
+
+    OscArg arg;
+    msg->getArg(0, arg);
+    if (arg.type != 'i')
+    {
+        qWarning("StreamingAudioManager::osc_add_type first argument must have type i, found type %c", arg.type);
+        return;
+    }
+    StreamingAudioType id = (StreamingAudioType)arg.val.i;
+
+    // check if type already exists
+    if (typeIsValid(id))
+    {
+        qWarning("Tried to add duplicate rendering type: %d", id);
+        return;
+    }
+
+    msg->getArg(1, arg);
+    if (arg.type != 's')
+    {
+        qWarning("StreamingAudioManager::osc_add_type second argument must have type s, found type %c", arg.type);
+        return;
+    }
+    const char* name = arg.val.s;
+
+    msg->getArg(2, arg);
+    if (arg.type != 'i')
+    {
+        qWarning("StreamingAudioManager::osc_add_type third argument must have type i, found type %c", arg.type);
+        return;
+    }
+    int numPresets = arg.val.i;
+
+
+    if ((numArgs - 3) != (numPresets * 2))
+    {
+        qWarning("StreamingAudioManager::osc_add_type invalid message: %d presets declared, %f in message", numPresets, (numArgs - 3)/2.0);
+        return;
+    }
+
+    RenderingType type;
+    type.id = id;
+    type.name.append(name);
+
+    for (int i = 0; i < numPresets; i++)
+    {
+        msg->getArg(3 + (i * 2), arg);
+        if (arg.type != 'i')
+        {
+            qWarning("StreamingAudioManager::osc_add_type preset id argument must have type i, found type %c", arg.type);
+            msg->print();
+            return;
+        }
+        int presetId = arg.val.i;
+
+        msg->getArg(4 + (i * 2), arg);
+        if (arg.type != 's')
+        {
+            qWarning("StreamingAudioManager::osc_add_type preset name argument must have type s, found type %c", arg.type);
+            msg->print();
+            return;
+        }
+        const char* presetName = arg.val.s;
+
+        RenderingPreset preset;
+        preset.id = presetId;
+        preset.name.append(presetName);
+        type.presets.append(preset);
+    }
+
+    printf("Added rendering type %d, \"%s\" with %d preset(s)\n\n", id, name, numPresets);
+
+    // notify UIs of added type
+    for (int i = 0; i < m_uiSubscribers.size(); i++)
+    {
+        OscAddress* replyAddr = m_uiSubscribers.at(i);
+        if (!OscClient::sendUdp(msg, replyAddr))
         {
             qWarning("Couldn't send OSC message");
         }
