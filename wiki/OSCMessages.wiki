@@ -62,9 +62,8 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 || `/sam/set/delay` || `if` || `id`, `delay` || none || `delay` is specified in milliseconds and should be greater than 0 and less than or equal to the maximum delay specified in the SAM config file, `id` of `-1` sets the global delay (which is added to the per-client delay) ||
 || `/sam/set/position` || `iiiiii` || `id`, `x`, `y`, `width`, `height`, `depth` || none ||  ||
 || `/sam/set/type` ||  `iiii` || `id`, `type`, `preset`, `replyPort` || `sam/type/confirm` if able to change type or `/sam/type/deny` if unable to change type || ||
-|| `/sam/type/confirm` || `ii` || `id`, `type` || none || ||
-|| `/sam/type/deny` || `iii` || `id`, `type`, `errorCode` || none || `type` is the current type for the app with id `id`.  Error codes TBD. ||
-|| `/sam/set/preset` ||  `ii` || `id`, `preset` || none || ||
+|| `/sam/type/confirm` || `iii` || `id`, `type`, `preset` || none || ||
+|| `/sam/type/deny` || `iiii` || `id`, `type`, `preset`, `errorCode` || none || `type` is the current type for the app with id `id`, same for `preset`.  Error codes TBD. ||
 
 === Getting Parameters ===
 || *OSC Address Pattern* || *OSC Type Tag String* || *OSC Arguments* || *Response* || *Comments* ||
@@ -80,8 +79,6 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 || `/sam/val/position` || `iiiiii` || `id`, `x`, `y`, `width`, `height`, `depth` || none || ||
 || `/sam/get/type` || `ii` || `id`, `replyPort` || `/sam/val/type` || ||
 || `/sam/val/type` || `iii` || `id`, `type`, `preset` || none || ||
-|| `/sam/get/preset` || `ii` || `id`, `replyPort` || `/sam/val/preset` || ||
-|| `/sam/val/preset` || `ii` || `id`, `preset` || none ||  ||
 || `/sam/get/meter` || `ii` || `id`, `replyPort` || `/sam/val/meter` || ||
 || `/sam/val/meter` || `iiffff...` || `id`, number of channels to follow, input rms level for ch1, input peak for ch1,  output rms level for ch1, output peak for ch1, repeated for all channels... || none || This is a variable-length message depending on the number of channels. ||
 
@@ -93,8 +90,7 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 || `/sam/subscribe/solo` || `ii` || `id`, `replyPort` || none || `/sam/val/solo` messages will be sent when solo status changes ||
 || `/sam/subscribe/delay` || `ii` || `id`, `replyPort` || none || `/sam/val/delay` messages will be sent when delay changes, `id` of `-1` subscribes to the global delay parameter ||
 || `/sam/subscribe/position` || `ii` || `id`, `replyPort` || none || `/sam/val/position` messages will be sent when position changes ||
-|| `/sam/subscribe/type` || `ii` || `id`, `replyPort` || none || `/sam/val/type` messages will be sent when type changes ||
-|| `/sam/subscribe/preset` || `ii` || `id`, `replyPort` || none || `/sam/val/preset` messages will be sent when preset changes ||
+|| `/sam/subscribe/type` || `ii` || `id`, `replyPort` || none || `/sam/val/type` messages will be sent when type or preset changes ||
 || `/sam/subscribe/meter` || `ii` || `id`, `replyPort` || none || `/sam/val/meter` messages will be sent at regular intervals ||
 || `/sam/subscribe/all` || `ii` || `id`, `replyPort` || none || subscribes to all parameters (volume, mute, solo, delay, position, type, and meter ||
 
@@ -107,6 +103,5 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 || `/sam/unsubscribe/delay` || `ii` || `id`, `replyPort` || none || `id` of `-1` unsubscribes from the global delay parameter ||
 || `/sam/unsubscribe/position` || `ii` || `id`, `replyPort` || none ||  ||
 || `/sam/unsubscribe/type` || `ii` || `id`, `replyPort` || none ||  ||
-|| `/sam/unsubscribe/preset` || `ii` || `id`, `replyPort` || none ||  ||
 || `/sam/unsubscribe/meter` || `ii` || `id`, `replyPort` || none ||  ||
 || `/sam/unsubscribe/all` || `ii` || `id`, `replyPort` || none || unsubscribes from all parameters (volume, mute, solo, delay, position, type, and meter ||
