@@ -36,7 +36,7 @@ In the following messages, the word `app` refers to a SAM client.  When a client
 ||`/sam/render/unregister` || none  || none || none || ||
 || `/sam/stream/add` || `iiii...` || `id`, `type`, `preset`, `channels`, followed by a list of all channels (type `i`) || none || Sent by SAM to the renderer when a new stream is added (app registered).  Specifies the output channels that stream is using. This is a variable-length message depending on the number of channels. ||
 || `/sam/stream/remove` || `i` || `id` || none || Sent by SAM when a stream is removed (app unregistered). ||
-|| `/sam/type/add` || `isi...` || `id`, `name`, `num presets`, followed by `preset id`, `preset name` (type `is`) for each preset  || none || This is a variable-length message depending on the number of presets.  It is sent by the renderer to SAM after /sam/render/regconfirm is received and SAM passes the same messages on to UIs ||
+|| `/sam/type/add` || `isiis...` || `id`, `name`, `num presets`, `0`, `default preset name`, followed by `preset id`, `preset name` (type `is`) for each additional preset  || none || This is a variable-length message depending on the number of presets.  It is sent by the renderer to SAM after /sam/render/regconfirm is received and SAM passes the same messages on to UIs.  All requests to add types must define at minimum a default preset with id 0.  ||
 
 
 == SAM/UI Messages == 
