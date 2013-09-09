@@ -120,9 +120,9 @@ class StreamingAudioApp;
 /**
  * @class StreamingAudioManager
  * @author Michelle Daniels
- * @date 2011
+ * @date 2011-2013
  * 
- * The StreamingAudioManager is responsible for coordinating all SAGE-related audio.
+ * The StreamingAudioManager is responsible for coordinating all streaming audio clients.
  */
 class StreamingAudioManager : public QObject
 {
@@ -169,7 +169,22 @@ public:
      */
     bool idIsValid(int id);
 
-    /** 
+    /**
+     * Check if a rendering type is valid (has been added).
+     * @param type the rendering type in question
+     * @return true if valid, false otherwise
+     */
+    bool typeIsValid(StreamingAudioType type);
+
+    /**
+     * Check if a rendering preset is valid.
+     * @param type the rendering type for which this preset is being checked
+     * @param preset the id for the preset in question
+     * @return true if valid, false otherwise
+     */
+    bool presetIsValid(StreamingAudioType type, int preset);
+
+    /**
      * Get the number of registered apps.
      * @return the number of registered apps
      */
@@ -525,6 +540,14 @@ private:
     void handle_unsubscribe_message(const char* address, OscMessage* msg, const char* sender);
 
     /**
+     * Handle requests about rendering types.
+     * @param address the part of the OSC address string following "/sam/type"
+     * @param msg the OSC message to handle
+     * @param sender the name of the host that sent the message
+     */
+    void handle_type_message(const char* address, OscMessage* msg, const char* sender);
+
+    /**
      * Start the JACK server.
      * @param sampleRate the audio sampling rate for JACK
      * @param bufferSize the audio buffer size for JACK
@@ -619,6 +642,13 @@ private:
      * @param sender the name of the host that sent the message
      */
     void osc_register(OscMessage* msg, QTcpSocket* socket);
+
+    /**
+     * Handle requests add a rendering type.
+     * @param msg the OSC message to handle
+     * @param sender the name of the host that sent the message
+     */
+    void osc_add_type(OscMessage* msg, const char* sender);
 
     /**
      * JACK process callback

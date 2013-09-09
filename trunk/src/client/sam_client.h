@@ -36,7 +36,9 @@ enum SamErrorCode
     SAM_ERR_VERSION_MISMATCH,   ///< the client, renderer, or UI version didn't match SAM's version
     SAM_ERR_MAX_CLIENTS,        ///< the maximum number of clients has been reached
     SAM_ERR_NO_FREE_OUTPUT,     ///< there are no more output channels (JACK ports) available in SAM
-    SAM_ERR_INVALID_ID          ///< invalid client id
+    SAM_ERR_INVALID_ID,         ///< invalid client id
+    SAM_ERR_INVALID_TYPE,       ///< invalid rendering type
+    SAM_ERR_INVALID_PRESET      ///< invalid rendering preset
 };
 
 /**
