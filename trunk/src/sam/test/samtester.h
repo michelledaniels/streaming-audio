@@ -19,10 +19,12 @@ class SamStressTester : public QObject
 {
     Q_OBJECT
 public:
-    SamStressTester(const char* samAddress, quint16 samPort, int interval, QObject* parent) :
+    SamStressTester(const char* samAddress, quint16 samPort, int interval, int maxClients, int channels, QObject* parent) :
         QObject(parent),
         m_samAddress(NULL),
-        m_samPort(samPort)
+        m_samPort(samPort),
+        m_maxClients(maxClients),
+        m_channels(channels)
     {
         int len = strlen(samAddress) + 1;
         m_samAddress = new char[len];
@@ -94,22 +96,29 @@ public slots:
         }
         else
         {
-            // register a client
-            qDebug("SamStressTester::stressTest() registering a client");
-            StreamingAudioClient* client = new StreamingAudioClient();
-            if (client->init(2, TYPE_BASIC, CLIENT_NAME, m_samAddress, m_samPort) != SAC_SUCCESS)
+            if (m_clients.size() < m_maxClients)
             {
-                qWarning("SamStressTester::stressTest()  ERROR: couldn't intialize a client.");
-                delete client;
-            }
-            if (client->start(0, 0, 0, 0, 0) != SAC_SUCCESS)
-            {
-                qWarning("SamStressTester::stressTest()  ERROR: couldn't register a client.");
-                delete client;
+                // register a client
+                qDebug("SamStressTester::stressTest() registering a client");
+                StreamingAudioClient* client = new StreamingAudioClient();
+                if (client->init(m_channels, TYPE_BASIC, CLIENT_NAME, m_samAddress, m_samPort) != SAC_SUCCESS)
+                {
+                    qWarning("SamStressTester::stressTest()  ERROR: couldn't intialize a client.");
+                    delete client;
+                }
+                if (client->start(0, 0, 0, 0, 0) != SAC_SUCCESS)
+                {
+                    qWarning("SamStressTester::stressTest()  ERROR: couldn't register a client.");
+                    delete client;
+                }
+                else
+                {
+                    m_clients.append(client);
+                }
             }
             else
             {
-                m_clients.append(client);
+                qWarning("SamStressTester::stressTest() max number of clients reached");
             }
         }
     }
@@ -119,6 +128,8 @@ private:
     char* m_samAddress;
     quint16 m_samPort;
     QList<StreamingAudioClient*> m_clients;
+    int m_maxClients;
+    int m_channels;
 };
 
 // testing of many clients in parallel
