@@ -191,6 +191,12 @@ public:
     int getNumApps();
 
     /**
+     * Get list of registered rendering types.
+     * @return const list of registered rendering types
+     */
+    const QList<RenderingType>& getRenderingTypes() { return m_renderingTypes; }
+
+    /**
      * Register a new app.
      * @param name the name of the app, to be used for displaying in a UI
      * @param channels number of output audio channels for this app
@@ -470,6 +476,9 @@ signals:
     void appPositionChanged(int, int, int, int, int, int);
     void appTypeChanged(int, int, int);
 
+    void typeAdded();
+    void typeRemoved();
+
 private:
 
     /**
@@ -635,11 +644,18 @@ private:
     void osc_register(OscMessage* msg, QTcpSocket* socket);
 
     /**
-     * Handle requests add a rendering type.
+     * Handle requests to add a rendering type.
      * @param msg the OSC message to handle
      * @param sender the name of the host that sent the message
      */
     void osc_add_type(OscMessage* msg, const char* sender);
+
+    /**
+     * Handle requests to remove a rendering type.
+     * @param msg the OSC message to handle
+     * @param sender the name of the host that sent the message
+     */
+    void osc_remove_type(OscMessage* msg, const char* sender);
 
     /**
      * JACK process callback
