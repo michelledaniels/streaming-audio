@@ -130,6 +130,10 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
         RenderingType type;
         type.id = TYPE_BASIC;
         type.name.append("Basic");
+        RenderingPreset preset;
+        preset.id = 0;
+        preset.name.append("Default");
+        type.presets.append(preset);
         m_renderingTypes.append(type);
     }
 
@@ -435,13 +439,13 @@ bool StreamingAudioManager::typeIsValid(StreamingAudioType type)
     return false;
 }
 
-bool StreamingAudioManager::presetIsValid(StreamingAudioType type, int preset)
+bool StreamingAudioManager::typeIsValidWithPreset(StreamingAudioType type, int preset)
 {
     for (unsigned int i = 0; i < m_renderingTypes.size(); i++)
     {
         if (m_renderingTypes[i].id == type)
         {
-            for (unsigned int j = 0; j < m_renderingType[i].presets.size(); j++)
+            for (unsigned int j = 0; j < m_renderingTypes[i].presets.size(); j++)
             {
                 if (m_renderingTypes[i].presets[j].id == preset)
                 {
@@ -483,6 +487,13 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
         // error: all ports in use
         qWarning("StreamingAudioManager::registerApp error: max clients already in use!");
         errCode = sam::SAM_ERR_MAX_CLIENTS;
+        return -1;
+    }
+
+    if (!typeIsValidWithPreset(type, preset))
+    {
+        qWarning("StreamingAudioManager::registerApp error: invalid type/preset");
+        errCode = sam::SAM_ERR_INVALID_TYPE;
         return -1;
     }
 
@@ -605,6 +616,12 @@ bool StreamingAudioManager::registerUI(const char* host, quint16 port)
         qWarning("Couldn't send OSC message");
         return false;
     }
+
+    // send /sam/type/add messages for all registered rendering types
+    for (unsigned int i = 0; i < m_renderingTypes.size(); i++)
+    {
+        send_type_added(m_renderingTypes[i], address);
+    }
     
     // send app/registered messages to UI for all currently-registered apps
     for (int i = 0; i < m_maxClients; i++)
@@ -631,6 +648,27 @@ bool StreamingAudioManager::registerUI(const char* host, quint16 port)
     }
     
     return true;
+}
+
+bool StreamingAudioManager::send_type_added(RenderingType& type, OscAddress& address)
+{
+    int numPresets = type.presets.size();
+    QByteArray nameBytes = type.name.toLocal8Bit();
+    OscMessage msg;
+    msg.init("/sam/type/add", "isi", type.id, nameBytes.constData(), numPresets);
+
+    for (unsigned int i = 0; i < numPresets; i++)
+    {
+        msg.addIntArg(type.presets[i].id);
+        QByteArray presetNameBytes = type.presets[i].name.toLocal8Bit();
+        msg.addStringArg(presetNameBytes.constData());
+    }
+
+    if (!OscClient::sendUdp(&msg, &address))
+    {
+        qWarning("Couldn't send OSC message");
+        return false;
+    }
 }
 
 bool StreamingAudioManager::unregisterUI(const char* host, quint16 port)
@@ -844,27 +882,16 @@ bool StreamingAudioManager::setAppType(int port, StreamingAudioType type, int pr
         return false;
     }
 
-    int typeOld = m_apps[port]->getType();
-    if (typeOld == type)
-    {
-        setAppPreset(port, preset);
-        return true; // nothing else to do
-    }
-
-    if (!typeIsValid(type))
+    if (!typeIsValidWithPreset(type, preset))
     {
         errorCode = sam::SAM_ERR_INVALID_TYPE;
         return false;
     }
 
-    if (!presetIsValid(type, preset))
-    {
-        errorCode = sam::SAM_ERR_INVALID_PRESET;
-        return false;
-    }
+    int typeOld = m_apps[port]->getType();
 
     // re-assign ports if we are changing from basic to non-basic type and vice-versa
-    if (typeOld == sam::TYPE_BASIC)
+    if (typeOld == sam::TYPE_BASIC && type != sam::TYPE_BASIC)
     {
         qDebug("StreamingAudioManager::setAppType switching app %d from basic type to non-basic type", port);
         
@@ -925,36 +952,38 @@ bool StreamingAudioManager::setAppType(int port, StreamingAudioType type, int pr
         qDebug("StreamingAudioManager::setAppType no output port switching required");
     }
     
-    m_apps[port]->setType(type);
-    m_apps[port]->setPreset(preset);
-    
-    // notify rendering engine: first remove app with the old type and re-add with the new type
+    m_apps[port]->setType(type, preset);
+
+    // notify rendering engine
     if (m_renderer)
     {
-        qDebug("StreamingAudioManager::setAppType removing app with old type from renderer");
-        OscMessage msg;
-        msg.init("/sam/stream/remove", "i", port);
-        if (!OscClient::sendUdp(&msg, m_renderer))
+        if (typeOld != type)
         {
+            // type changed: first remove app with the old type and re-add with the new type
+            qDebug("StreamingAudioManager::setAppType removing app with old type from renderer");
+            OscMessage msg;
+            msg.init("/sam/stream/remove", "i", port);
+            if (!OscClient::sendUdp(&msg, m_renderer))
+            {
                 qWarning("Couldn't send OSC message");
+            }
+            qDebug("StreamingAudioManager::SetAppType adding app with new type to renderer");
+            send_stream_added(m_apps[port], m_renderer);
         }
-        qDebug("StreamingAudioManager::SetAppType adding app with new type to renderer");
-        send_stream_added(m_apps[port], m_renderer);
+        else
+        {
+            // only preset changed
+            OscMessage msg;
+            msg.init("/sam/val/type", "iii", port, type, preset);
+            if (!OscClient::sendUdp(&msg, m_renderer))
+            {
+                qWarning("Couldn't send OSC message");
+            }
+        }
     }
     
     qDebug("StreamingAudioManager::setAppType finished successfully");
-    emit appTypeChanged(port, type);
-    emit appPresetChanged(port, preset);
-    return true;
-}
-
-bool StreamingAudioManager::setAppPreset(int port, int preset)
-{
-    // check for valid port
-    if (!idIsValid(port)) return false;
-
-    m_apps[port]->setPreset(preset);
-    emit appPresetChanged(port, preset);
+    emit appTypeChanged(port, type, preset);
     return true;
 }
 
@@ -1372,18 +1401,7 @@ void StreamingAudioManager::handle_set_message(const char* address, OscMessage* 
             msg->print();
         }
     }
-    else if (qstrcmp(address, "/preset") == 0) // /sam/set/preset
-    {
-        if (msg->typeMatches("ii"))
-        {
-            osc_set_preset(msg, sender);
-        }
-        else
-        {
-            printf("Unknown OSC message:\n");
-            msg->print();
-        }
-    }else
+    else
     {
         printf("Unknown OSC message:\n");
         msg->print();
@@ -1455,11 +1473,6 @@ void StreamingAudioManager::handle_get_message(const char* address, OscMessage* 
         StreamingAudioType type = m_apps[port]->getType();
         int preset = m_apps[port]->getPreset();
         replyMsg.init("/sam/val/type", "iii", port, type, preset);
-    }
-    else if (validPort && qstrcmp(address, "/preset") == 0) // /sam/get/preset
-    {
-        int preset = m_apps[port]->getPreset();
-        replyMsg.init("/sam/val/preset", "ii", port, preset);
     }
     else if (validPort && qstrcmp(address, "/meter") == 0) // /sam/get/meter
     {
@@ -1536,11 +1549,6 @@ void StreamingAudioManager::handle_subscribe_message(const char* address, OscMes
         printf("Subscribing host %s, port %d to type for app %d\n\n", sender, replyPort, port);
         m_apps[port]->subscribeType(sender, replyPort);
     }
-    else if (qstrcmp(address, "/preset") == 0) // /sam/subscribe/preset
-    {
-        printf("Subscribing host %s, port %d to preset for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->subscribePreset(sender, replyPort);
-    }
     else if (qstrcmp(address, "/meter") == 0) // /sam/subscribe/meter
     {
         printf("Subscribing host %s, port %d to meter for app %d\n\n", sender, replyPort, port);
@@ -1582,47 +1590,42 @@ void StreamingAudioManager::handle_unsubscribe_message(const char* address, OscM
     qDebug("SAM received unsubscribe message: source host = %s", sender);
 
     // check third level of address
-    if (qstrcmp(address, "/volume") == 0) // /sam/subscribe/volume
+    if (qstrcmp(address, "/volume") == 0) // /sam/unsubscribe/volume
     {
         printf("Unsubscribing host %s, port %d from volume for app %d\n\n", sender, replyPort, port);
         m_apps[port]->unsubscribeVolume(sender, replyPort);
     }
-    else if (qstrcmp(address, "/mute") == 0) // /sam/subscribe/mute
+    else if (qstrcmp(address, "/mute") == 0) // /sam/unsubscribe/mute
     {
         printf("Unsubscribing host %s, port %d from mute for app %d\n\n", sender, replyPort, port);
         m_apps[port]->unsubscribeMute(sender, replyPort);
     }
-    else if (qstrcmp(address, "/solo") == 0) // /sam/subscribe/solo
+    else if (qstrcmp(address, "/solo") == 0) // /sam/unsubscribe/solo
     {
         printf("Unsubscribing host %s, port %d from solo for app %d\n\n", sender, replyPort, port);
         m_apps[port]->unsubscribeSolo(sender, replyPort);
     }
-    else if (qstrcmp(address, "/delay") == 0) // /sam/subscribe/delay
+    else if (qstrcmp(address, "/delay") == 0) // /sam/unsubscribe/delay
     {
         printf("Unsubscribing host %s, port %d from delay for app %d\n\n", sender, replyPort, port);
         m_apps[port]->unsubscribeDelay(sender, replyPort);
     }
-    else if (qstrcmp(address, "/position") == 0) // /sam/subscribe/position
+    else if (qstrcmp(address, "/position") == 0) // /sam/unsubscribe/position
     {
         printf("Unsubscribing host %s, port %d from position for app %d\n\n", sender, replyPort, port);
         m_apps[port]->unsubscribePosition(sender, replyPort);
     }
-    else if (qstrcmp(address, "/type") == 0) // /sam/subscribe/type
+    else if (qstrcmp(address, "/type") == 0) // /sam/unsubscribe/type
     {
         printf("Unsubscribing host %s, port %d from type for app %d\n\n", sender, replyPort, port);
         m_apps[port]->unsubscribeType(sender, replyPort);
     }
-    else if (qstrcmp(address, "/preset") == 0) // /sam/subscribe/preset
-    {
-        printf("Unsubscribing host %s, port %d from preset for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->unsubscribePreset(sender, replyPort);
-    }
-    else if (qstrcmp(address, "/meter") == 0) // /sam/subscribe/meter
+    else if (qstrcmp(address, "/meter") == 0) // /sam/unsubscribe/meter
     {
         printf("Unsubscribing host %s, port %d from meter for app %d\n\n", sender, replyPort, port);
         m_apps[port]->unsubscribeMeter(sender, replyPort);
     }
-    else if (qstrcmp(address, "/all") == 0) // /sam/subscribe/all
+    else if (qstrcmp(address, "/all") == 0) // /sam/unsubscribe/all
     {
         printf("Unsubscribing host %s, port %d from all parameters for app %d\n\n", sender, replyPort, port);
         m_apps[port]->unsubscribeAll(sender, replyPort);
@@ -1830,7 +1833,7 @@ void StreamingAudioManager::osc_set_type(OscMessage* msg, const char* sender, QA
     {
         // send /sam/type/confirm message
         OscMessage msg;
-        msg.init("/sam/type/confirm", "ii", port, m_apps[port]->getType());
+        msg.init("/sam/type/confirm", "iii", port, m_apps[port]->getType(), m_apps[port]->getPreset());
         
         if (socket->socketType() == QAbstractSocket::TcpSocket)
         {
@@ -1850,7 +1853,8 @@ void StreamingAudioManager::osc_set_type(OscMessage* msg, const char* sender, QA
         // send /sam/type/deny message
         OscMessage msg;
         int respondType = idIsValid(port) ? m_apps[port]->getType() : -1;
-        msg.init("/sam/type/deny", "iii", port, respondType, errorCode);
+        int respondPreset = idIsValid(port) ? m_apps[port]->getType() : -1;
+        msg.init("/sam/type/deny", "iiii", port, respondType, respondPreset, errorCode);
         if (socket->socketType() == QAbstractSocket::TcpSocket)
         {
             if (!OscClient::sendFromSocket(&msg, socket))
@@ -1863,20 +1867,6 @@ void StreamingAudioManager::osc_set_type(OscMessage* msg, const char* sender, QA
             qWarning("Couldn't send OSC message");
         }
     }
-}
-
-void StreamingAudioManager::osc_set_preset(OscMessage* msg, const char* sender)
-{
-    qDebug("SAM received message to set preset");
-    qDebug("source host = %s", sender);
-
-    OscArg arg;
-    msg->getArg(0, arg);
-    int port = arg.val.i;
-    msg->getArg(1, arg);
-    int preset = arg.val.i;
-    printf("Setting preset for app %d to %d\n\n", port, preset);
-    setAppPreset(port, preset);
 }
 
 void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
@@ -1962,9 +1952,9 @@ void StreamingAudioManager::osc_add_type(OscMessage* msg, const char* sender)
     qDebug("source host = %s", sender);
 
     int numArgs = msg->getNumArgs();
-    if (numArgs < 3)
+    if (numArgs < 5)
     {
-        qWarning("/sam/add/type message must have at least 3 parameters, found %d:", numArgs);
+        qWarning("/sam/add/type message must have at least 5 parameters, found %d:", numArgs);
         msg->print();
         return;
     }
@@ -2001,6 +1991,11 @@ void StreamingAudioManager::osc_add_type(OscMessage* msg, const char* sender)
     }
     int numPresets = arg.val.i;
 
+    if (numPresets < 1)
+    {
+        qWarning("/sam/add/type message must have at least one preset");
+        return;
+    }
 
     if ((numArgs - 3) != (numPresets * 2))
     {
@@ -2023,6 +2018,12 @@ void StreamingAudioManager::osc_add_type(OscMessage* msg, const char* sender)
         }
         int presetId = arg.val.i;
 
+        if (i == 0 && presetId != 0)
+        {
+            qWarning("/sam/type/add message must define its first preset with id 0");
+            return;
+        }
+
         msg->getArg(4 + (i * 2), arg);
         if (arg.type != 's')
         {
@@ -2037,6 +2038,8 @@ void StreamingAudioManager::osc_add_type(OscMessage* msg, const char* sender)
         preset.name.append(presetName);
         type.presets.append(preset);
     }
+
+    m_renderingTypes.append(type);
 
     printf("Added rendering type %d, \"%s\" with %d preset(s)\n\n", id, name, numPresets);
 

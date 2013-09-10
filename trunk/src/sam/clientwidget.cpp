@@ -189,7 +189,7 @@ void ClientWidget::setPosition(int x, int y, int w, int h, int d)
 
 }
 
-void ClientWidget::setType(int type)
+void ClientWidget::setType(int type, int preset)
 {
 
 }

@@ -37,8 +37,7 @@ enum SamErrorCode
     SAM_ERR_MAX_CLIENTS,        ///< the maximum number of clients has been reached
     SAM_ERR_NO_FREE_OUTPUT,     ///< there are no more output channels (JACK ports) available in SAM
     SAM_ERR_INVALID_ID,         ///< invalid client id
-    SAM_ERR_INVALID_TYPE,       ///< invalid rendering type
-    SAM_ERR_INVALID_PRESET      ///< invalid rendering preset
+    SAM_ERR_INVALID_TYPE        ///< invalid rendering type
 };
 
 /**
@@ -291,6 +290,16 @@ public:
     int setType(StreamingAudioType type, unsigned int timeout = SAC_DEFAULT_TIMEOUT);
     
     /**
+     * Tell SAM the audio type for this client and block until a response is received.
+     * @param type the type of audio stream this client will send
+     * @param the rendering preset this client is requesting
+     * @param timeout the timeout time in milliseconds after which this method will return false if no
+     * response has been received from SAM.
+     * @return 0 on success, a non-zero ::SACReturn code on failure
+     */
+    int setTypeWithPreset(StreamingAudioType type, int preset, unsigned int timeout = SAC_DEFAULT_TIMEOUT);
+
+    /**
      * Send SAM a volume message.
      * @param volume the volume for the client
      * @return 0 on success, a non-zero ::SACReturn code on failure
@@ -405,7 +414,7 @@ private:
     /**
      * Handle a /sam/typeconfirm OSC message.
      */
-    void handle_typeconfirm(int type);
+    void handle_typeconfirm(int type, int preset);
 
     /**
      * Handle a /sam/typedeny OSC message.

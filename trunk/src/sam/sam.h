@@ -177,12 +177,12 @@ public:
     bool typeIsValid(StreamingAudioType type);
 
     /**
-     * Check if a rendering preset is valid.
-     * @param type the rendering type for which this preset is being checked
+     * Check if a rendering type is valid (has been added).
+     * @param type the rendering type in question
      * @param preset the id for the preset in question
      * @return true if valid, false otherwise
      */
-    bool presetIsValid(StreamingAudioType type, int preset);
+    bool typeIsValidWithPreset(StreamingAudioType type, int preset);
 
     /**
      * Get the number of registered apps.
@@ -384,14 +384,6 @@ public slots:
     bool setAppType(int port, sam::StreamingAudioType type, int preset, sam::SamErrorCode& errorCode);
 
     /**
-     * Set the rendering preset for an app.
-     * @param port the port/unique ID of the app to be updated
-     * @param type the preset to be set
-     * @return true on success, false on failure
-     */
-    bool setAppPreset(int port, int preset);
-
-    /**
      * Start running this StreamingAudioManager.
      * @see stop()
      */
@@ -476,8 +468,7 @@ signals:
     void appSoloChanged(int, bool);
     void appDelayChanged(int, float);
     void appPositionChanged(int, int, int, int, int, int);
-    void appTypeChanged(int, int);
-    void appPresetChanged(int, int);
+    void appTypeChanged(int, int, int);
 
 private:
 
@@ -671,6 +662,14 @@ private:
      */
     bool send_stream_added(StreamingAudioApp* app, OscAddress* address);
     
+    /**
+     * send a /sam/type/add message.
+     * @param type the rendering type that was added
+     * @param address the address to send the message to
+     * @return true if sending is successful, false otherwise
+     */
+    bool send_type_added(RenderingType& type, OscAddress& address);
+
     /**
      * Allocate physical output ports.
      * @param port the unique port for the app to be connected

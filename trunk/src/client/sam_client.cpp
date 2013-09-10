@@ -346,12 +346,17 @@ int StreamingAudioClient::setPosition(int x, int y, int width, int height, int d
 
 int StreamingAudioClient::setType(StreamingAudioType type, unsigned int timeout)
 {
+    return setTypeWithPreset(type, m_preset, timeout);
+}
+
+int StreamingAudioClient::setTypeWithPreset(StreamingAudioType type, int preset, unsigned int timeout)
+{
     if (m_port < 0) return SAC_NOT_REGISTERED; // not yet registered
-    if (m_type == type) return SAC_SUCCESS; // type already set
-    
+    if (m_type == type && m_preset == preset) return SAC_SUCCESS; // type already set
+
     m_responseReceived = false;
     OscMessage msg;
-    msg.init("/sam/set/type", "iii", m_port, type, m_replyPort);
+    msg.init("/sam/set/type", "iiii", m_port, type, preset, m_replyPort);
     if (!OscClient::sendFromSocket(&msg, &m_socket))
     {
         qWarning("StreamingAudioClient::setType() Couldn't send OSC message");
@@ -370,7 +375,7 @@ int StreamingAudioClient::setType(StreamingAudioType type, unsigned int timeout)
         return SAC_TIMEOUT;
     }
 
-    return ((m_type == type) ? SAC_SUCCESS : SAC_REQUEST_DENIED);
+    return ((m_type == type && m_preset == preset) ? SAC_SUCCESS : SAC_REQUEST_DENIED);
 }
 
 int StreamingAudioClient::setVolume(float volume)
@@ -540,13 +545,15 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
         // check third level of address
         if (qstrcmp(address + prefixLen + 4, "/confirm") == 0) // /sam/type/confirm
         {
-            if (msg->typeMatches("ii"))
+            if (msg->typeMatches("iii"))
             {
                 OscArg arg;
                 msg->getArg(1, arg);
                 int type = arg.val.i; // for now ignore arg 0 (id)
-                qDebug() << "Received typeconfirm from SAM, type = " << type << endl;
-                handle_typeconfirm(type);
+                msg->getArg(2, arg);
+                int preset = arg.val.i;
+                qDebug() << "Received typeconfirm from SAM, type = " << type << ", preset = " << preset << endl;
+                handle_typeconfirm(type, preset);
             }
             else
             {
@@ -556,11 +563,11 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
         }
         else if (qstrcmp(address + prefixLen + 4, "/deny") == 0) // /sam/type/deny
         {
-            if (msg->typeMatches("iii"))
+            if (msg->typeMatches("iiii"))
             {
                 OscArg arg;
-                msg->getArg(2, arg);
-                int errorCode = arg.val.i; // for now ignore args 0 and 1 (id and type)
+                msg->getArg(3, arg);
+                int errorCode = arg.val.i; // for now ignore args 0 and 1 (id, type, and preset)
                 qDebug() << "Type change DENIED, error code = " << errorCode << endl;
                 handle_typedeny(errorCode);
             }
@@ -630,22 +637,6 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
                 int preset = arg.val.i;
                 qWarning("Received message from SAM that client type is %d, preset is %d", type, preset);
                 // TODO: call type callback
-            }
-            else
-            {
-                printf("Unknown OSC message:\n");
-                msg->print();
-            }
-        }
-        else if (qstrcmp(address + prefixLen + 3, "/preset") == 0) // /sam/val/preset
-        {
-            if (msg->typeMatches("ii"))
-            {
-                OscArg arg;
-                msg->getArg(1, arg);
-                int preset = arg.val.i; // for now ignore arg 0 (id)
-                qWarning("Received message from SAM that client preset is %d", preset);
-                // TODO: call preset callback
             }
             else
             {
@@ -748,11 +739,12 @@ void StreamingAudioClient::handle_regdeny(int errorCode)
     emit responseReceived();
 }
 
-void StreamingAudioClient::handle_typeconfirm(int type)
+void StreamingAudioClient::handle_typeconfirm(int type, int preset)
 {
-    qDebug() << "StreamingAudioClient::handle_typeconfirm, type = " << type << endl;
+    qDebug() << "StreamingAudioClient::handle_typeconfirm, type = " << type << ", preset = " << preset << endl;
     
     m_type = (StreamingAudioType)type;
+    m_preset = preset;
     m_responseReceived = true;
     emit responseReceived();
 }
