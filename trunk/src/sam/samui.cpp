@@ -100,7 +100,7 @@ void SamUI::doBeforeQuit()
 
 void SamUI::addClient(int id)
 {
-    qWarning("SamUI::addClient id = %d", id);
+    //qWarning("SamUI::addClient id = %d", id);
     if (id < 0 || id >= m_maxClients)
     {
         qWarning("SamUI::addClient received invalid id %d", id);
@@ -125,7 +125,7 @@ void SamUI::addClient(int id)
 
 void SamUI::removeClient(int id)
 {
-    qWarning("SamUI::removeClient id = %d", id);
+    //qWarning("SamUI::removeClient id = %d", id);
 
     if (id < 0 || id >= m_maxClients)
     {
