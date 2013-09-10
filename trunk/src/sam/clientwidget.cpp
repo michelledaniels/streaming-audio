@@ -154,7 +154,7 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, doubl
 
     clientBox->setLayout(clientLayout);
 
-    setMinimumSize(m_channels * 50, 400);
+    setMinimumSize(100 + 110 * m_channels, 265);
 }
 
 void ClientWidget::setName(const char* name)
