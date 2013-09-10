@@ -20,8 +20,9 @@ void print_help()
     printf("--maxclients or -m max number of clients to register\n");
     printf("--channels or -c number of channels per client\n");
     printf("--interval or -t interval between adding clients (millis)\n");
+    printf("--mode or -d testing mode (0 = stress test, 1 = parallel test)\n");
     printf("\nExample usage:\n");
-    printf("samtest -i \"127.0.0.1\" -p 7770 -m 16 -c 2 -t 100\n");
+    printf("samtest -i \"127.0.0.1\" -p 7770 -m 16 -c 2 -t 100 -d 0\n");
     printf("\n");
 }
 
@@ -50,6 +51,7 @@ int main(int argc, char *argv[])
     int channels = 0;
     int maxClients = 0;
     int interval = 0;
+    int mode = 0;
 
     // parse command-line parameters
     while (true)
@@ -61,12 +63,13 @@ int main(int argc, char *argv[])
             {"maxclients", required_argument, NULL, 'm'},
             {"channels", required_argument, NULL, 'c'},
             {"interval", required_argument, NULL, 't'},
+            {"mode", required_argument, NULL, 'd'},
             {NULL, 0, NULL, 0}
         };
 
         // getopt_long stores the option index here.
         int option_index = 0;
-        int c = getopt_long(argc, argv, "i:p:m:c:t:", long_options, &option_index);
+        int c = getopt_long(argc, argv, "i:p:m:c:t:d:", long_options, &option_index);
 
         // Detect the end of the options.
         if (c == -1) break;
@@ -117,12 +120,24 @@ int main(int argc, char *argv[])
         case 't':
         {
             int temp = atoi(optarg);
-            if (temp <=0)
+            if (temp <= 0)
             {
                 qCritical("interval must be at least 1");
             }
             interval = temp;
             qWarning("setting interval = %d milliseconds", interval);
+            break;
+        }
+
+        case 'd':
+        {
+            int temp = atoi(optarg);
+            if (temp < 0 || temp > 1)
+            {
+                qCritical("only modes 0 and 1 are defined");
+            }
+            mode = temp;
+            qWarning("setting mode = %d", mode);
             break;
         }
 
@@ -137,7 +152,18 @@ int main(int argc, char *argv[])
     signal(SIGINT, signalhandler);
     signal(SIGTERM, signalhandler);
     
-    //SamStressTester* stressTester = new SamStressTester(samIP, samPort, interval, &a);
-    SamParallelTester parallelTester(samIP, samPort, interval, maxClients, channels, NULL);
-    return a.exec();
+    switch (mode)
+    {
+    case 0:
+    {
+        SamStressTester stressTester(samIP, samPort, interval, maxClients, channels, NULL);
+        return a.exec();
+    }
+    case 1:
+    default:
+    {
+        SamParallelTester parallelTester(samIP, samPort, interval, maxClients, channels, NULL);
+        return a.exec();
+    }    
+    }
 }
