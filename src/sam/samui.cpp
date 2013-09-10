@@ -34,6 +34,7 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     ui->setupUi(this);
 
     setWindowTitle("Streaming Audio Manager");
+    setMinimumSize(400, 700);
 
     m_sam = new StreamingAudioManager(params);
 
@@ -73,6 +74,7 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     clientScrollArea->setWidgetResizable(true);
     m_clientGroup = new QGroupBox(clientScrollArea);
     m_clientLayout = new QHBoxLayout(m_clientGroup);
+    m_clientLayout->setMargin(0);
     m_clientGroup->setLayout(m_clientLayout);
 
     clientScrollArea->setWidget(m_clientGroup);
