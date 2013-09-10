@@ -134,7 +134,7 @@ public:
      * @param val the value of the argument to be added
      * @return true on success, false on failure
      */
-    bool addStringArg(OSC_STRING val);
+    bool addStringArg(const OSC_STRING val);
 
     /**
      * Read an OSC message from a byte array.

@@ -119,7 +119,7 @@ bool OscMessage::addFloatArg(OSC_FLOAT val)
     return true;
 }
 
-bool OscMessage::addStringArg(OSC_STRING val)
+bool OscMessage::addStringArg(const OSC_STRING val)
 {
     OscArg arg;
     arg.type = 's';

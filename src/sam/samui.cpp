@@ -45,7 +45,7 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     connect(m_sam, SIGNAL(appSoloChanged(int, bool)), this, SLOT(setAppSolo(int, bool)));
     connect(m_sam, SIGNAL(appDelayChanged(int, float)), this, SLOT(setAppDelay(int,float)));
     connect(m_sam, SIGNAL(appPositionChanged(int, int, int, int, int, int)), this, SLOT(setAppPosition(int,int,int,int,int,int)));
-    connect(m_sam, SIGNAL(appTypeChanged(int, int)), this, SLOT(setAppType(int, int)));
+    connect(m_sam, SIGNAL(appTypeChanged(int, int, int)), this, SLOT(setAppType(int, int, int)));
     connect(m_sam, SIGNAL(appMeterChanged(int, int, float, float, float, float)), this, SLOT(setAppMeter(int, int, float, float, float, float)));
     connect(m_sam, SIGNAL(started()), this, SLOT(onSamStarted()));
 
@@ -190,11 +190,11 @@ void SamUI::setAppPosition(int id, int x, int y, int width, int height, int dept
     }
 }
 
-void SamUI::setAppType(int id, int type)
+void SamUI::setAppType(int id, int type, int preset)
 {
     if (m_clients[id])
     {
-        m_clients[id]->setType(type);
+        m_clients[id]->setType(type, preset);
     }
 }
 

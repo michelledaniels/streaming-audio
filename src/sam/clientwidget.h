@@ -45,7 +45,7 @@ public:
     void setSolo(bool solo);
     void setDelay(float delay);
     void setPosition(int x, int y, int w, int h, int d);
-    void setType(int type);
+    void setType(int type, int preset);
     void setMeter(int ch, float rmsIn, float peakIn, float rmsOut, float peakOut);
 
 signals:
