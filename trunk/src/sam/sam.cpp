@@ -2335,6 +2335,8 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
             m_apps[port]->setChannelAssignment(ch, -1);
         }
 
+        m_apps[port]->setChannelsUsed(numChannels);
+
         break;
     }
     default: // TODO: simplify to iterate through m_discreteChannel list instead

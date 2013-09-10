@@ -45,6 +45,7 @@ StreamingAudioApp::StreamingAudioApp(const char* name,
     m_name(NULL),
     m_port(port),
     m_channels(channels),
+    m_channelsUsed(channels),
     m_sampleRate(0),
     m_position(pos),
     m_type(type),
@@ -763,7 +764,8 @@ int StreamingAudioApp::process(jack_nframes_t nframes, float volumeCurrent, floa
     // get audio from the network
     m_receiver->receiveAudio(m_audioData, m_channels, nframes);
 
-    for (int ch = 0; ch < m_channels; ch++)
+    // process audio only for channels that are actually used (connected to an output)
+    for (int ch = 0; ch < m_channelsUsed; ch++)
     {
         if (!m_outputPorts)
         {
@@ -880,6 +882,15 @@ int StreamingAudioApp::process(jack_nframes_t nframes, float volumeCurrent, floa
         }
         
         //qDebug("StreamingAudioApp:process RMS level for app %d channel %d = %0.4f", m_port, ch, m_rms[ch]);
+    }
+
+    // report zero levels for meters on channels that aren't connected to an output
+    for (int ch = m_channelsUsed; ch < m_channels; ch++)
+    {
+        m_rmsIn[ch] = 0.0f;
+        m_peakIn[ch] = 0.0f;
+        m_rmsOut[ch] = 0.0f;
+        m_peakOut[ch] = 0.0f;
     }
     
     m_volumeCurrent = m_volumeNext;
