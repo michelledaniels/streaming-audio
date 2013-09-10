@@ -1646,6 +1646,11 @@ void StreamingAudioManager::handle_type_message(const char* address, OscMessage*
         // add a rendering type
         osc_add_type(msg, sender);
     }
+    else if ((qstrcmp(address, "/remove") == 0) && msg->typeMatches("i")) // /sam/type/remove
+    {
+        // remove a rendering type
+        osc_remove_type(msg, sender);
+    }
     else
     {
         printf("Unknown OSC message:\n");
@@ -2052,6 +2057,63 @@ void StreamingAudioManager::osc_add_type(OscMessage* msg, const char* sender)
             qWarning("Couldn't send OSC message");
         }
     }
+
+    emit typeAdded();
+}
+
+void StreamingAudioManager::osc_remove_type(OscMessage* msg, const char* sender)
+{
+    OscArg arg;
+    msg->getArg(0, arg);
+    int type = arg.val.i;
+
+    // look for rendering type so we can remove it
+    bool typeFound = false;
+    for (int i = 0; i < m_renderingTypes.size(); i++)
+    {
+        if (m_renderingTypes[i].id == type)
+        {
+            m_renderingTypes.removeAt(i);
+            typeFound = true;
+        }
+    }
+
+    if (!typeFound)
+    {
+        qWarning("Couldn't find type %d to remove it", type);
+        return;
+    }
+
+    // switch any apps with that type to TYPE_BASIC with preset 0
+    for (int j = 0; j < m_maxClients; j++)
+    {
+        if (m_apps[j] && (m_apps[j]->getType() == type))
+        {
+            SamErrorCode errorCode = (SamErrorCode)0;
+            if (!setAppType(j, TYPE_BASIC, 0, errorCode))
+            {
+                qWarning("StreamingAudioManager::osc_remove_type couldn't switch app %d to basic type", j);
+            }
+            else
+            {
+                qWarning("StreamingAudioManager::osc_remove_type switched app %d to basic type", j);
+            }
+        }
+    }
+
+    printf("Removed rendering type %d\n\n", type);
+
+    // notify UIs of removed type
+    for (int i = 0; i < m_uiSubscribers.size(); i++)
+    {
+        OscAddress* replyAddr = m_uiSubscribers.at(i);
+        if (!OscClient::sendUdp(msg, replyAddr))
+        {
+            qWarning("Couldn't send OSC message");
+        }
+    }
+
+    emit typeRemoved();
 }
 
 int StreamingAudioManager::jack_process(jack_nframes_t nframes)
