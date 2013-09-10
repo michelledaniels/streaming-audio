@@ -84,6 +84,12 @@ public:
     void startThread(StreamingAudioManager* sam);
 
     /**
+     * Set the number of actual channels used.
+     * @param the number of channels used
+     */
+    void setChannelsUsed(int channels) { m_channelsUsed = channels; }
+
+    /**
      * Set the volume.
      * @param volume the volume to be set, in the range [0.0, 1.0]
      */
@@ -413,6 +419,7 @@ private:
     char* m_name;               ///< the name of this app, to be used for UI displays
     int m_port;                 ///< the port (offset from default 4464) to be used for jacktrip (also serves as unique ID)
     int m_channels;             ///< number of audio channels
+    int m_channelsUsed;         ///< number of audio channels actually used by SAM
     int m_sampleRate;           ///< audio sample rate
     SamAppPosition m_position;  ///< app window position
     StreamingAudioType m_type;  ///< audio type
