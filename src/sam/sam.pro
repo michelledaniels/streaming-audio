@@ -22,7 +22,8 @@ SOURCES += sam_main.cpp \
     rtpreceiver.cpp \
     samui.cpp \
     clientwidget.cpp \
-    masterwidget.cpp
+    masterwidget.cpp \
+    samparams.cpp
 
 HEADERS += sam.h \
     sam_app.h \
@@ -33,7 +34,8 @@ HEADERS += sam.h \
     rtpreceiver.h \
     samui.h \
     clientwidget.h \
-    masterwidget.h
+    masterwidget.h \
+    samparams.h
 
 FORMS += \
     samui.ui

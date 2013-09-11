@@ -25,6 +25,7 @@ namespace sam
 
 class MasterWidget;
 class ClientWidget;
+class SamParams;
 
 /**
  * @class SamUI
