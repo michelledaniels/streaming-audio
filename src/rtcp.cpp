@@ -209,8 +209,8 @@ void RtcpHandler::readPendingDatagrams()
         quint8 versionByte = 0;
         stream >> versionByte;
         quint8 version = versionByte >> 6; // version is upper 2 bits
-        quint8 padding = (versionByte & 32) >> 5; // padding flag is 3rd uppermost bit
-        quint8 reportCount = versionByte & 31; // report count is lowest 5 bits
+        //quint8 padding = (versionByte & 32) >> 5; // padding flag is 3rd uppermost bit
+        //quint8 reportCount = versionByte & 31; // report count is lowest 5 bits
         
         //qDebug("RtcpHandler::readPendingDatagrams: version = %u, padding = %u, reportCount = %u", version, padding, reportCount);
         // TODO: handle padding and report count?
@@ -327,7 +327,7 @@ void RtcpHandler::read_sender_report(QDataStream& stream)
     // read NTP timestamp (64 bits)
     stream >> m_senderReport.ntpSeconds; 
     stream >> m_senderReport.ntpMillis;
-    float ntpMillis = m_senderReport.ntpMillis / (float)4294967296.0f; // convert from [0 2^32]to [0.0, 1.0]
+    //float ntpMillis = m_senderReport.ntpMillis / (float)4294967296.0f; // convert from [0 2^32]to [0.0, 1.0]
     //qDebug("RtcpHandler::read_sender_report NTP timestamp seconds = %u, millis float = %0.4f, fixed = %u", m_senderReport.ntpSeconds, ntpMillis, m_senderReport.ntpMillis);
 
     // read rtp timestamp (32 bits)

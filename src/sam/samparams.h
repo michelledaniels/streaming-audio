@@ -26,21 +26,21 @@ public:
 
     int sampleRate;                       ///< The sampling rate for JACK
     int bufferSize;                       ///< The buffer size for JACK
-    int numBasicChannels;                 ///< The number of basic (non-spatialized) channels
-    QString jackDriver;                     ///< The driver for JACK to use
+    unsigned int numBasicChannels;        ///< The number of basic (non-spatialized) channels
+    QString jackDriver;                   ///< The driver for JACK to use
     quint16 oscPort;                      ///< OSC server port
     quint16 rtpPort;                      ///< Base JackTrip port
-    int maxOutputChannels;                ///< the maximum number of output channels to use
+    unsigned int maxOutputChannels;       ///< the maximum number of output channels to use
     float volume;                         ///< initial global volume
     float delayMillis;                    ///< initial global delay in milliseconds
     float maxDelayMillis;                 ///< maximum global delay in milliseconds
     float maxClientDelayMillis;           ///< maximum per-client delay in milliseconds
-    QString renderHost;                     ///< host for the renderer
+    QString renderHost;                   ///< host for the renderer
     quint16 renderPort;                   ///< port for the renderer
     quint32 packetQueueSize; 		      ///< default client packet queue size
     qint32 clockSkewThreshold;            ///< number of samples of clock skew that must be measured before compensating
-    QString outJackClientNameBasic; 	      ///< jack client name to which SAM will connect outputs
-    QString outJackPortBaseBasic;   	      ///< base jack port name to which SAM will connect outputs
+    QString outJackClientNameBasic; 	  ///< jack client name to which SAM will connect outputs
+    QString outJackPortBaseBasic;   	  ///< base jack port name to which SAM will connect outputs
     QString outJackClientNameDiscrete; 	  ///< jack client name to which SAM will connect outputs
     QString outJackPortBaseDiscrete;   	  ///< base jack port name to which SAM will connect outputs
     QList<unsigned int> basicChannels; 	  ///< list of basic channels to use

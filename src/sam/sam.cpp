@@ -436,7 +436,7 @@ bool StreamingAudioManager::idIsValid(int id)
 
 bool StreamingAudioManager::typeIsValid(StreamingAudioType type)
 {
-    for (unsigned int i = 0; i < m_renderingTypes.size(); i++)
+    for (int i = 0; i < m_renderingTypes.size(); i++)
     {
         if (m_renderingTypes[i].id == type)
         {
@@ -448,11 +448,11 @@ bool StreamingAudioManager::typeIsValid(StreamingAudioType type)
 
 bool StreamingAudioManager::typeIsValidWithPreset(StreamingAudioType type, int preset)
 {
-    for (unsigned int i = 0; i < m_renderingTypes.size(); i++)
+    for (int i = 0; i < m_renderingTypes.size(); i++)
     {
         if (m_renderingTypes[i].id == type)
         {
-            for (unsigned int j = 0; j < m_renderingTypes[i].presets.size(); j++)
+            for (int j = 0; j < m_renderingTypes[i].presets.size(); j++)
             {
                 if (m_renderingTypes[i].presets[j].id == preset)
                 {
@@ -625,7 +625,7 @@ bool StreamingAudioManager::registerUI(const char* host, quint16 port)
     }
 
     // send /sam/type/add messages for all registered rendering types
-    for (unsigned int i = 0; i < m_renderingTypes.size(); i++)
+    for (int i = 0; i < m_renderingTypes.size(); i++)
     {
         send_type_added(m_renderingTypes[i], address);
     }
@@ -664,7 +664,7 @@ bool StreamingAudioManager::send_type_added(RenderingType& type, OscAddress& add
     OscMessage msg;
     msg.init("/sam/type/add", "isi", type.id, nameBytes.constData(), numPresets);
 
-    for (unsigned int i = 0; i < numPresets; i++)
+    for (int i = 0; i < numPresets; i++)
     {
         msg.addIntArg(type.presets[i].id);
         QByteArray presetNameBytes = type.presets[i].name.toLocal8Bit();
@@ -676,6 +676,7 @@ bool StreamingAudioManager::send_type_added(RenderingType& type, OscAddress& add
         qWarning("Couldn't send OSC message");
         return false;
     }
+    return true;
 }
 
 bool StreamingAudioManager::unregisterUI(const char* host, quint16 port)
@@ -939,7 +940,7 @@ bool StreamingAudioManager::setAppType(int port, StreamingAudioType type, int pr
 
         // release old output ports used by this app
         // TODO: can use app's channel assigmments array to do this more efficiently ??  Would need to save a copy before it changes above...
-        for (int i = 0; i < m_maxDiscreteOutputs; i++)
+        for (unsigned int i = 0; i < m_maxDiscreteOutputs; i++)
         {
             if (m_discreteOutputUsed[i] == port)
             {
@@ -1656,7 +1657,7 @@ void StreamingAudioManager::handle_type_message(const char* address, OscMessage*
     else if ((qstrcmp(address, "/remove") == 0) && msg->typeMatches("i")) // /sam/type/remove
     {
         // remove a rendering type
-        osc_remove_type(msg, sender);
+        osc_remove_type(msg);
     }
     else
     {
@@ -1906,10 +1907,10 @@ void StreamingAudioManager::osc_register(OscMessage* msg, QTcpSocket* socket)
     StreamingAudioType type = (StreamingAudioType)arg.val.i;
     msg->getArg(8, arg);
     int preset = arg.val.i;
-    msg->getArg(9, arg);
-    int bufferSize = arg.val.i; // placeholder for future use
+    //msg->getArg(9, arg);
+    //int bufferSize = arg.val.i; // placeholder for future use
     msg->getArg(10, arg);
-    int packetQueueLength = arg.val.i; // placeholder for future use
+    int packetQueueLength = arg.val.i;
     msg->getArg(11, arg);
     int majorVersion = arg.val.i;
     msg->getArg(12, arg);
@@ -2068,7 +2069,7 @@ void StreamingAudioManager::osc_add_type(OscMessage* msg, const char* sender)
     emit typeAdded();
 }
 
-void StreamingAudioManager::osc_remove_type(OscMessage* msg, const char* sender)
+void StreamingAudioManager::osc_remove_type(OscMessage* msg)
 {
     OscArg arg;
     msg->getArg(0, arg);
@@ -2240,7 +2241,7 @@ bool StreamingAudioManager::init_output_ports()
     jack_free(outputPortsDiscrete);
     
     m_discreteOutputUsed = new int[m_maxDiscreteOutputs];
-    for (int i = 0; i < m_maxDiscreteOutputs; i++)
+    for (unsigned int i = 0; i < m_maxDiscreteOutputs; i++)
     {
         m_discreteOutputUsed[i] = OUTPUT_DISABLED;
     }
@@ -2349,12 +2350,12 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
     default: // TODO: simplify to iterate through m_discreteChannel list instead
     {
         // find a free output port for each app output channel
-        int nextFreeOutput = 0;
+        unsigned int nextFreeOutput = 0;
         for (int ch = 0; ch < channels; ch++)
         {
             // assign the next available output
             bool portFound = false;
-            for (int k = nextFreeOutput; k < m_maxDiscreteOutputs; k++)
+            for (unsigned int k = nextFreeOutput; k < m_maxDiscreteOutputs; k++)
             {
                 qDebug("StreamingAudioManager::allocate_output_ports m_discreteOutputUsed[%d] = %d", k, m_discreteOutputUsed[k]);
                 if (m_discreteOutputUsed[k] != OUTPUT_ENABLED_DISCRETE) continue;
@@ -2370,7 +2371,7 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
                 
                 // release output ports already allocated to this app
                 // TODO: also undo channel assignment changes !?!
-                for (int i = 0; i < m_maxDiscreteOutputs; i++)
+                for (unsigned int i = 0; i < m_maxDiscreteOutputs; i++)
                 {
                     if (m_discreteOutputUsed[i] == port)
                     {
@@ -2537,7 +2538,7 @@ void StreamingAudioManager::cleanupApp(int port, int type)
     if (type > sam::TYPE_BASIC)
     {
         // release output ports used by this app
-        for (int i = 0; i < m_maxDiscreteOutputs; i++)
+        for (unsigned int i = 0; i < m_maxDiscreteOutputs; i++)
         {
             if (m_discreteOutputUsed[i] == port)
             {

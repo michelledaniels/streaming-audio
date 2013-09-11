@@ -621,9 +621,8 @@ private:
     /**
      * Handle requests to remove a rendering type.
      * @param msg the OSC message to handle
-     * @param sender the name of the host that sent the message
      */
-    void osc_remove_type(OscMessage* msg, const char* sender);
+    void osc_remove_type(OscMessage* msg);
 
     /**
      * JACK process callback
@@ -704,8 +703,8 @@ private:
     QList<unsigned int> m_discreteChannels; ///< list of discrete channels to use
     QList<RenderingType> m_renderingTypes;  ///< list of available rendering types
 
-    int m_maxBasicOutputs;             ///< max number of output JACK ports for basic JACK client
-    int m_maxDiscreteOutputs;          ///< max number of output JACK ports for discrete JACK client
+    unsigned int m_maxBasicOutputs;    ///< max number of output JACK ports for basic JACK client
+    unsigned int m_maxDiscreteOutputs; ///< max number of output JACK ports for discrete JACK client
     int* m_discreteOutputUsed;         ///< which output ports are in use (by which app)
     quint16 m_rtpPort;                 ///< base port to use for RTP streaming
     char* m_outJackClientNameBasic;    ///< jack client name to which SAM will connect outputs
