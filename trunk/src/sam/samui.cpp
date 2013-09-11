@@ -11,6 +11,7 @@
 #include "clientwidget.h"
 #include "masterwidget.h"
 #include "samui.h"
+#include "samparams.h"
 #include "ui_samui.h"
 
 namespace sam

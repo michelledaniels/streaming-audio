@@ -20,6 +20,7 @@
 
 #include "sam.h"
 #include "sam_app.h"
+#include "samparams.h"
 #include "jack_util.h"
 #include "osc.h"
 
@@ -83,25 +84,30 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
         m_appState[i] = AVAILABLE;
     }
     
-    int len = strlen(params.jackDriver);
+    int len = params.jackDriver.length();
     m_jackDriver = new char[len + 1];
-    strncpy(m_jackDriver, params.jackDriver, len + 1);
+    QByteArray jackDriverBytes = params.jackDriver.toLocal8Bit();
+    strncpy(m_jackDriver, jackDriverBytes.constData(), len + 1);
 
-    len = strlen(params.outJackClientNameBasic);
+    len = params.outJackClientNameBasic.length();
     m_outJackClientNameBasic = new char[len + 1];
-    strncpy(m_outJackClientNameBasic, params.outJackClientNameBasic, len + 1);
+    QByteArray clientNameBasicBytes = params.outJackClientNameBasic.toLocal8Bit();
+    strncpy(m_outJackClientNameBasic, clientNameBasicBytes.constData(), len + 1);
 
-    len = strlen(params.outJackPortBaseBasic);
+    len = params.outJackPortBaseBasic.length();
     m_outJackPortBaseBasic = new char[len + 1];
-    strncpy(m_outJackPortBaseBasic, params.outJackPortBaseBasic, len + 1);
+    QByteArray portBasicBytes = params.outJackPortBaseBasic.toLocal8Bit();
+    strncpy(m_outJackPortBaseBasic, portBasicBytes.constData(), len + 1);
 
-    len = strlen(params.outJackClientNameDiscrete);
+    len = params.outJackClientNameDiscrete.length();
     m_outJackClientNameDiscrete = new char[len + 1];
-    strncpy(m_outJackClientNameDiscrete, params.outJackClientNameDiscrete, len + 1);
+    QByteArray clientDiscreteBytes = params.outJackClientNameDiscrete.toLocal8Bit();
+    strncpy(m_outJackClientNameDiscrete, clientDiscreteBytes.constData(), len + 1);
 
-    len = strlen(params.outJackPortBaseDiscrete);
+    len = params.outJackPortBaseDiscrete.length();
     m_outJackPortBaseDiscrete = new char[len + 1];
-    strncpy(m_outJackPortBaseDiscrete, params.outJackPortBaseDiscrete, len + 1);
+    QByteArray portDiscreteBytes = params.outJackPortBaseDiscrete.toLocal8Bit();
+    strncpy(m_outJackPortBaseDiscrete, portDiscreteBytes.constData(), len + 1);
 
     m_delayMaxClient = int(m_sampleRate * (params.maxClientDelayMillis / 1000.0f));
     m_delayMaxGlobal = int(m_sampleRate * (params.maxDelayMillis / 1000.0f));
@@ -111,14 +117,15 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
 
     connect(this, SIGNAL(meterTick()), this, SLOT(notifyMeter()));
 
-    if (params.renderHost && strlen(params.renderHost) > 0 && params.renderPort > 0)
+    if (!params.renderHost.isEmpty() && params.renderPort > 0)
     {
         // initialize renderer
         OscAddress* address = new OscAddress;
         address->host.setAddress(params.renderHost);
         address->port = params.renderPort;
         m_renderer = address;
-        qWarning("Auto-registered renderer at host %s, port %u", params.renderHost, params.renderPort);
+        QByteArray renderHostBytes = params.renderHost.toLocal8Bit();
+        qWarning("Auto-registered renderer at host %s, port %u", renderHostBytes.constData(), params.renderPort);
     }
 
     m_basicChannels.append(params.basicChannels);
