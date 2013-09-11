@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
         
         // getopt_long stores the option index here.
         int option_index = 0;
-        int c = getopt_long(argc, argv, "n:r:p:d:o:j:f:m:h:g", long_options, &option_index);
+        int c = getopt_long(argc, argv, "n:r:p:d:o:j:f:m:hg", long_options, &option_index);
         
         // Detect the end of the options.
         if (c == -1) break;
