@@ -538,9 +538,9 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
         m_numMissed++;
         if (!packetQueue && !m_firstPacket)
         {
-            if ((m_numMissed % 200) == 1)
+            if ((m_numMissed % 500) == 1)
             {
-                qWarning("RtpReceiver::receiveAudio PACKET QUEUE IS EMPTY! MISSED %lld PACKETS: playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, m_ssrc, m_portRtp);
+                qWarning("RtpReceiver::receiveAudio PACKET QUEUE IS EMPTY! MISSED %lld PACKET(S): playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, m_ssrc, m_portRtp);
             }
         }
         else
@@ -553,9 +553,9 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
                 }
             }
 
-            if ((m_numMissed % 200) == 1)
+            if ((m_numMissed % 500) == 1)
             {
-                qWarning("RtpReceiver::receiveAudio MISSED %lld PACKETS: playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, m_ssrc, m_portRtp);
+                qWarning("RtpReceiver::receiveAudio MISSED %lld PACKET(S): playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, m_ssrc, m_portRtp);
             }
         }
 
