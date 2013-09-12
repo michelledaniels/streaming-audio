@@ -538,19 +538,25 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
         m_numMissed++;
         if (!packetQueue && !m_firstPacket)
         {
-            qWarning("RtpReceiver::receiveAudio NO AVAILABLE PACKETS: playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_playtime, m_ssrc, m_portRtp);
-        }
-        else if (packetQueue && m_packetsReceived > m_packetQueueSize) // TODO: how to handle warning if the first couple of packets arrive but not enough to fill queue, then stop??
-        {
-            if (m_numMissed < 10)
+            if ((m_numMissed % 200) == 1)
             {
-                qWarning("RtpReceiver::receiveAudio %lld MISSING PACKET(S): playing silence: playtime = %u, next packet playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, packetQueue->m_playoutTime, m_ssrc, m_portRtp);
+                qWarning("RtpReceiver::receiveAudio PACKET QUEUE IS EMPTY! MISSED %lld PACKETS: playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, m_ssrc, m_portRtp);
             }
         }
-
-        if ((m_numMissed % 200) == 0)
+        else
         {
-            qWarning("RtpReceiver::receiveAudio MISSED %lld PACKETS: playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, m_ssrc, m_portRtp);
+            if (packetQueue && m_packetsReceived > m_packetQueueSize) // TODO: how to handle warning if the first couple of packets arrive but not enough to fill queue, then stop??
+            {
+                if (m_numMissed < 10)
+                {
+                    qWarning("RtpReceiver::receiveAudio %lld MISSING PACKET(S): playing silence: playtime = %u, next packet playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, packetQueue->m_playoutTime, m_ssrc, m_portRtp);
+                }
+            }
+
+            if ((m_numMissed % 200) == 1)
+            {
+                qWarning("RtpReceiver::receiveAudio MISSED %lld PACKETS: playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, m_ssrc, m_portRtp);
+            }
         }
 
         // output silence
