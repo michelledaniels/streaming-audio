@@ -599,8 +599,6 @@ bool StreamingAudioManager::unregisterApp(int port)
     // flag app for deletion - we can't delete it now because the JACK processing thread could be using it
     m_apps[port]->flagForDelete();
 
-    emit appRemoved(port);
-
     return true;
 }
 
@@ -2131,13 +2129,7 @@ int StreamingAudioManager::jack_process(jack_nframes_t nframes)
         emit stopConfirmed();
         return -1;
     }
-    bool updateMeters = (m_samplesElapsed > m_nextMeterNotify);
-    if (updateMeters)
-    {
-        emit meterTick();
-        m_nextMeterNotify += m_meterInterval;
-    }
-
+    
     // check if any app is solo'd or should be deleted
     bool soloNext = false;
     for (int i = 0; i < m_maxClients; i++)
@@ -2149,12 +2141,21 @@ int StreamingAudioManager::jack_process(jack_nframes_t nframes)
                 qDebug("StreamingAudioManager::jack_process telling app %d to deleteLater, current thread = %p", i, QThread::currentThreadId());
                 m_appState[i] = CLOSING;
                 m_apps[i]->deleteLater();
+                m_apps[i] = NULL;
+                emit appRemoved(i);
             }
             else if (m_apps[i]->getSolo())
             {
                 soloNext = true;
             }
         }
+    }
+    
+    bool updateMeters = (m_samplesElapsed > m_nextMeterNotify);
+    if (updateMeters)
+    {
+        emit meterTick();
+        m_nextMeterNotify += m_meterInterval;
     }
     
     // have all apps do their own processing
@@ -2194,7 +2195,7 @@ int StreamingAudioManager::jack_process(jack_nframes_t nframes)
     m_delayCurrent = m_delayNext;
     
     m_samplesElapsed += nframes;
-
+    
     return 0;
 }
 
