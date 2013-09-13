@@ -19,6 +19,7 @@ namespace sam
 static const quint16 MAX_DROPOUT = 3000;
 static const quint16 MAX_MISORDER = 100;
 static const quint16 MAX_LATE = 200;
+static const quint16 MISSED_REPORT_INTERVAL = 500;
 
 static const int MAX_PORT_NAME = 64;
 static const int JITTER_ADJUST_FACTOR = 3;
@@ -533,14 +534,24 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
     // get next audio packet
 
     // TODO: handle case where number of samples in a packet is not the same as JACK buffer size
-    if (!packetQueue || (((qint32)m_playtime - (qint32)(packetQueue->m_playoutTime) < 0)))
+    if (!packetQueue || (((qint32) m_playtime - (qint32) (packetQueue->m_playoutTime) < 0)))
     {
         m_numMissed++;
-        if (!packetQueue && !m_firstPacket)
+        if (!packetQueue)
         {
-            if ((m_numMissed % 500) == 1)
+            if (!m_firstPacket)
             {
-                qWarning("RtpReceiver::receiveAudio PACKET QUEUE IS EMPTY! MISSED %lld PACKET(S): playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, m_ssrc, m_portRtp);
+                if ((m_numMissed % MISSED_REPORT_INTERVAL) == 1)
+                {
+                    qWarning("RtpReceiver::receiveAudio PACKET QUEUE IS EMPTY! MISSED %lld PACKET(S): playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, m_ssrc, m_portRtp);
+                }
+            }
+            else
+            {
+                if ((m_numMissed % MISSED_REPORT_INTERVAL) == 0)
+                {
+                    qWarning("RtpReceiver::receiveAudio WAITING FOR FIRST PACKET: playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_playtime, m_ssrc, m_portRtp);
+                }
             }
         }
         else
@@ -553,7 +564,7 @@ int RtpReceiver::receiveAudio(float** audio, int channels, int frames)
                 }
             }
 
-            if ((m_numMissed % 500) == 1)
+            if ((m_numMissed % MISSED_REPORT_INTERVAL) == 1)
             {
                 qWarning("RtpReceiver::receiveAudio MISSED %lld PACKET(S): playing silence: playtime = %u, ssrc = %u, RTP port = %d", m_numMissed, m_playtime, m_ssrc, m_portRtp);
             }
