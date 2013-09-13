@@ -73,7 +73,6 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_oscServerPort(params.oscPort),
     m_udpSocket(NULL),
     m_tcpServer(NULL),
-    m_samThread(NULL),
     m_verifyPatchVersion(params.verifyPatchVersion)
 {
     m_apps = new StreamingAudioApp*[m_maxClients];
@@ -152,10 +151,6 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     {
         m_hostAddress.setAddress(params.hostAddress);
     }
-
-    m_samThread = new QThread();
-    moveToThread(m_samThread);
-    connect(m_samThread, SIGNAL(started()), this, SLOT(run()));
 }
 
 StreamingAudioManager::~StreamingAudioManager()
@@ -211,19 +206,14 @@ StreamingAudioManager::~StreamingAudioManager()
         delete[] m_appState;
         m_appState = NULL;
     }
-    m_samThread->deleteLater();
 }
 
 void StreamingAudioManager::start()
 {
-    m_samThread->start();
-}
-
-void StreamingAudioManager::run()
-{
+    qWarning("StreamingAudioManager::start()");
     if (m_isRunning)
     {
-        qWarning("StreamingAudioManager::run() SAM is already running");
+        qWarning("StreamingAudioManager::start() SAM is already running");
         return;
     }
 
@@ -235,7 +225,7 @@ void StreamingAudioManager::run()
     // bind OSC sockets
     if (!m_tcpServer->listen(m_hostAddress, m_oscServerPort))
     {
-        qWarning("StreamingAudioManager::run() TCP server couldn't listen on port %d", m_oscServerPort);
+        qWarning("StreamingAudioManager::start() TCP server couldn't listen on port %d", m_oscServerPort);
         emit startupError();
         return;
     }
@@ -343,12 +333,15 @@ void StreamingAudioManager::run()
     emit started();
 }
 
-bool StreamingAudioManager::stop()
+void StreamingAudioManager::stop()
 {
     qWarning("StreamingAudioManager::Stop");
-    qDebug() << "Thread = " << thread() << ", SAM thread = " << m_samThread;
 
-    if (!m_isRunning) return true; // or better to return false?
+    if (!m_isRunning)
+    {
+        emit stopped();
+        return;
+    }
 
     m_stopRequested = true;
 
@@ -400,19 +393,12 @@ bool StreamingAudioManager::stop()
         m_tcpServer = NULL;
     }
 
-    m_samThread->quit();
-    if (!m_samThread->wait(5000))
-    {
-        qWarning("Timed out waiting for SAM thread to quit");
-    }
-
     if (success)
     {
         m_isRunning = false;
+        emit stopped();
         qWarning("\nSAM stopped.\n");
     }
-
-    return success;
 }
 
 bool StreamingAudioManager::idIsValid(int id)

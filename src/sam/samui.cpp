@@ -38,6 +38,9 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     setMinimumSize(400, 700);
 
     m_sam = new StreamingAudioManager(params);
+    m_samThread = new QThread();
+    m_sam->moveToThread(m_samThread);
+    m_samThread->start();
 
     connect(m_sam, SIGNAL(startupError()), this, SLOT(onSamStartupError()));
     connect(m_sam, SIGNAL(appAdded(int)), this, SLOT(addClient(int)));
@@ -50,6 +53,10 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     connect(m_sam, SIGNAL(appTypeChanged(int, int, int)), this, SLOT(setAppType(int, int, int)));
     connect(m_sam, SIGNAL(appMeterChanged(int, int, float, float, float, float)), this, SLOT(setAppMeter(int, int, float, float, float, float)));
     connect(m_sam, SIGNAL(started()), this, SLOT(onSamStarted()));
+    connect(m_sam, SIGNAL(stopped()), this, SLOT(onSamStopped()));
+
+    connect(this, SIGNAL(startSam()), m_sam, SLOT(start()));
+    connect(this, SIGNAL(stopSam()), m_sam, SLOT(stop()));
 
     m_samButton = new QPushButton(QString("Start SAM"), this);
     connect(m_samButton, SIGNAL(clicked()), this, SLOT(onSamButtonClicked()));
@@ -88,10 +95,24 @@ SamUI::~SamUI()
 {
     delete ui;
 
+    if (m_samThread)
+    {
+        m_samThread->quit();
+        if (!m_samThread->wait(5000))
+        {
+            qWarning("Timed out waiting for SAM thread to quit");
+        }
+    }
+
     if (m_sam)
     {
+        connect(m_sam, SIGNAL(destroyed()), m_samThread, SLOT(deleteLater()));
         m_sam->deleteLater();
         m_sam = NULL;
+    }
+    else if (m_samThread)
+    {
+        delete m_samThread;
     }
 }
 
@@ -216,48 +237,16 @@ void SamUI::onSamButtonClicked()
         if (!m_sam->isRunning())
         {
             qWarning("SamUI::onSamButtonClicked starting SAM");
-            m_sam->start();
-            m_sam->setVolume(m_master->getVolume());
-            m_sam->setMute(m_master->getMute());
-
-            // messages from master widget to SAM
-            connect(m_master, SIGNAL(volumeChanged(float)), m_sam, SLOT(setVolume(float)));
-            connect(m_master, SIGNAL(muteChanged(bool)), m_sam, SLOT(setMute(bool)));
-            connect(m_master, SIGNAL(delayChanged(float)), m_sam, SLOT(setDelay(float)));
-
-            // messages from SAM to master widget
-            connect(m_sam, SIGNAL(volumeChanged(float)), m_master, SLOT(setVolume(float)));
-            connect(m_sam, SIGNAL(muteChanged(bool)), m_master, SLOT(setMute(bool)));
-            connect(m_sam, SIGNAL(delayChanged(float)), m_master, SLOT(setDelay(float)));
-
-            m_samButton->setText("Stop SAM");
+            emit startSam();
             QStatusBar* sb = statusBar();
-            sb->showMessage("Started SAM", STATUS_BAR_TIMEOUT);  
+            sb->showMessage("Starting SAM...", STATUS_BAR_TIMEOUT);
         }
         else
         {
             qWarning("SamUI::onSamButtonClicked stopping SAM");
-            if (!m_sam->stop())
-            {
-                qWarning("SamUI::onSamButtonClicked couldn't stop SAM");
-            }
-            else
-            {
-                // messages from master widget to SAM
-                disconnect(m_master, SIGNAL(volumeChanged(float)), m_sam, SLOT(setVolume(float)));
-                disconnect(m_master, SIGNAL(muteChanged(bool)), m_sam, SLOT(setMute(bool)));
-                disconnect(m_master, SIGNAL(delayChanged(float)), m_sam, SLOT(setDelay(float)));
-
-                // messages from SAM to master widget
-                disconnect(m_sam, SIGNAL(volumeChanged(float)), m_master, SLOT(setVolume(float)));
-                disconnect(m_sam, SIGNAL(muteChanged(bool)), m_master, SLOT(setMute(bool)));
-                disconnect(m_sam, SIGNAL(delayChanged(float)), m_master, SLOT(setDelay(float)));
-
-                m_samButton->setText("Start SAM");
-                m_oscDirections->setText("");
-                QStatusBar* sb = statusBar();
-                sb->showMessage("Stopped SAM", STATUS_BAR_TIMEOUT);
-            }
+            emit stopSam();
+            QStatusBar* sb = statusBar();
+            sb->showMessage("Stopping SAM...", STATUS_BAR_TIMEOUT);
         }
     }
     else
@@ -270,24 +259,9 @@ void SamUI::onSamButtonClicked()
 
 void SamUI::onSamStartupError()
 {
-    if (!m_sam->stop())
-    {
-        qWarning("SamUI::onSamStartupError couldn't stop SAM");
-    }
-    else
-    {
-        // messages from master widget to SAM
-        disconnect(m_master, SIGNAL(volumeChanged(float)), m_sam, SLOT(setVolume(float)));
-        disconnect(m_master, SIGNAL(muteChanged(bool)), m_sam, SLOT(setMute(bool)));
-        disconnect(m_master, SIGNAL(delayChanged(float)), m_sam, SLOT(setDelay(float)));
+    emit stopSam();
 
-        // messages from SAM to master widget
-        disconnect(m_sam, SIGNAL(volumeChanged(float)), m_master, SLOT(setVolume(float)));
-        disconnect(m_sam, SIGNAL(muteChanged(bool)), m_master, SLOT(setMute(bool)));
-        disconnect(m_sam, SIGNAL(delayChanged(float)), m_master, SLOT(setDelay(float)));
-
-        m_samButton->setText("Start SAM");
-    }
+    m_samButton->setText("Start SAM");
 
     int ret = QMessageBox::critical(this, "Streaming Audio Manager Error", "Error starting SAM.");
     
@@ -333,7 +307,43 @@ void SamUI::disconnect_client(int id)
 
 void SamUI::onSamStarted()
 {
+    m_sam->setVolume(m_master->getVolume());
+    m_sam->setMute(m_master->getMute());
+    m_sam->setDelay(m_master->getDelay());
+
+    // messages from master widget to SAM
+    connect(m_master, SIGNAL(volumeChanged(float)), m_sam, SLOT(setVolume(float)));
+    connect(m_master, SIGNAL(muteChanged(bool)), m_sam, SLOT(setMute(bool)));
+    connect(m_master, SIGNAL(delayChanged(float)), m_sam, SLOT(setDelay(float)));
+
+    // messages from SAM to master widget
+    connect(m_sam, SIGNAL(volumeChanged(float)), m_master, SLOT(setVolume(float)));
+    connect(m_sam, SIGNAL(muteChanged(bool)), m_master, SLOT(setMute(bool)));
+    connect(m_sam, SIGNAL(delayChanged(float)), m_master, SLOT(setDelay(float)));
+
+    m_samButton->setText("Stop SAM");
+    QStatusBar* sb = statusBar();
+    sb->showMessage("Started SAM", STATUS_BAR_TIMEOUT);
+
     m_oscDirections->setText(m_sam->getOscMessageString());
+}
+
+void SamUI::onSamStopped()
+{
+    // messages from master widget to SAM
+    disconnect(m_master, SIGNAL(volumeChanged(float)), m_sam, SLOT(setVolume(float)));
+    disconnect(m_master, SIGNAL(muteChanged(bool)), m_sam, SLOT(setMute(bool)));
+    disconnect(m_master, SIGNAL(delayChanged(float)), m_sam, SLOT(setDelay(float)));
+
+    // messages from SAM to master widget
+    disconnect(m_sam, SIGNAL(volumeChanged(float)), m_master, SLOT(setVolume(float)));
+    disconnect(m_sam, SIGNAL(muteChanged(bool)), m_master, SLOT(setMute(bool)));
+    disconnect(m_sam, SIGNAL(delayChanged(float)), m_master, SLOT(setDelay(float)));
+
+    m_samButton->setText("Start SAM");
+    m_oscDirections->setText("");
+    QStatusBar* sb = statusBar();
+    sb->showMessage("Stopped SAM", STATUS_BAR_TIMEOUT);
 }
 
 } // end of namespace SAM

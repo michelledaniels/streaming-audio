@@ -118,19 +118,6 @@ public:
     StreamingAudioManager& operator=(const StreamingAudioManager&);
 
     /**
-     * Start this StreamingAudioManager
-     */
-    void start();
-
-    /**
-     * Stop this StreamingAudioManager.
-     * If this is not called, any forked processes might not be killed properly.
-     * @return true on success, false on failure
-     * @see start();
-     */
-    bool stop();
-
-    /**
      * Check if an app id is valid (in range and initialized).
      * @param id the unique id in question
      * @return true if valid, false otherwise
@@ -286,6 +273,18 @@ public:
 public slots:
 
     /**
+     * Start this StreamingAudioManager
+     */
+    void start();
+
+    /**
+     * Stop this StreamingAudioManager.
+     * If this is not called, any forked processes might not be killed properly.
+     * @see start();
+     */
+    void stop();
+
+    /**
      * Set the global volume level.
      * @param volume the volume level to be set, in the range [0.0, 1.0]
      */
@@ -358,12 +357,6 @@ public slots:
     bool setAppType(int port, sam::StreamingAudioType type, int preset, sam::SamErrorCode& errorCode);
 
     /**
-     * Start running this StreamingAudioManager.
-     * @see stop()
-     */
-    void run();
-
-    /**
      * Clean up before quitting the application.
      * This will shutdown the JACK server.
      */
@@ -431,6 +424,7 @@ signals:
     void stopConfirmed();
 
     void started();
+    void stopped();
 
     void volumeChanged(float);
     void muteChanged(bool);
@@ -697,8 +691,11 @@ private:
     int m_maxClients;                 ///< max number of clients that can simultaneously connect
     StreamingAudioApp** m_apps;       ///< pointers to active StreamingAudioApps
     SamAppState* m_appState;          ///< the state for all StreamingAudioApps in m_apps
+
+    // TODO: do these flags need to be volatile?
     bool m_isRunning;                 ///< flag to see if SAM is running
     bool m_stopRequested;             ///< flag to see if there is a request to stop processing
+
     QList<unsigned int> m_basicChannels; ///< list of basic channels to use
     QList<unsigned int> m_discreteChannels; ///< list of discrete channels to use
     QList<RenderingType> m_renderingTypes;  ///< list of available rendering types
@@ -738,8 +735,6 @@ private:
     QTcpServer* m_tcpServer;        ///< The server listening for incoming TCP connections
     QHostAddress m_hostAddress;     ///< Local host address where OSC messages should be sent
     QString m_oscDirections;        ///< string that explains where to send OSC messages for SAM
-
-    QThread* m_samThread;           ///< Thread for SAM's event loop
 
     // for version checking
     bool m_verifyPatchVersion;      ///< Whether the patch version must match for version checking

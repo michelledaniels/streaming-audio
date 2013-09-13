@@ -48,6 +48,10 @@ public:
      */
     ~SamUI();
 
+signals:
+    void startSam();
+    void stopSam();
+
 public slots:
     /**
      * Perform necessary cleanup before app closes.
@@ -66,6 +70,7 @@ public slots:
     
     void onSamStartupError();
     void onSamStarted();
+    void onSamStopped();
 
     void setAppVolume(int, float);
     void setAppMute(int, bool);
@@ -93,6 +98,7 @@ private:
 
     Ui::SamUI *ui;                  ///< UI
     StreamingAudioManager* m_sam;   ///< SAM instance
+    QThread* m_samThread;
 
     MasterWidget* m_master;
     QPushButton* m_samButton;
