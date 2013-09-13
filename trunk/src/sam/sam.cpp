@@ -210,7 +210,7 @@ StreamingAudioManager::~StreamingAudioManager()
 
 void StreamingAudioManager::start()
 {
-    qWarning("StreamingAudioManager::start()");
+    //qWarning("StreamingAudioManager::start()");
     if (m_isRunning)
     {
         qWarning("StreamingAudioManager::start() SAM is already running");
@@ -335,7 +335,7 @@ void StreamingAudioManager::start()
 
 void StreamingAudioManager::stop()
 {
-    qWarning("StreamingAudioManager::Stop");
+    //qWarning("StreamingAudioManager::Stop");
 
     if (!m_isRunning)
     {

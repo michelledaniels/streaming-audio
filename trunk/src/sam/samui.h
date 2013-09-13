@@ -15,6 +15,7 @@
 #include <QPushButton>
 
 #include "sam.h"
+#include "samparams.h"
 
 namespace Ui {
 class SamUI;
@@ -50,8 +51,7 @@ public:
 
 signals:
     void startSam();
-    void stopSam();
-
+    
 public slots:
     /**
      * Perform necessary cleanup before app closes.
@@ -95,6 +95,9 @@ private:
 
     void connect_client(int id);
     void disconnect_client(int id);
+    
+    void start_sam();
+    void stop_sam();
 
     Ui::SamUI *ui;                  ///< UI
     StreamingAudioManager* m_sam;   ///< SAM instance
@@ -106,9 +109,8 @@ private:
     QHBoxLayout* m_clientLayout;
     QLabel* m_oscDirections;
 
-    int m_maxClients;
     ClientWidget** m_clients;
-    float m_maxClientDelayMillis;
+    SamParams m_samParams;
 };
 
 } // end of namespace SAM
