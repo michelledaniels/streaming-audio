@@ -58,6 +58,12 @@ mkdir build/samugen
 cd ./src/client/examples/samugen && $QMAKE -spec $QSPEC CONFIG+=release && make clean
 cd $ret
 
+# configure samugen-gui client
+mkdir build/samugen-gui
+cd ./src/client/examples/samugen-gui && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
+
 echo ""
 echo "Done"
 echo ""
