@@ -307,6 +307,17 @@ void SamUI::onSamStarted()
 
 void SamUI::onSamStopped()
 {
+    // remove client widgets
+    for (int i = 0; i < m_samParams.maxClients; i++)
+    {
+        if (m_clients[i])
+        {
+            m_clientLayout->removeWidget(m_clients[i]);
+            delete m_clients[i];
+            m_clients[i] = NULL;
+        }
+    }
+
     m_samButton->setText("Start SAM");
     m_oscDirections->setText("");
     QStatusBar* sb = statusBar();
