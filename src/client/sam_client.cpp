@@ -234,8 +234,7 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
     }
     
     m_replyPort = m_socket.localPort();
-    qDebug("StreamingAudioClient::start() replyPort set to %d\n", m_replyPort);
-    
+
     // set up listening for OSC messages
     OscTcpSocketReader* reader = new OscTcpSocketReader(&m_socket);
     connect(&m_socket, SIGNAL(readyRead()), reader, SLOT(readFromSocket()));
@@ -243,8 +242,6 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
     connect(reader, SIGNAL(messageReady(OscMessage*, const char*, QAbstractSocket*)), this, SLOT(handleOscMessage(OscMessage*, const char*, QAbstractSocket*)));
     connect(&m_socket, SIGNAL(disconnected()), this, SLOT(samDisconnected()));
     
-    qDebug("StreamingAudioClient::start() Sending register message to SAM: name = %s, channels = %d, position = [%d, %d, %d, %d, %d], type = %d", m_name, m_channels, x, y, width, height, depth, m_type);
-
     OscMessage msg;
     msg.init("/sam/app/register", "siiiiiiiiiiiiii", m_name, m_channels,
                                                        x,
@@ -265,8 +262,6 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
         qWarning("StreamingAudioClient::start() Couldn't send OSC message");
         return SAC_OSC_ERROR;
     }
-
-    qDebug("StreamingAudioClient::start() Finished sending register message to SAM, now waiting for response...");
 
     // wait on response from SAM
     QEventLoop loop;
@@ -479,7 +474,6 @@ void StreamingAudioClient::samDisconnected()
 
 void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender, QAbstractSocket* socket)
 {
-    //qWarning("StreamingAudioClient::handleOscMessage sender = %s", sender);
     // check prefix
     int prefixLen = 5; // prefix is "/sam/"
     const char* address = msg->getAddress();
@@ -509,7 +503,7 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
                 int bufferSize = arg.val.i;
                 msg->getArg(3, arg);
                 int rtpPort  = arg.val.i;
-                qDebug() << "Received regconfirm from SAM, id = " << port << ", sample rate = " << sampleRate << ", buffer size = " << bufferSize << ", base RTP port = " << rtpPort << endl;
+                qDebug("Received regconfirm from SAM, id = %d, sample rate = %d, buffer size = %d, base RTP port = %d", port, sampleRate, bufferSize, rtpPort);
                 handle_regconfirm(port, sampleRate, bufferSize, (quint16)rtpPort);
             }
             else
@@ -552,7 +546,7 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
                 int type = arg.val.i; // for now ignore arg 0 (id)
                 msg->getArg(2, arg);
                 int preset = arg.val.i;
-                qDebug() << "Received typeconfirm from SAM, type = " << type << ", preset = " << preset << endl;
+                qDebug("Received typeconfirm from SAM, type = %d, preset = %d", type, preset);
                 handle_typeconfirm(type, preset);
             }
             else
@@ -568,7 +562,7 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
                 OscArg arg;
                 msg->getArg(3, arg);
                 int errorCode = arg.val.i; // for now ignore args 0 and 1 (id, type, and preset)
-                qDebug() << "Type change DENIED, error code = " << errorCode << endl;
+                qDebug("Type change DENIED, error code = %d", errorCode);
                 handle_typedeny(errorCode);
             }
             else
@@ -635,7 +629,7 @@ void StreamingAudioClient::handleOscMessage(OscMessage* msg, const char* sender,
                 int type = arg.val.i; // for now ignore arg 0 (id)
                 msg->getArg(2, arg);
                 int preset = arg.val.i;
-                qWarning("Received message from SAM that client type is %d, preset is %d", type, preset);
+                qDebug("Received message from SAM that client type is %d, preset is %d", type, preset);
                 // TODO: call type callback
             }
             else
@@ -681,8 +675,6 @@ void StreamingAudioClient::handle_regconfirm(int port, unsigned int sampleRate, 
         return;
     }
     
-    qDebug() << "StreamingAudioClient::handle_regconfirm started RtpSender" << endl;
-
     // allocate audio buffer
     m_audioOut = new float*[m_channels];
     for (unsigned int ch = 0; ch < m_channels; ch++)
@@ -707,7 +699,7 @@ void StreamingAudioClient::handle_regconfirm(int port, unsigned int sampleRate, 
         // start interface (start sending audio)
         if (!m_interface->go())
         {
-            qWarning() << "StreamingAudioClient::handle_regconfirm ERROR: couldn't start audio interface : unregistering with SAM" << endl;
+            qWarning("StreamingAudioClient::handle_regconfirm ERROR: couldn't start audio interface : unregistering with SAM");
             // unregister with SAM
             OscMessage msg;
             msg.init("/sam/app/unregister", "i", port);
@@ -717,8 +709,6 @@ void StreamingAudioClient::handle_regconfirm(int port, unsigned int sampleRate, 
             }
             return;
         }
-
-        qDebug() << "StreamingAudioClient::handle_regconfirm started audio interface" << endl;
     }
 
     m_port = port;
@@ -728,10 +718,9 @@ void StreamingAudioClient::handle_regconfirm(int port, unsigned int sampleRate, 
 
 void StreamingAudioClient::handle_regdeny(int errorCode)
 {
-    qDebug() << "SAM registration DENIED: error = " << QString::number(errorCode) << endl;
+    qWarning("SAM registration DENIED: error = %d", errorCode);
    
     // check to see if we timed out
-    // TODO: checking and setting m_regTimedOut should be atomic/locked!
     // TODO: what if we tried re-registering after a time-out, and then received a regconfirm/regdeny??
     
     // TODO: do something with the error code?
@@ -741,8 +730,6 @@ void StreamingAudioClient::handle_regdeny(int errorCode)
 
 void StreamingAudioClient::handle_typeconfirm(int type, int preset)
 {
-    qDebug() << "StreamingAudioClient::handle_typeconfirm, type = " << type << ", preset = " << preset << endl;
-    
     m_type = (StreamingAudioType)type;
     m_preset = preset;
     m_responseReceived = true;
