@@ -13,7 +13,7 @@
 
 using namespace sam;
 
-SamUgenGui::SamUgenGui(QWidget *parent) :
+SamUgenGui::SamUgenGui(SacParams& defaultParams, QWidget *parent) :
     QMainWindow(parent),
     m_client(NULL)
 {
@@ -26,7 +26,14 @@ SamUgenGui::SamUgenGui(QWidget *parent) :
 
     // add SAM IP text edit
     m_ipLabel = new QLabel(QString("SAM IP: "), this);
-    m_ipLineEdit = new QLineEdit("127.0.0.1", this);
+    if (defaultParams.samIP)
+    {
+        m_ipLineEdit = new QLineEdit(defaultParams.samIP, this);
+    }
+    else
+    {
+        m_ipLineEdit = new QLineEdit("127.0.0.1", this);
+    }
     QWidget *ipBox = new QWidget(mainBox);
     QHBoxLayout* ipLayout = new QHBoxLayout(ipBox);
     ipLayout->addWidget(m_ipLabel);
@@ -38,7 +45,7 @@ SamUgenGui::SamUgenGui(QWidget *parent) :
     m_portSpinBox = new QSpinBox(this);
     m_portSpinBox->setMinimum(0);
     m_portSpinBox->setMaximum(32767);
-    m_portSpinBox->setValue(7770);
+    m_portSpinBox->setValue(defaultParams.samPort);
     QWidget *portBox = new QWidget(mainBox);
     QHBoxLayout* portLayout = new QHBoxLayout(portBox);
     portLayout->addWidget(m_portLabel);

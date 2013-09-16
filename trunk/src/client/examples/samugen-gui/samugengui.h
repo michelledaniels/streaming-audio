@@ -21,7 +21,7 @@ class SamUgenGui : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit SamUgenGui(QWidget *parent = 0);
+    explicit SamUgenGui(sam::SacParams& defaultParams, QWidget *parent = 0);
 
     ~SamUgenGui();
 
@@ -58,6 +58,8 @@ private:
     QLabel* m_portLabel;
     QLineEdit* m_ipLineEdit;
     QLabel* m_ipLabel;
+
+    sam::SacParams m_defaultParams;
 };
 
 #endif // SAMUGENGUI_H
