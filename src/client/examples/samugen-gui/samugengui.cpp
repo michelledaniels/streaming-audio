@@ -50,7 +50,6 @@ SamUgenGui::~SamUgenGui()
         delete m_client;
         m_client = NULL;
     }
-    qWarning("SamUgenGui end of destructor");
 }
 
 void SamUgenGui::onClientButtonClicked()
