@@ -1,0 +1,53 @@
+/**
+ * @file samugen-gui/samugengui.h
+ * @author Michelle Daniels
+ * @date September 2013
+ * @copyright UCSD 2013
+ */
+
+#ifndef SAMUGENGUI_H
+#define SAMUGENGUI_H
+
+#include <QCheckBox>
+#include <QMainWindow>
+#include <QPushButton>
+
+#include "sam_client.h"
+
+class SamUgenGui : public QMainWindow
+{
+    Q_OBJECT
+public:
+    explicit SamUgenGui(QWidget *parent = 0);
+
+    ~SamUgenGui();
+
+    bool onSacAudio(unsigned int numChannels, unsigned int nframes, float** out);
+    void onSacMute(bool mute);
+    void onSacSolo(bool solo);
+    void onSacDisconnect();
+
+signals:
+
+public slots:
+    void onClientButtonClicked();
+    void onClientDestroyed();
+    void on_muteCheckBox_toggled(bool);
+    void on_soloCheckBox_toggled(bool);
+private:
+
+    void start_client();
+    void stop_client();
+
+    static bool sac_audio_callback(unsigned int numChannels, unsigned int nframes, float** out, void* ugen);
+    static void sac_mute_callback(bool mute, void* ugen);
+    static void sac_solo_callback(bool solo, void* ugen);
+    static void sac_disconnect_callback(void* ugen);
+
+    sam::StreamingAudioClient* m_client;
+    QPushButton* m_clientButton;
+    QCheckBox* m_muteCheckBox;
+    QCheckBox* m_soloCheckBox;
+};
+
+#endif // SAMUGENGUI_H
