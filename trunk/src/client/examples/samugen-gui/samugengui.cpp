@@ -20,12 +20,35 @@ SamUgenGui::SamUgenGui(QWidget *parent) :
     setWindowTitle("Streaming Audio Client - Unit Generator");
     setMinimumSize(300, 300);
 
-    m_clientButton = new QPushButton(QString("Start Client"), this);
-    connect(m_clientButton, SIGNAL(clicked()), this, SLOT(onClientButtonClicked()));
-
     QGroupBox* mainBox = new QGroupBox(this);
     QVBoxLayout* mainLayout = new QVBoxLayout(mainBox);
     mainBox->setLayout(mainLayout);
+
+    // add SAM IP text edit
+    m_ipLabel = new QLabel(QString("SAM IP: "), this);
+    m_ipLineEdit = new QLineEdit("127.0.0.1", this);
+    QWidget *ipBox = new QWidget(mainBox);
+    QHBoxLayout* ipLayout = new QHBoxLayout(ipBox);
+    ipLayout->addWidget(m_ipLabel);
+    ipLayout->addWidget(m_ipLineEdit);
+    mainLayout->addWidget(ipBox, 0, Qt::AlignCenter);
+
+    // add SAM port spinbox
+    m_portLabel = new QLabel(QString("SAM OSC Port:"), this);
+    m_portSpinBox = new QSpinBox(this);
+    m_portSpinBox->setMinimum(0);
+    m_portSpinBox->setMaximum(32767);
+    m_portSpinBox->setValue(7770);
+    QWidget *portBox = new QWidget(mainBox);
+    QHBoxLayout* portLayout = new QHBoxLayout(portBox);
+    portLayout->addWidget(m_portLabel);
+    portLayout->addWidget(m_portSpinBox);
+    mainLayout->addWidget(portBox, 0, Qt::AlignCenter);
+    connect(m_portSpinBox, SIGNAL(valueChanged(int)), this, SLOT(on_portSpinBox_valueChanged(int)));
+
+    // add client button
+    m_clientButton = new QPushButton(QString("Start Client"), this);
+    connect(m_clientButton, SIGNAL(clicked()), this, SLOT(onClientButtonClicked()));
     mainLayout->addWidget(m_clientButton, 0, Qt::AlignCenter);
 
     // add mute checkbox
@@ -75,17 +98,32 @@ void SamUgenGui::on_soloCheckBox_toggled(bool checked)
     if (m_client) m_client->setSolo(checked);
 }
 
+void SamUgenGui::on_portSpinBox_valueChanged(int val)
+{
+    qWarning("SamUgenGui: port spin box new value = %d", val);
+}
+
 void SamUgenGui::start_client()
 {
-    qWarning("SamUgenGui::start_client()");
+    // verify valid IP
+    QString ipString = m_ipLineEdit->text();
+    QByteArray ipBytes = ipString.toLocal8Bit();
+    QHostAddress tempAddress(ipString);
+    if (tempAddress.isNull())
+    {
+        qWarning("SamUgenGui::start_client() Invalid IP");
+        QMessageBox::critical(this, "SAM Ugen GUI", "Please provide a valid IP address for SAM.");
+        m_clientButton->setEnabled(true);
+        return;
+    }
 
     SacParams params;
     params.numChannels = 2;
     params.type = TYPE_BASIC;
     params.preset = 0;
     params.name = "samugen-gui";
-    params.samIP = "127.0.0.1";
-    params.samPort = 7770;
+    params.samIP = ipBytes.constData();
+    params.samPort = m_portSpinBox->value();
     params.replyIP = NULL;
     params.replyPort = 0;
     params.payloadType = PAYLOAD_PCM_16;
@@ -132,11 +170,12 @@ void SamUgenGui::start_client()
 
     m_clientButton->setText("Stop Client");
     m_clientButton->setEnabled(true);
+
+    set_widgets_enabled(false);
 }
 
 void SamUgenGui::stop_client()
 {
-    qWarning("SamUgenGui::stop_client()");
     if (m_client)
     {
         delete m_client;
@@ -144,6 +183,8 @@ void SamUgenGui::stop_client()
     }
     m_clientButton->setText("Start Client");
     m_clientButton->setEnabled(true);
+
+    set_widgets_enabled(true);
 }
 
 bool SamUgenGui::onSacAudio(unsigned int numChannels, unsigned int nframes, float** out)
@@ -202,4 +243,12 @@ void SamUgenGui::sac_solo_callback(bool solo, void* ugen)
 void SamUgenGui::sac_disconnect_callback(void* ugen)
 {
     ((SamUgenGui*)ugen)->onSacDisconnect();
+}
+
+void SamUgenGui::set_widgets_enabled(bool enabled)
+{
+    m_portSpinBox->setEnabled(enabled);
+    m_portLabel->setEnabled(enabled);
+    m_ipLineEdit->setEnabled(enabled);
+    m_ipLabel->setEnabled(enabled);
 }

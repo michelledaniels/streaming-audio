@@ -9,8 +9,11 @@
 #define SAMUGENGUI_H
 
 #include <QCheckBox>
+#include <QLabel>
+#include <QLineEdit>
 #include <QMainWindow>
 #include <QPushButton>
+#include <QSpinBox>
 
 #include "sam_client.h"
 
@@ -34,10 +37,13 @@ public slots:
     void onClientDestroyed();
     void on_muteCheckBox_toggled(bool);
     void on_soloCheckBox_toggled(bool);
+    void on_portSpinBox_valueChanged(int);
 private:
 
     void start_client();
     void stop_client();
+
+    void set_widgets_enabled(bool enabled);
 
     static bool sac_audio_callback(unsigned int numChannels, unsigned int nframes, float** out, void* ugen);
     static void sac_mute_callback(bool mute, void* ugen);
@@ -48,6 +54,10 @@ private:
     QPushButton* m_clientButton;
     QCheckBox* m_muteCheckBox;
     QCheckBox* m_soloCheckBox;
+    QSpinBox* m_portSpinBox;
+    QLabel* m_portLabel;
+    QLineEdit* m_ipLineEdit;
+    QLabel* m_ipLabel;
 };
 
 #endif // SAMUGENGUI_H
