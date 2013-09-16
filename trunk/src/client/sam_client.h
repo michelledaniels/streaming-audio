@@ -444,7 +444,8 @@ private:
     QTcpSocket m_socket;              ///< Socket for sending and receiving OSC messages
     QByteArray m_data;                ///< temporary storage for received data
     bool m_responseReceived;          ///< whether or not SAM responded to register request
-    
+    OscTcpSocketReader* m_oscReader;  ///< OSC-reading helper
+
     // for audio interface
     bool m_driveExternally;           ///< true to drive with an external clock tick, false to use internal SAC driver.
     SacAudioInterface* m_interface;   ///< audio interface

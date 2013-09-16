@@ -35,6 +35,7 @@ StreamingAudioClient::StreamingAudioClient() :
     m_replyIP(NULL),
     m_replyPort(0),
     m_responseReceived(false),
+    m_oscReader(NULL),
     m_driveExternally(false),
     m_interface(NULL),
     m_sender(NULL),
@@ -52,20 +53,35 @@ StreamingAudioClient::StreamingAudioClient() :
 
 StreamingAudioClient::~StreamingAudioClient()
 {
-    // unregister with SAM
-    if (m_port >= 0)
+    if (m_socket.state() == QAbstractSocket::ConnectedState)
     {
-        OscMessage msg;
-        msg.init("/sam/app/unregister", "i", m_port);
-        if (!OscClient::sendFromSocket(&msg, &m_socket))
+        // unregister with SAM
+        if (m_port >= 0)
         {
-            qWarning("StreamingAudioClient::~StreamingAudioClient() Couldn't send OSC message");
+            OscMessage msg;
+            msg.init("/sam/app/unregister", "i", m_port);
+            if (!OscClient::sendFromSocket(&msg, &m_socket))
+            {
+                qWarning("StreamingAudioClient::~StreamingAudioClient() Couldn't send OSC message");
+            }
+            m_port = -1;
         }
-        m_port = -1;
+
+        m_socket.disconnect();
     }
-    
-    m_socket.disconnect();
-    
+    else
+    {
+        qWarning("StreamingAudioClient::~StreamingAudioClient() couldn't unregister from SAM because socket was already disconnected");
+    }
+
+    m_socket.close();
+
+    if (m_oscReader)
+    {
+        delete m_oscReader;
+        m_oscReader = NULL;
+    }
+
     if (m_interface) // need to stop interface before deleting RtpSender
     {
         m_interface->stop();
@@ -110,8 +126,6 @@ StreamingAudioClient::~StreamingAudioClient()
         delete[] m_replyIP;
         m_replyIP = NULL;
     }
-    
-    qDebug("End of StreamingAudioClient destructor");
 }
 
 int StreamingAudioClient::init(const SacParams& params)
@@ -236,10 +250,9 @@ int StreamingAudioClient::start(int x, int y, int width, int height, int depth, 
     m_replyPort = m_socket.localPort();
 
     // set up listening for OSC messages
-    OscTcpSocketReader* reader = new OscTcpSocketReader(&m_socket);
-    connect(&m_socket, SIGNAL(readyRead()), reader, SLOT(readFromSocket()));
-    connect(&m_socket, SIGNAL(disconnected()), reader, SLOT(deleteLater()));
-    connect(reader, SIGNAL(messageReady(OscMessage*, const char*, QAbstractSocket*)), this, SLOT(handleOscMessage(OscMessage*, const char*, QAbstractSocket*)));
+    m_oscReader = new OscTcpSocketReader(&m_socket);
+    connect(&m_socket, SIGNAL(readyRead()), m_oscReader, SLOT(readFromSocket()));
+    connect(m_oscReader, SIGNAL(messageReady(OscMessage*, const char*, QAbstractSocket*)), this, SLOT(handleOscMessage(OscMessage*, const char*, QAbstractSocket*)));
     connect(&m_socket, SIGNAL(disconnected()), this, SLOT(samDisconnected()));
     
     OscMessage msg;
