@@ -4,6 +4,7 @@
  * @author Michelle Daniels
  * @date September 2011
  * @copyright UCSD 2011-2013
+ * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
  */
 
 #include <errno.h>

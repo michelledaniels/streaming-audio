@@ -3,6 +3,7 @@
  * Widget for master controls in SAM GUI
  * @author Michelle Daniels
  * @copyright UCSD 2013
+ * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
  */
 
 #include <QtGui>

@@ -1,8 +1,10 @@
 /**
- * @file samugen-gui/samugengui.cpp
+ * @file samugen-gui/samugengui.h
+ * Implementation of a simple unit-generator client with primitive GUI
  * @author Michelle Daniels
  * @date September 2013
  * @copyright UCSD 2013
+ * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
  */
 
 #include <QGroupBox>

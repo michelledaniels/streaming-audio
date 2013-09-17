@@ -4,6 +4,7 @@
  * @author Michelle Daniels
  * @date February 2013
  * @copyright UCSD 2013
+ * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
  */
 
 #include <getopt.h>

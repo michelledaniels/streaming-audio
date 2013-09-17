@@ -3,6 +3,7 @@
  * RTP receiver interface
  * @author Michelle Daniels
  * @copyright UCSD 2012-2013
+ * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
  */
 
 #ifndef RTPRECEIVER_H

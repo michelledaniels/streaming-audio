@@ -1,3 +1,12 @@
+/**
+ * @file sam/samtester.h
+ * Routines for stress-testing SAM with multiple clients etc.
+ * @author Michelle Daniels
+ * @date September 2013
+ * @copyright UCSD 2012-2013
+ * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
+ */
+
 #ifndef SAMTESTER_H
 #define SAMTESTER_H
 
