@@ -1,4 +1,5 @@
 #summary User's Guide
+#labels Featured
 = User's Guide =
 <wiki:toc max_depth="3" />
 
