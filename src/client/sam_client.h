@@ -292,7 +292,7 @@ public:
     /**
      * Tell SAM the audio type for this client and block until a response is received.
      * @param type the type of audio stream this client will send
-     * @param the rendering preset this client is requesting
+     * @param preset the rendering preset this client is requesting
      * @param timeout the timeout time in milliseconds after which this method will return false if no
      * response has been received from SAM.
      * @return 0 on success, a non-zero ::SACReturn code on failure
