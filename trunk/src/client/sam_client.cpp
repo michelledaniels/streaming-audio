@@ -4,6 +4,7 @@
  * @author Michelle Daniels
  * @date 2012-2013
  * @copyright UCSD 2012-2013
+ * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
  */
 
 #include <QCoreApplication>
