@@ -9,8 +9,9 @@
 [OSCMessages Comprehensive List of OSC Messages (trunk)]
 
 == Developing Clients ==
-The streaming audio project operates under a client/server model.  The Streaming Audio Manager (SAM) is the server, and an arbitrary number of Streaming Audio Clients (SACs) can connect and send audio to a single SAM instance.  The Streaming Audio Client Library provides the functionality necessary for connecting a client and streaming audio to SAM.  The SAC library encapsulates OSC message sending and receiving between the client and SAM as well as RTP audio streaming from the client to SAM.  Multiple SACs can be instantiated in a single application to stream audio to multiple SAMs, provided that the multiple SAMs have been configured to use different ranges of RTP ports.
+[https://streaming-audio.googlecode.com/svn/trunk/doc/html/index.html Streaming Audio Client library documentation (for trunk)]
 
+The streaming audio project operates under a client/server model.  The Streaming Audio Manager (SAM) is the server, and an arbitrary number of Streaming Audio Clients (SACs) can connect and send audio to a single SAM instance.  The Streaming Audio Client Library provides the functionality necessary for connecting a client and streaming audio to SAM.  The SAC library encapsulates OSC message sending and receiving between the client and SAM as well as RTP audio streaming from the client to SAM.  Multiple SACs can be instantiated in a single application to stream audio to multiple SAMs, provided that the multiple SAMs have been configured to use different ranges of RTP ports.
 
 === Example Clients ===
 Two example SAM clients are available in the src/client/examples directory.  The `samugen` client can be built without JACK if desired, and demonstrates how to send client-generated audio to SAM via an audio callback.  The `saminput` client requires JACK and pulls audio from the physical audio interface inputs rather than generating audio in the client itself using an audio callback.  Both clients are simple command-line applications that use Qt and generate makefiles using `qmake`.  
