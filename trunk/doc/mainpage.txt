@@ -4,6 +4,6 @@
  * @date 2011-2013
  * @version 0.5
  * @section Dependencies
- * SAM depends on the following third-party software: JACK Audio Connection Kit (LGPL) and Qt (LGPL).
+ * The streaming-audio project depends on the following third-party software: JACK Audio Connection Kit (LGPL) and Qt4 (LGPL).
  */
 

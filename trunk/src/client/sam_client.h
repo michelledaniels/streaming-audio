@@ -2,8 +2,8 @@
  * @file sam_client.h
  * Interface for applications connecting to the Streaming Audio Manager
  * @author Michelle Daniels
- * @date January 2012
- * @copyright UCSD 2012
+ * @date 2012-2013
+ * @copyright UCSD 2012-2013
  */
 
 #ifndef SAM_CLIENT_H
@@ -177,7 +177,7 @@ public:
     /**
      * Init this StreamingAudioClient.
      * This must be called before calling start().
-     * @param params ::SacParams struct of parameters
+     * @param params SacParams struct of parameters
      * @return 0 on success, a non-zero ::SACReturn code on failure
      */
     int init(const SacParams& params);
@@ -396,6 +396,7 @@ public slots:
 signals:
     /**
      * Emitted when a response from SAM is received.
+     * This signal is for use internal to the SAC library, and clients don't need to (and shouldn't) connect it to any slots.
      */
     void responseReceived();
 
