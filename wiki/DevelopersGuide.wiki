@@ -1,5 +1,5 @@
 #summary Developer's Guide
-#labels prin
+#labels Featured
 
 = Developer's Guide =
 <wiki:toc max_depth="3" />
