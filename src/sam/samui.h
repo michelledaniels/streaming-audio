@@ -3,6 +3,7 @@
  * Interface for SAM GUI
  * @author Michelle Daniels
  * @copyright UCSD 2012
+ * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
  */
 
 #ifndef SAMUI_H

@@ -4,6 +4,7 @@
  * @author Michelle Daniels
  * @date September 2013
  * @copyright UCSD 2013
+ * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
  */
 
 #ifndef SAMPARAMS_H

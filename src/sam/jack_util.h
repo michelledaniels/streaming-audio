@@ -4,6 +4,7 @@
  * @author Michelle Daniels
  * @date November 2011
  * @copyright UCSD 2011
+ * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
  */
 
 #ifndef JACK_UTIL_H

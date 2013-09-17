@@ -2,8 +2,9 @@
  * @file samugen-gui/main.cpp
  * samugen-gui: gui application for unit generators streaming to SAM
  * @author Michelle Daniels
- * @date February 2013
+ * @date September 2013
  * @copyright UCSD 2013
+ * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
  */
 
 #include <getopt.h>
