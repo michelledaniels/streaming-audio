@@ -39,6 +39,7 @@ class ClientWidget : public QWidget
     Q_OBJECT
 public:
     explicit ClientWidget(int id, const char* name, ClientParams& params, double maxDelayMillis, QWidget *parent = 0);
+    ~ClientWidget();
 
     void setName(const char* name);
     void setVolume(float volume);
