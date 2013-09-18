@@ -1,0 +1,69 @@
+The "sam" audio output plugin for mplayer allows you to send the audio output from mplayer streaming over the network to SAM instead of to your local sound card for playback.
+
+An example configure script and Makefile are included in this directory (for SVN-r36428-4.2.1).  To use them, copy them to your mplayer source directory to replace the default configure script and Makefile.  Similarly, copy audio_out.c to replace mplayer/libao2/audio_out.c.  Otherwise, follow the directions below to modify the default files.
+
+Disclaimer: this has only been verified to work on OS X 10.8.4
+
+To build mplayer with the "sam" audio output plugin:
+
+0) Build the streaming audio client library (./configure && make in SAM root directory)
+
+1) download the latest mplayer source
+
+2) copy the file ao_sam.cpp to the mplayer/libao2 directory
+
+3) Add the following line to the mplayer/configure script under "Audio output:"
+--disable-sam          disable SAM audio output [autodetect]
+
+4) Add the following lines to the mplayer/configure script under the equivalent lines for "jack":
+--enable-sam)         _sam=yes        ;;
+--disable-sam)        _sam=no         ;;
+
+5) Add the following line to the mplayer/configure script under the equivalent line for "jack":
+_sam=auto
+
+6) Add the following lines to the mplayer/configure script under the similar lines for "jack", replacing <my_sam_dir> with the path to your root sam directory:
+
+echocheck "SAM"
+if test "$_sam" = auto ; then
+  # by default, it's off
+  _sam=no
+fi
+SAM_ROOT=<my_sam_dir>
+if test "$_sam" = yes ; then
+  def_sam='#define CONFIG_SAM 1'
+  aomodules="sam $aomodules"
+  libs_mplayer="$libs_mplayer `pkg-config --libs QtCore QtNetwork` -L$SAM_ROOT/lib -lsac -lstdc++ -ljack"
+  extra_cxxflags="$extra_cxxflags `pkg-config --cflags QtCore QtNetwork` -I$SAM_ROOT/src -I$SAM_ROOT/src/client"
+else
+  noaomodules="sam $noaomodules"
+fi
+echores "$_sam"
+
+
+7) Add the following line to the mplayer/configure script under the equivalent line for "JACK":
+SAM = $_sam
+
+8) Add the following line to the mplayer/configure script to the list of "Audio output drivers":
+$def_sam
+
+9) Add the following line to mplayer/Makefile after the equivalent for JACK:
+SRCS_MPLAYER-$(SAM)          += libao2/ao_sam.cpp	
+
+9) Add the following line to mplayer/libao2/audio_out.c:
+extern const ao_functions_t audio_out_sam;
+
+10) Add the following lines to mplayer/libao2/audio_out.c:
+#ifdef CONFIG_SAM
+    &audio_out_sam,
+#endif
+
+10) Run the modified configure script with SAM enabled:
+./configure --enable-sam
+
+11) make
+
+
+
+
+

@@ -1,0 +1,20 @@
+samclient~ - SAM client external for Max
+	Developed by Zachary Seldess, Sonic Arts R&D, Qualcomm Institute, Calit2, UC San Diego
+
+
+Dependencies: 
+	streaming-audio (http://code.google.com/p/streaming-audio/)
+	Qt (http://qt-project.org)
+	Max 6.1.3 SDK (http://cycling74.com/downloads/sdk/)
+
+
+Installation:	
+	1. Run './configure'
+
+	2. Update the following variables in maxmspsdk.xcconfig:
+		C74SUPPORT (MaxSDK-6.1.3 /c74support directory)
+		QTSDK_DIR (QT SDK install directory)
+		SA_DIR (Streaming-audio install directory)
+
+	3. Build the samclient~ external in Xcode. samclient~.mxo will install to ./externals.
+

@@ -1,0 +1,70 @@
+#!/bin/sh
+
+ret=$PWD
+
+# Check for Platform
+platform='unknown'
+unamestr=`uname`
+if test x$unamestr = xLinux ; then
+    echo "Configuring on Linux"
+    platform='linux'
+elif test x$unamestr = xDarwin ; then
+    echo "Configuring on Mac OS X"
+    platform='macosx'
+else
+    echo unknown platform: $unamestr
+    exit 1
+fi
+
+# Set qmake command name
+if test $platform = linux ; then
+    if test -e /usr/bin/qmake-qt4 ; then
+        QMAKE=qmake-qt4
+    else
+        echo warning: "qmake-qt4 not found.  Assuming quake is the correct qt4 command for your platform (not qt3)."
+        QMAKE=qmake
+    fi
+    QSPEC=linux-g++
+elif test $platform = macosx ; then
+    QMAKE=qmake
+    QSPEC=macx-g++
+else
+    echo unknown platform: $platform
+    exit 1
+fi
+
+# configure sam
+mkdir build/sam
+cd ./src/sam && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
+# configure samtester
+mkdir build/samtest
+cd ./src/sam/test && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
+# configure libsac
+mkdir build/libsac
+cd ./src/client && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
+# configure saminput client
+mkdir build/saminput
+cd ./src/client/examples/saminput && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
+# configure samugen client
+mkdir build/samugen
+cd ./src/client/examples/samugen && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
+# configure samugen-gui client
+mkdir build/samugen-gui
+cd ./src/client/examples/samugen-gui && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
+
+echo ""
+echo "Done"
+echo ""
+
