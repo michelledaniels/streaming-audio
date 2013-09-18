@@ -133,18 +133,21 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, doubl
     // add mute/solo checkboxes
     QWidget* checksBox = new QWidget(this);
     QVBoxLayout* checksLayout = new QVBoxLayout(checksBox);
-    m_muteCheckBox = new QCheckBox(QString("Mute"), this);
+    QString muteString("Mute");
+    m_muteCheckBox = new QCheckBox(muteString, this);
     m_muteCheckBox->setChecked(params.mute);
     checksLayout->addWidget(m_muteCheckBox);
     connect(m_muteCheckBox, SIGNAL(toggled(bool)), this, SLOT(on_muteCheckBox_toggled(bool)));
-    m_soloCheckBox = new QCheckBox(QString("Solo"), this);
+    QString soloString("Solo");
+    m_soloCheckBox = new QCheckBox(soloString, this);
     m_soloCheckBox->setChecked(params.solo);
     checksLayout->addWidget(m_soloCheckBox);
     connect(m_soloCheckBox, SIGNAL(toggled(bool)), this, SLOT(on_soloCheckBox_toggled(bool)));
     controlLayout->addWidget(checksBox);
 
     // add delay spinbox
-    QLabel* delayLabel = new QLabel(QString("Delay (ms)"), this);
+    QString delayString("Delay (ms)");
+    QLabel* delayLabel = new QLabel(delayString, this);
     m_delaySpinBox = new QDoubleSpinBox(this);
     m_delaySpinBox->setRange(0.0, maxDelayMillis);
     m_delaySpinBox->setValue(params.delayMillis);
@@ -156,6 +159,20 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, doubl
     clientBox->setLayout(clientLayout);
 
     setMinimumSize(100 + 110 * m_channels, 265);
+}
+
+ClientWidget::~ClientWidget()
+{
+    if (m_metersIn) // individual meter widgets will be deleted by their parent
+    {
+        delete[] m_metersIn;
+        m_metersIn = NULL;
+    }
+    if (m_metersOut) // individual meter widgets will be deleted by their parent
+    {
+        delete[] m_metersOut;
+        m_metersOut = NULL;
+    }
 }
 
 void ClientWidget::setName(const char* name)
