@@ -61,14 +61,14 @@ Note: On most Linux systems some configuration is necessary to allow JACK to run
 || `Volume` || initial global volume level || 0.0 to 1.0 || 1.0 || ||
 
 Example sam.conf contents:
-<code>
+{{{
 [General]
 BasicChannels="1-2"
 BufferSize=256
 DelayMillis=0
 DiscreteChannels="3-8"
 HostAddress=""
-JackDriver=coreaudio
+JackDriver="coreaudio"
 MaxClients=100
 MaxClientDelayMillis=1000
 MaxDelayMillis=1000
@@ -82,10 +82,10 @@ RenderHost=127.0.0.1
 RenderPort=7778
 RtpPort=4464
 SampleRate=48000
-UseGui=false
-VerifyPatchVersion=false
+UseGui=0
+VerifyPatchVersion=0
 Volume=1.0
-</code>
+}}}
 
 === Command Line Parameters ===
 Command-line parameters to SAM can be used to override some config file parameters, but specifying parameters via the config file is preferred.
