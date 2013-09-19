@@ -4,12 +4,14 @@
 = Developer's Guide =
 <wiki:toc max_depth="3" />
 
-[OSCMessages_0_4 Comprehensive List of OSC Messages (0.4 branch)]
+[OSCMessages_0_4 Comprehensive List of OSC Messages (version 0.4)]
+
+[OSCMessages_0_6 Comprehensive List of OSC Messages (version 0.6)]
 
 [OSCMessages Comprehensive List of OSC Messages (trunk)]
 
 == Developing Clients ==
-[http://streaming-audio.googlecode.com/svn/trunk/doc/html/index.html Streaming Audio Client library documentation (for trunk)]
+[http://streaming-audio.googlecode.com/svn/branches/0.6/doc/html/index.html Streaming Audio Client library documentation (for version 0.6)]
 
 The streaming audio project operates under a client/server model.  The Streaming Audio Manager (SAM) is the server, and an arbitrary number of Streaming Audio Clients (SACs) can connect and send audio to a single SAM instance.  The Streaming Audio Client Library provides the functionality necessary for connecting a client and streaming audio to SAM.  The SAC library encapsulates OSC message sending and receiving between the client and SAM as well as RTP audio streaming from the client to SAM.  Multiple SACs can be instantiated in a single application to stream audio to multiple SAMs, provided that the multiple SAMs have been configured to use different ranges of RTP ports.
 
