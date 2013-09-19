@@ -18,6 +18,6 @@ RenderHost=127.0.0.1
 RenderPort=7778
 RtpPort=4464
 SampleRate=48000
-UseGui=false
+UseGui=0
 VerifyPatchVersion=0
 Volume=1.0
