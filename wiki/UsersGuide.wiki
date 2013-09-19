@@ -34,31 +34,31 @@ Note: On most Linux systems some configuration is necessary to allow JACK to run
 
 === Config File Parameters ===
 
-|| Parameter || Description || Possible Values || Comments || 
-|| `BasicChannels` || string specifying which channels to use for basic output || format: "1-2,4,6-8,10-16" etc. || ||
-|| `BufferSize` || audio buffer size || 16, 32, 64, 128, 256, 512, 1024, other sizes supported by your sound card || ||
-|| `DelayMillis` || initial global delay in milliseconds || >= 0 || ||
-|| `DiscreteChannels` || string specifying which channels to use for discrete output || format: "1-2,4,6-8,10-16" etc. || ||
-|| `HostAddress` || IP address on which to listen for incoming connections  || Any  valid IPv4 address for the SAM machine || This parameter is primarily useful for machines with multiple network interfaces. ||
-|| `JackDriver` || JACK driver || `alsa`, `coreaudio`, etc. (see JACK documentation) || This parameter is only used if SAM needs to start JACK itself (JACK is not running before SAM is started).||
-|| `MaxClients` || maximum possible concurrent client connections that SAM will accept || > 0 || ||
-|| `MaxClientDelayMillis` || maximum possible client delay in milliseconds || >= 0 || ||
-|| `MaxDelayMillis` || maximum possible global delay in milliseconds || >= 0 || ||
-|| `MaxOutputChannels` || maximum number of output channels to use, including basic channels || >= 1 ||  ||
-|| `NumBasicChannels` || number of basic output channels || >= 0 || *deprecated: use `BasicChannels` instead ||
-|| `OscPort` || port where SAM will listen for OSC messages ||  1024 to 49151 || ||
-|| `OutputJackClientNameBasic` || name of the JACK client to which SAM will send basic output audio channels || ex: `system` || this parameter should only be necessary if you want SAM to output to something other than system outputs (eg max, pd etc.) ||
-|| `OutputJackPortBaseBasic` || base name of JACK client ports to which SAM will connect for basic audio output channels || ex: `playback_` ||  this parameter should only be necessary if you want SAM to output to something other than system outputs (eg max, pd etc.)  ||
-|| `OutputJackClientNameDiscrete` || name of the JACK client to which SAM will send discrete output audio channels || ex: `system` || this parameter should only be necessary if you want SAM to output to something other than system outputs (eg max, pd etc.) ||
-|| `OutputJackPortBaseDiscrete` || base name of JACK client ports to which SAM will connect for discrete output audio channels|| ex: `playback_` ||  this parameter should only be necessary if you want SAM to output to something other than system outputs (eg max, pd etc.)  ||
-|| `PacketQueueSize` || length (in number of packets) of receiving packet queues in SAM || >= 1 || Increase this number to help mitigate jitter, but remember that latency will also increase ||
-|| `RenderHost` || host name/IP address of rendering machine for automatic connection on startup || "" or "host"|| ||
-|| `RenderPort` || port where renderer will listen to OSC messages || 1024 to 49151 || ||
+|| Parameter || Description || Possible Values || Default || Comments || 
+|| `BasicChannels` || string specifying which channels to use for basic output || format: "1-2,4,6-8,10-16" etc. || "" || ||
+|| `BufferSize` || audio buffer size || 16, 32, 64, 128, 256, 512, 1024, other sizes supported by your sound card || 256 || ||
+|| `DelayMillis` || initial global delay in milliseconds || >= 0 || 0 || ||
+|| `DiscreteChannels` || string specifying which channels to use for discrete output || format: "1-2,4,6-8,10-16" etc. || "" || ||
+|| `HostAddress` || IP address on which to listen for incoming connections  || Any  valid IPv4 address for the SAM machine || "" || This parameter is primarily useful for machines with multiple network interfaces. ||
+|| `JackDriver` || JACK driver || `"alsa"`, `"coreaudio"`, etc. (see JACK documentation) || `"alsa"` on linux, `"coreaudio"` on OS X ||This parameter is only used if SAM needs to start JACK itself (JACK is not running before SAM is started).||
+|| `MaxClients` || maximum possible concurrent client connections that SAM will accept || > 0 || 100 || ||
+|| `MaxClientDelayMillis` || maximum possible client delay in milliseconds || >= 0 || 1000 || ||
+|| `MaxDelayMillis` || maximum possible global delay in milliseconds || >= 0 || 1000 || ||
+|| `MaxOutputChannels` || maximum number of output channels to use, including basic channels || >= 1 ||  128 || ||
+|| `NumBasicChannels` || number of basic output channels || >= 0 || 0 || *deprecated: use `BasicChannels` instead ||
+|| `OscPort` || port where SAM will listen for OSC messages ||  1024 to 49151 || 7770 || ||
+|| `OutputJackClientNameBasic` || name of the JACK client to which SAM will send basic output audio channels || ex: `"system"` || `"system"` || this parameter should only be necessary if you want SAM to output to something other than system outputs (eg max, pd etc.) ||
+|| `OutputJackPortBaseBasic` || base name of JACK client ports to which SAM will connect for basic audio output channels || ex: `"playback_"` || `"playback_"` ||  this parameter should only be necessary if you want SAM to output to something other than system outputs (eg max, pd etc.)  ||
+|| `OutputJackClientNameDiscrete` || name of the JACK client to which SAM will send discrete output audio channels || ex: `"system"` || `"system"`|| this parameter should only be necessary if you want SAM to output to something other than system outputs (eg max, pd etc.) ||
+|| `OutputJackPortBaseDiscrete` || base name of JACK client ports to which SAM will connect for discrete output audio channels|| ex: `"playback_"` || `"playback_"` || this parameter should only be necessary if you want SAM to output to something other than system outputs (eg max, pd etc.)  ||
+|| `PacketQueueSize` || length (in number of packets) of receiving packet queues in SAM || >= 1 || 4 || Increase this number to help mitigate jitter, but remember that latency will also increase ||
+|| `RenderHost` || host name/IP address of rendering machine for automatic connection on startup || "" or "host"|| "" || ||
+|| `RenderPort` || port where renderer will listen to OSC messages || 1024 to 49151 || 0 || ||
 || `RtpPort` || base port for RTP streaming || 1024 to 49151 (max depends on how many clients you wish to stream simultaneously) || ||
-|| `SampleRate` || audio sample rate || 44100, 48000, other values supported by your sound card || ||
-|| `UseGui` || whether or not to use the experimental GUI mode || 0 (run in console mode) or 1 (run in GUI mode) || ||
-|| `VerifyPatchVersion` || whether or not SAM will verify that clients, renderers, and UIs share the same patch version as SAM (and if not, refuse registration) || 0 (don't verify) or 1 (verify) || In release versions sharing the same minor version number all patches should be interoperable, so this parameter is mostly for use during development when different patch versions might be incompatible. ||
-|| `Volume` || initial global volume level || 0.0 to 1.0 || ||
+|| `SampleRate` || audio sample rate || 44100, 48000, other values supported by your sound card || 4464 || ||
+|| `UseGui` || whether or not to use the experimental GUI mode || 0 (run in console mode) or 1 (run in GUI mode) || 0 || ||
+|| `VerifyPatchVersion` || whether or not SAM will verify that clients, renderers, and UIs share the same patch version as SAM (and if not, refuse registration) || 0 (don't verify) or 1 (verify) || 0 || In release versions sharing the same minor version number all patches should be interoperable, so this parameter is mostly for use during development when different patch versions might be incompatible. ||
+|| `Volume` || initial global volume level || 0.0 to 1.0 || 1.0 || ||
 
 Example sam.conf contents:
 <code>
