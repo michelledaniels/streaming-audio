@@ -1,0 +1,9 @@
+/**
+ * @mainpage Streaming Audio
+ * @author Michelle Daniels, Sonic Arts R&D at CalIT2 UCSD
+ * @date 2011-2013
+ * @version 0.6
+ * @section Dependencies
+ * The streaming-audio project depends on the following third-party software: JACK Audio Connection Kit (LGPL) and Qt4 (LGPL).
+ */
+
