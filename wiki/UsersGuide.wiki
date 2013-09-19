@@ -10,7 +10,7 @@ Alternatively, check out the bleeding-edge version of the code from the [http://
 
 To build the code, you will need the following third-party libraries:
   * [http://jackaudio.org JACK Audio Connection Kit] (if running on a Mac, refer to [http://www.jackosx.com Jack OS X])
-  * [http://qt-project.org Qt 4] (minimum version 4.7)
+  * [http://qt-project.org Qt 4] (minimum version 4.7) (Qt 5 should also work)
 Next, build and install using the following commands:
 
 <code>
@@ -35,25 +35,23 @@ Note: On most Linux systems some configuration is necessary to allow JACK to run
 === Config File Parameters ===
 
 || Parameter || Description || Possible Values || Comments || 
-|| `NumBasicChannels` || number of basic output channels || >= 0 || deprecated: use `BasicChannels` instead ||
-|| `SampleRate` || audio sample rate || 44100, 48000, other values supported by your sound card || ||
-|| `BufferSize` || audio buffer size || 16, 32, 64, 128, 256, 512, 1024, other sizes supported by your sound card || ||
-|| `JackDriver` || JACK driver || `alsa`, `coreaudio`, etc. (see JACK documentation) || ||
-|| `OscPort` || port where SAM will listen for OSC messages ||  1024 to 49151 || ||
-|| `RtpPort` || base port for RTP streaming || 1024 to 49151 (max depends on how many clients you wish to stream simultaneously) || ||
-|| `OutputPortOffset` || output port offset || >= 0 || deprecated: use `BasicChannels` and `DiscreteChannels` instead ||
-|| `MaxOutputChannels` || maximum number of output channels to use, including basic channels || >= 1 ||  ||
-|| `Volume` || initial global volume level || 0.0 to 1.0 || ||
-|| `DelayMillis` || initial global delay in milliseconds || >= 0 || ||
-|| `MaxDelayMillis` || maximum possible delay in milliseconds || >= 0 || ||
-|| `RenderHost` || host name/IP address of rendering machine for automatic connection on startup || "" or "host"|| ||
-|| `RenderPort` || port where renderer will listen to OSC messages || 1024 to 49151 || ||
-|| `PacketQueueSize` || length (in number of packets) of receiving packet queues in SAM || >= 1 || Increase this number to help mitigate jitter, but remember that latency will also increase ||
 || `BasicChannels` || string specifying which channels to use for basic output || format: "1-2,4,6-8,10-16" etc. || ||
+|| `BufferSize` || audio buffer size || 16, 32, 64, 128, 256, 512, 1024, other sizes supported by your sound card || ||
+|| `DelayMillis` || initial global delay in milliseconds || >= 0 || ||
 || `DiscreteChannels` || string specifying which channels to use for discrete output || format: "1-2,4,6-8,10-16" etc. || ||
+|| `JackDriver` || JACK driver || `alsa`, `coreaudio`, etc. (see JACK documentation) || ||
+|| `MaxDelayMillis` || maximum possible delay in milliseconds || >= 0 || ||
+|| `MaxOutputChannels` || maximum number of output channels to use, including basic channels || >= 1 ||  ||
+|| `NumBasicChannels` || number of basic output channels || >= 0 || *deprecated: use `BasicChannels` instead ||
+|| `OscPort` || port where SAM will listen for OSC messages ||  1024 to 49151 || ||
 || `OutputJackClientName` || name of the JACK client to which SAM will send output audio || ex: `system` || this parameter should only be necessary if you want SAM to output to something other than system outputs (eg max, pd etc.) ||
 || `OutputJackPortBase` || base name of JACK client ports to which SAM will connect for output || ex: `playback_` ||  this parameter should only be necessary if you want SAM to output to something other than system outputs (eg max, pd etc.)  ||
-
+|| `PacketQueueSize` || length (in number of packets) of receiving packet queues in SAM || >= 1 || Increase this number to help mitigate jitter, but remember that latency will also increase ||
+|| `RenderHost` || host name/IP address of rendering machine for automatic connection on startup || "" or "host"|| ||
+|| `RenderPort` || port where renderer will listen to OSC messages || 1024 to 49151 || ||
+|| `RtpPort` || base port for RTP streaming || 1024 to 49151 (max depends on how many clients you wish to stream simultaneously) || ||
+|| `SampleRate` || audio sample rate || 44100, 48000, other values supported by your sound card || ||
+|| `Volume` || initial global volume level || 0.0 to 1.0 || ||
 
 Example sam.conf contents:
 <code>
