@@ -56,28 +56,35 @@ Note: On most Linux systems some configuration is necessary to allow JACK to run
 || `RenderPort` || port where renderer will listen to OSC messages || 1024 to 49151 || ||
 || `RtpPort` || base port for RTP streaming || 1024 to 49151 (max depends on how many clients you wish to stream simultaneously) || ||
 || `SampleRate` || audio sample rate || 44100, 48000, other values supported by your sound card || ||
+|| `UseGui` || whether or not to use the experimental GUI mode || 0 (run in console mode) or 1 (run in GUI mode) || ||
 || `VerifyPatchVersion` || whether or not SAM will verify that clients, renderers, and UIs share the same patch version as SAM (and if not, refuse registration) || 0 (don't verify) or 1 (verify) || In release versions sharing the same minor version number all patches should be interoperable, so this parameter is mostly for use during development when different patch versions might be incompatible. ||
 || `Volume` || initial global volume level || 0.0 to 1.0 || ||
-|| `UseGui` || whether or not to use the experimental GUI mode || 0 (run in console mode) or 1 (run in GUI mode) || ||
 
 Example sam.conf contents:
 <code>
-[General]  
-SampleRate=48000
+[General]
+BasicChannels="1-2"
 BufferSize=256
-JackDriver=coreaudio
-OscPort=7770
-RtpPort=4464
-Volume=1.0
 DelayMillis=0
-MaxDelayMillis=2000
+DiscreteChannels="3-8"
+HostAddress=""
+JackDriver=coreaudio
+MaxClients=100
+MaxClientDelayMillis=1000
+MaxDelayMillis=1000
+OscPort=7770
+OutputJackClientNameBasic="system"
+OutputJackPortBaseBasic="playback_"
+OutputJackClientNameDiscrete="system"
+OutputJackPortBaseDiscrete="playback_"
+PacketQueueSize=4
 RenderHost=127.0.0.1
 RenderPort=7778
-PacketQueueSize=4
-BasicChannels="1-2"
-DiscreteChannels="3-8"
-OutputJackClientName="system"
-OutputJackPortBase="playback_"
+RtpPort=4464
+SampleRate=48000
+UseGui=false
+VerifyPatchVersion=false
+Volume=1.0
 </code>
 
 === Command Line Parameters ===
