@@ -81,6 +81,7 @@ OutputJackPortBase="playback_"
 </code>
 
 === Command Line Parameters ===
+Command-line parameters to SAM can be used to override some config file parameters, but specifying parameters via the config file is preferred.
 
 || Short || Long || Description ||
 || `-n` || `--numchannels` || number of basic output channels ||
@@ -89,15 +90,14 @@ OutputJackPortBase="playback_"
 || `-d` || `--driver` || driver to use for JACK (coreaudio, alsa, etc.) ||
 || `-o` || `--oscport`  || port where SAM listen for OSC messages ||
 || `-j` || `--jtport` || base RTP port ||
-|| `-f` || `--outoffset` || output port offset ||
 || `-m` || `--maxout` || maximum number of output channels to use, including basic channels ||
 || `-h` || `--help` || print help info and exit ||
 
 Linux example usage:
-<code>sam -n 2 -r 48000 -p 256 -d alsa -o 7770 -j 4464 -f 0 -m 2</code>
+<code>sam -n 2 -r 48000 -p 256 -d alsa -o 7770 -j 4464 -m 2</code>
 
 OS X example usage:
-<code>sam -n 2 -r 48000 -p 256 -d coreaudio -o 7770 -j 4464 -f 0 -m 2</code>
+<code>sam -n 2 -r 48000 -p 256 -d coreaudio -o 7770 -j 4464 -m 2</code>
 
 == Using Clients ==
 === saminput ===
