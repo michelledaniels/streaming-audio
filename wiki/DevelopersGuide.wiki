@@ -153,7 +153,7 @@ When a new client registers with SAM, SAM notifies the renderer and tells the re
 
 
 == Developing User Interfaces ==
-SAM UIs communicate with SAM using Open Sound Control (OSC) messages.  OSC messages can be sent over UDP or over TCP using SLIP encoding.  
+SAM UIs communicate with SAM using Open Sound Control (OSC) messages.  OSC messages can be sent over UDP, or over TCP using SLIP encoding.  
 
 === Registering a UI with SAM ===
 A UI must register with SAM in order to receive notifications of clients being added or removed as well as global parameter updates (volume changed etc.).  The format of the OSC messages for registering and unregistering a UI as well as the messages for adding and removing a client ("app") can be found [OSCMessages_0_6#SAM/UI_Messages here].  When registering, the UI must communicate a version number to SAM.  This version number should match SAM's version number, which uses a `major.minor.patch` version numbering format.  Specifically, the major and minor version numbers must match and the patch version must match if the `VerifyPatchVersion` parameter in the SAM config file has been defined.  If there is a version mismatch, SAM will deny the UI registration.  When registration is denied, an error code is returned, and the possible error codes are listed [OSCMessages_0_6#Error_Codes here].
