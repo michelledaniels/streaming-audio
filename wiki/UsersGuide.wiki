@@ -54,8 +54,8 @@ Note: On most Linux systems some configuration is necessary to allow JACK to run
 || `PacketQueueSize` || length (in number of packets) of receiving packet queues in SAM || >= 1 || 4 || Increase this number to help mitigate jitter, but remember that latency will also increase ||
 || `RenderHost` || host name/IP address of rendering machine for automatic connection on startup || "" or "host"|| "" || ||
 || `RenderPort` || port where renderer will listen to OSC messages || 1024 to 49151 || 0 || ||
-|| `RtpPort` || base port for RTP streaming || 1024 to 49151 (max depends on how many clients you wish to stream simultaneously) || ||
-|| `SampleRate` || audio sample rate || 44100, 48000, other values supported by your sound card || 4464 || ||
+|| `RtpPort` || base port for RTP streaming || 1024 to 49151 (max depends on how many clients you wish to stream simultaneously) || 4464 || ||
+|| `SampleRate` || audio sample rate || 44100, 48000, other values supported by your sound card || 48000 || ||
 || `UseGui` || whether or not to use the experimental GUI mode || 0 (run in console mode) or 1 (run in GUI mode) || 0 || ||
 || `VerifyPatchVersion` || whether or not SAM will verify that clients, renderers, and UIs share the same patch version as SAM (and if not, refuse registration) || 0 (don't verify) or 1 (verify) || 0 || In release versions sharing the same minor version number all patches should be interoperable, so this parameter is mostly for use during development when different patch versions might be incompatible. ||
 || `Volume` || initial global volume level || 0.0 to 1.0 || 1.0 || ||
