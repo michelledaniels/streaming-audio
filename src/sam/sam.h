@@ -47,6 +47,8 @@ struct ClientParams
     bool solo;
     float delayMillis;
     SamAppPosition pos;
+    StreamingAudioType type;
+    int preset;
 };
 
 /**
@@ -348,15 +350,21 @@ public slots:
     bool setAppPosition(int port, int x, int y, int width, int height, int depth);
 
     /**
-     * Set the rendering type for an app.
+     * Set the rendering type and preset of an app.
      * @param port the port/unique ID of the app to be updated
-     * @param type the type to be set
-     * @param preset the preset to be set
-     * @param error code on failure, otherwise undefined
-     * @return true on success, false on failure
+     * @param type the unique id of the type to be set
+     * @param preset the unique id of the preset to be set
+     * @return true on success, false on failure (invalid port, etc.)
      */
-    bool setAppType(int port, sam::StreamingAudioType type, int preset, sam::SamErrorCode& errorCode);
+    bool setAppType(int port, int type, int preset);
 
+    /**
+     * Get details about a rendering type from its id.
+     * @param id the unique id for this rendering type
+     * @return NULL if no type matching this id is found, otherwise pointer to a RenderingType struct describing this rendering type (caller must not free this - it is still owned by SAM)
+     */
+    const RenderingType* getType(int id);
+     
     /**
      * Clean up before quitting the application.
      * This will shutdown the JACK server.
@@ -439,10 +447,22 @@ signals:
     void appPositionChanged(int, int, int, int, int, int);
     void appTypeChanged(int, int, int);
 
-    void typeAdded();
-    void typeRemoved();
+    void typeAdded(int);
+    void typeRemoved(int);
+    
+    void setAppTypeFailed(int, int, int, int, int, int);
 
 private:
+    
+    /**
+     * Set the rendering type for an app.
+     * @param port the port/unique ID of the app to be updated
+     * @param type the type to be set
+     * @param preset the preset to be set
+     * @param error code on failure, otherwise undefined
+     * @return true on success, false on failure
+     */
+    bool set_app_type(int port, sam::StreamingAudioType type, int preset, sam::SamErrorCode& errorCode);
 
     /**
      * Handle requests to register or unregister apps.

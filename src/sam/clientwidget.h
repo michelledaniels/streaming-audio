@@ -38,7 +38,7 @@ class ClientWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ClientWidget(int id, const char* name, ClientParams& params, double maxDelayMillis, QWidget *parent = 0);
+    explicit ClientWidget(int id, const char* name, ClientParams& params, double maxDelayMillis, StreamingAudioManager* sam, QWidget *parent = 0);
     ~ClientWidget();
 
     void setName(const char* name);
@@ -58,17 +58,24 @@ signals:
     void soloChanged(int id, bool solo);
     void delayChanged(int id, float delay);
     void positionChanged(int id, int x, int y, int w, int h, int d);
-
+    void typeChanged(int, int, int);
+    
 public slots:
     void on_volumeSlider_valueChanged(int);
     void on_muteCheckBox_toggled(bool);
     void on_soloCheckBox_toggled(bool);
     void on_delaySpinBox_valueChanged(double);
+    void on_typeComboBox_activated(int);
+    void on_presetComboBox_activated(int);
+    
+    void addType(int id);
+    void removeType(int id);
 
 protected:
     QString m_name;
     int m_channels;
     int m_id;
+    StreamingAudioManager* m_sam;
 
     // widgets
     QLabel* m_nameLabel;
@@ -76,6 +83,8 @@ protected:
     QCheckBox* m_muteCheckBox;
     QCheckBox* m_soloCheckBox;
     QDoubleSpinBox* m_delaySpinBox;
+    QComboBox* m_typeComboBox;
+    QComboBox* m_presetComboBox;
 
     MeterWidget** m_metersIn;
     MeterWidget** m_metersOut;

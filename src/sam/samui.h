@@ -72,6 +72,7 @@ public slots:
     void onSamStartupError();
     void onSamStarted();
     void onSamStopped();
+    void onSetAppTypeFailed(int, int, int, int, int, int);
 
     void setAppVolume(int, float);
     void setAppMute(int, bool);

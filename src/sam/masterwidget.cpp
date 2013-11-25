@@ -18,7 +18,7 @@ MasterWidget::MasterWidget(float volume, bool mute, float delay, float maxDelayM
     m_volumeSlider(NULL),
     m_muteCheckBox(NULL)
 {
-    setMinimumSize(250, 350);
+    setMinimumSize(250, 300);
 
     QGroupBox *masterGroup = new QGroupBox(this);
     QVBoxLayout* masterLayout = new QVBoxLayout(masterGroup);
@@ -47,6 +47,7 @@ MasterWidget::MasterWidget(float volume, bool mute, float delay, float maxDelayM
     volumeBox->setMinimumSize(60, 150);
     volumeBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     QVBoxLayout* volumeLayout = new QVBoxLayout(volumeBox);
+    volumeLayout->setContentsMargins(5, 5, 5, 5);
     volumeLayout->addWidget(volumeNameLabel, 0, Qt::AlignCenter);
     volumeLayout->addWidget(m_volumeSlider, 0, Qt::AlignCenter);
     volumeLayout->addWidget(m_volumeLabel, 0, Qt::AlignCenter);
@@ -68,6 +69,7 @@ MasterWidget::MasterWidget(float volume, bool mute, float delay, float maxDelayM
     m_delaySpinBox->setValue(delay);
     QWidget *delayBox = new QWidget(masterGroup);
     QHBoxLayout* delayLayout = new QHBoxLayout(delayBox);
+    delayLayout->setContentsMargins(5, 0, 5, 0);
     delayLayout->addWidget(delayLabel);
     delayLayout->addWidget(m_delaySpinBox);
     masterLayout->addWidget(delayBox, 0, Qt::AlignCenter);

@@ -35,7 +35,7 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     ui->setupUi(this);
 
     setWindowTitle("Streaming Audio Manager");
-    setMinimumSize(400, 700);
+    setMinimumSize(420, 790);
     
     m_samThread = new QThread();
     m_samThread->start();
@@ -68,8 +68,11 @@ SamUI::SamUI(const SamParams& params, QWidget *parent) :
     m_clientGroup->setLayout(m_clientLayout);
 
     clientScrollArea->setWidget(m_clientGroup);
+    clientScrollArea->setMinimumSize(400, 360);
     mainLayout->addWidget(clientScrollArea);
-    clientScrollArea->setMinimumSize(400, 300);
+    
+    //mainLayout->addStretch();
+    
     setCentralWidget(mainBox);
 }
 
@@ -119,7 +122,7 @@ void SamUI::addClient(int id)
         qWarning("SamUI::addClient couldn't get client parameters");
         return;
     }
-    m_clients[id] = new ClientWidget(id, m_sam->getAppName(id), params, m_samParams.maxClientDelayMillis, this);
+    m_clients[id] = new ClientWidget(id, m_sam->getAppName(id), params, m_samParams.maxClientDelayMillis, m_sam, this);
     connect_client(id);
     m_clientLayout->addWidget(m_clients[id]);
     
@@ -204,6 +207,22 @@ void SamUI::setAppType(int id, int type, int preset)
     }
 }
 
+void SamUI::onSetAppTypeFailed(int id, int errorCode, int type, int preset, int typeOld, int presetOld)
+{
+    const RenderingType* typeStruct = m_sam->getType(type);
+    const RenderingType* typeStructOld = m_sam->getType(typeOld);
+    int ret = QMessageBox::critical(this, "Streaming Audio Manager Error", 
+                                    "Could not set type for app " + QString::number(id) + " to " + typeStruct->name + ".\nError code = " + QString::number(errorCode) + ".\nReverting to " + typeStructOld->name + " type and " + typeStructOld->presets[preset].name + " preset.");
+    
+    QStatusBar* sb = statusBar();
+    sb->showMessage("Set type request failed with error code " + QString::number(errorCode), 5000);
+    
+    if (m_clients[id])
+    {
+        m_clients[id]->setType(typeOld, presetOld);
+    }
+}
+
 void SamUI::setAppMeter(int id, int ch, float rmsIn, float peakIn, float rmsOut, float peakOut)
 {
     if (m_clients[id])
@@ -261,6 +280,8 @@ void SamUI::connect_client(int id)
     connect(m_clients[id], SIGNAL(muteChanged(int, bool)), m_sam, SLOT(setAppMute(int, bool)));
     connect(m_clients[id], SIGNAL(soloChanged(int, bool)), m_sam, SLOT(setAppSolo(int, bool)));
     connect(m_clients[id], SIGNAL(delayChanged(int, float)), m_sam, SLOT(setAppDelay(int, float)));
+    connect(m_clients[id], SIGNAL(typeChanged(int, int, int)), m_sam, SLOT(setAppType(int, int, int)));
+    connect(m_sam, SIGNAL(typeAdded(int)), m_clients[id], SLOT(addType(int)));
 }
 
 void SamUI::disconnect_client(int id)
@@ -269,6 +290,8 @@ void SamUI::disconnect_client(int id)
     disconnect(m_clients[id], SIGNAL(muteChanged(int, bool)), m_sam, SLOT(setAppMute(int, bool)));
     disconnect(m_clients[id], SIGNAL(soloChanged(int, bool)), m_sam, SLOT(setAppSolo(int, bool)));
     disconnect(m_clients[id], SIGNAL(delayChanged(int, float)), m_sam, SLOT(setAppDelay(int, float)));
+    disconnect(m_clients[id], SIGNAL(typeChanged(int, int, int)), m_sam, SLOT(setAppType(int, int, int)));
+    disconnect(m_sam, SIGNAL(typeAdded(int)), m_clients[id], SLOT(addType(int)));
 }
 
 void SamUI::onSamStarted()
@@ -287,7 +310,8 @@ void SamUI::onSamStarted()
     connect(m_sam, SIGNAL(appPositionChanged(int, int, int, int, int, int)), this, SLOT(setAppPosition(int,int,int,int,int,int)));
     connect(m_sam, SIGNAL(appTypeChanged(int, int, int)), this, SLOT(setAppType(int, int, int)));
     connect(m_sam, SIGNAL(appMeterChanged(int, int, float, float, float, float)), this, SLOT(setAppMeter(int, int, float, float, float, float)));
-    
+    connect(m_sam, SIGNAL(setAppTypeFailed(int, int, int, int, int, int)), this, SLOT(onSetAppTypeFailed(int, int, int, int, int, int)));
+            
     // messages from master widget to SAM
     connect(m_master, SIGNAL(volumeChanged(float)), m_sam, SLOT(setVolume(float)));
     connect(m_master, SIGNAL(muteChanged(bool)), m_sam, SLOT(setMute(bool)));
