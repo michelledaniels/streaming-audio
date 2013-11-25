@@ -59,15 +59,18 @@ void MeterWidget::paintEvent(QPaintEvent* event)
     }
 }
 
-ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, double maxDelayMillis, QWidget *parent) :
+ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, double maxDelayMillis, StreamingAudioManager* sam, QWidget *parent) :
     QWidget(parent),
     m_channels(params.channels),
     m_id(id),
+    m_sam(sam),
     m_nameLabel(NULL),
     m_volumeSlider(NULL),
     m_muteCheckBox(NULL),
     m_soloCheckBox(NULL),
     m_delaySpinBox(NULL),
+    m_typeComboBox(NULL),
+    m_presetComboBox(NULL),
     m_metersIn(NULL),
     m_metersOut(NULL)
 {
@@ -75,6 +78,7 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, doubl
 
     QGroupBox *clientBox = new QGroupBox(this);
     QVBoxLayout* clientLayout = new QVBoxLayout(clientBox);
+    clientLayout->setContentsMargins(5, 5, 5, 5);
 
     // add name label
     m_nameLabel = new QLabel(this);
@@ -155,10 +159,48 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, doubl
     controlLayout->addWidget(m_delaySpinBox);
     connect(m_delaySpinBox, SIGNAL(valueChanged(double)), this, SLOT(on_delaySpinBox_valueChanged(double)));
     clientLayout->addWidget(controlBox);
+    
+    // init layout for type
+    QWidget *typeBox = new QWidget(this);
+    QHBoxLayout* typeLayout = new QHBoxLayout(typeBox);
+    typeLayout->setContentsMargins(5, 0, 5, 0);
+            
+    // add type combo box
+    m_typeComboBox = new QComboBox(this);
+    const QList<RenderingType>& types = m_sam->getRenderingTypes();
+    for (int t = 0; t < types.size(); t++)
+    {
+        m_typeComboBox->addItem(types[t].name, types[t].id);
+    }
+    
+    QString typeString("Type:");
+    QLabel* typeLabel = new QLabel(typeString, this);
+    typeLabel->setAlignment(Qt::AlignRight);
+    typeLayout->addWidget(typeLabel);
+    typeLayout->addWidget(m_typeComboBox);
+    clientLayout->addWidget(typeBox);
+    
+    // init layout for preset
+    QWidget *presetBox = new QWidget(this);
+    QHBoxLayout* presetLayout = new QHBoxLayout(presetBox);
+    presetLayout->setContentsMargins(5, 0, 5, 0);
 
+    // add preset combo box
+    m_presetComboBox = new QComboBox(this);
+    QString presetString("Preset:");
+    QLabel* presetLabel = new QLabel(presetString, this);
+    presetLabel->setAlignment(Qt::AlignRight);
+    presetLayout->addWidget(presetLabel);
+    presetLayout->addWidget(m_presetComboBox);
+    clientLayout->addWidget(presetBox);
+    
     clientBox->setLayout(clientLayout);
-
-    setMinimumSize(100 + 110 * m_channels, 265);
+    
+    setType(params.type, params.preset); // this will init preset combo box with appropriate presets for this type
+    connect(m_typeComboBox, SIGNAL(activated(int)), this, SLOT(on_typeComboBox_activated(int)));
+    connect(m_presetComboBox, SIGNAL(activated(int)), this, SLOT(on_presetComboBox_activated(int)));
+    
+    setMinimumSize(100 + 110 * m_channels, 300);
 }
 
 ClientWidget::~ClientWidget()
@@ -209,7 +251,29 @@ void ClientWidget::setPosition(int x, int y, int w, int h, int d)
 
 void ClientWidget::setType(int type, int preset)
 {
-
+    //qWarning("ClientWidget::setType type = %d, preset = %d", type, preset);
+    const RenderingType* typeStruct = m_sam->getType(type);
+    for (int t = 0; t < m_typeComboBox->count(); t++)
+    {
+        QVariant data = m_typeComboBox->itemData(t);
+        if (data.toInt() == type)
+        {
+            //qWarning("ClientWidget::setType found type %d in combo box at index %d", type, t);
+            m_typeComboBox->setCurrentIndex(t);
+        }
+    }
+    
+    // update presets 
+    m_presetComboBox->clear();
+    for (int p = 0; p < typeStruct->presets.size(); p++)
+    {
+        m_presetComboBox->addItem(typeStruct->presets[p].name, typeStruct->presets[p].id);
+        if (typeStruct->presets[p].id == preset)
+        {
+            //qWarning("ClientWidget::setType found preset %d in combo box at index %d", preset, p);
+            m_presetComboBox->setCurrentIndex(m_presetComboBox->count() - 1);
+        }
+    }
 }
 
 void ClientWidget::setMeter(int ch, float rmsIn, float peakIn, float rmsOut, float peakOut)
@@ -254,6 +318,36 @@ void ClientWidget::on_delaySpinBox_valueChanged(double val)
 {
     //qWarning("ClientWidget::on_delaySpinBox_valueChanged val = %f", val);
     emit delayChanged(m_id, (float)val);
+}
+
+void ClientWidget::addType(int id)
+{
+    const RenderingType* type = m_sam->getType(id);
+    m_typeComboBox->addItem(type->name, type->id);
+}
+
+void ClientWidget::removeType(int id)
+{
+    int index = m_typeComboBox->findData(id);
+    m_typeComboBox->removeItem(index);
+    
+    // TODO: is it possible for the currently-selected type to be removed?
+}
+
+void ClientWidget::on_typeComboBox_activated(int index)
+{
+    //qWarning("ClientWidget::on_typeComboBox_activated");
+    int type = m_typeComboBox->itemData(index).toInt();
+    //int preset = m_presetComboBox->itemData(m_presetComboBox->currentIndex()).toInt();
+    emit typeChanged(m_id, type, 0);
+}
+
+void ClientWidget::on_presetComboBox_activated(int index)
+{
+    //qWarning("ClientWidget::on_presetComboBox_activated");
+    int type = m_typeComboBox->itemData(m_typeComboBox->currentIndex()).toInt();
+    int preset = m_presetComboBox->itemData(index).toInt();
+    emit typeChanged(m_id, type, preset);
 }
 
 } // end of namespace SAM

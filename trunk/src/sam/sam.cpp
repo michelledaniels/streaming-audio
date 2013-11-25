@@ -142,6 +142,7 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
         preset.name.append("Default");
         type.presets.append(preset);
         m_renderingTypes.append(type);
+        emit typeAdded(type.id);
     }
 
     if (params.hostAddress.isEmpty())
@@ -866,7 +867,26 @@ bool StreamingAudioManager::setAppPosition(int port, int x, int y, int width, in
     return true;
 }
 
-bool StreamingAudioManager::setAppType(int port, StreamingAudioType type, int preset, sam::SamErrorCode& errorCode)
+bool StreamingAudioManager::setAppType(int port, int type, int preset)
+{
+    int typeOld = m_apps[port]->getType();
+    int presetOld = m_apps[port]->getPreset();
+    
+    if (typeOld == type && presetOld == preset) 
+    {
+        qWarning("StreamingAudioManager::SetAppType type and preset for app %d were already set", port);
+        return true; // nothing to do
+    }
+    
+    SamErrorCode errorCode;
+    if (!set_app_type(port, (StreamingAudioType)type, preset, errorCode))
+    {
+        qWarning("Couldn't set type for app %d to %d, preset to %d.  Error code = %d", port, type, preset, errorCode);
+        emit setAppTypeFailed(port, errorCode, type, preset, typeOld, presetOld);
+    }
+}
+
+bool StreamingAudioManager::set_app_type(int port, StreamingAudioType type, int preset, sam::SamErrorCode& errorCode)
 {
     // check for valid port
     if (!idIsValid(port))
@@ -882,7 +902,7 @@ bool StreamingAudioManager::setAppType(int port, StreamingAudioType type, int pr
     }
 
     int typeOld = m_apps[port]->getType();
-
+    
     // re-assign ports if we are changing from basic to non-basic type and vice-versa
     if (typeOld == sam::TYPE_BASIC && type != sam::TYPE_BASIC)
     {
@@ -980,6 +1000,15 @@ bool StreamingAudioManager::setAppType(int port, StreamingAudioType type, int pr
     return true;
 }
 
+const RenderingType* StreamingAudioManager::getType(int id)
+{
+    for (int n = 0; n < m_renderingTypes.size(); n++)
+    {
+        if (m_renderingTypes[n].id == id) return &m_renderingTypes[n];
+    }
+    return NULL;
+}
+
 const char* StreamingAudioManager::getAppName(int id)
 {
     if (!idIsValid(id)) return NULL;
@@ -996,6 +1025,8 @@ bool StreamingAudioManager::getAppParams(int id, ClientParams& params)
     params.solo = m_apps[id]->getSolo();
     params.delayMillis = m_apps[id]->getDelay();
     params.pos = m_apps[id]->getPosition();
+    params.type = m_apps[id]->getType();
+    params.preset = m_apps[id]->getPreset();
     return true;
 }
 
@@ -1826,7 +1857,7 @@ void StreamingAudioManager::osc_set_type(OscMessage* msg, const char* sender, QA
     replyAddr.host.setAddress(sender);
     replyAddr.port = replyPort;
     sam::SamErrorCode errorCode = sam::SAM_ERR_DEFAULT;
-    bool success = setAppType(port, type, preset, errorCode);
+    bool success = set_app_type(port, type, preset, errorCode);
     if (success)
     {
         // send /sam/type/confirm message
@@ -2051,7 +2082,7 @@ void StreamingAudioManager::osc_add_type(OscMessage* msg, const char* sender)
         }
     }
 
-    emit typeAdded();
+    emit typeAdded(id);
 }
 
 void StreamingAudioManager::osc_remove_type(OscMessage* msg)
@@ -2083,7 +2114,7 @@ void StreamingAudioManager::osc_remove_type(OscMessage* msg)
         if (m_apps[j] && (m_apps[j]->getType() == type))
         {
             SamErrorCode errorCode = (SamErrorCode)0;
-            if (!setAppType(j, TYPE_BASIC, 0, errorCode))
+            if (!set_app_type(j, TYPE_BASIC, 0, errorCode))
             {
                 qWarning("StreamingAudioManager::osc_remove_type couldn't switch app %d to basic type", j);
             }
@@ -2106,7 +2137,7 @@ void StreamingAudioManager::osc_remove_type(OscMessage* msg)
         }
     }
 
-    emit typeRemoved();
+    emit typeRemoved(type);
 }
 
 int StreamingAudioManager::jack_process(jack_nframes_t nframes)
@@ -2632,7 +2663,7 @@ void StreamingAudioManager::print_debug()
         if (m_apps[i])
         {
             SamAppPosition pos = m_apps[i]->getPosition();
-            qWarning("Client %d has id %d, name \"%s\", %d channels, position [%d, %d, %d, %d, %d], type %d, volume %f, mute %d, solo %d, delay %f",
+            qWarning("Client %d has id %d, name \"%s\", %d channels, position [%d, %d, %d, %d, %d], type %d, preset %d, volume %f, mute %d, solo %d, delay %f",
                                                         i,
                                                         m_apps[i]->getPort(),
                                                         m_apps[i]->getName(),
@@ -2643,6 +2674,7 @@ void StreamingAudioManager::print_debug()
                                                         pos.height,
                                                         pos.depth,
                                                         m_apps[i]->getType(),
+                                                        m_apps[i]->getPreset(),
                                                         m_apps[i]->getVolume(),
                                                         m_apps[i]->getMute(),
                                                         m_apps[i]->getSolo(),
