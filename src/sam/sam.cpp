@@ -883,7 +883,9 @@ bool StreamingAudioManager::setAppType(int port, int type, int preset)
     {
         qWarning("Couldn't set type for app %d to %d, preset to %d.  Error code = %d", port, type, preset, errorCode);
         emit setAppTypeFailed(port, errorCode, type, preset, typeOld, presetOld);
+        return false;
     }
+    return true;
 }
 
 bool StreamingAudioManager::set_app_type(int port, StreamingAudioType type, int preset, sam::SamErrorCode& errorCode)
