@@ -2,7 +2,7 @@ NAME=samclient~
 CSYM=samclient_tilde
 
 QTSDK_DIR = /usr/local/Trolltech/Qt-4.8.5
-SA_DIR = /Users/zachary/Calit2/software/sam/streaming-audio/zach/streaming-audio
+SA_DIR = /Users/zachary/Calit2/software/sam/streaming-audio/trunk
 
 ARCH = -arch i386 -arch x86_64
 

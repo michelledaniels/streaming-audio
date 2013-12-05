@@ -4,11 +4,11 @@
 		"appversion" : 		{
 			"major" : 6,
 			"minor" : 1,
-			"revision" : 3,
+			"revision" : 5,
 			"architecture" : "x64"
 		}
 ,
-		"rect" : [ 274.0, 44.0, 722.0, 465.0 ],
+		"rect" : [ 274.0, 44.0, 779.0, 467.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -36,7 +36,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 384.0, 192.0, 46.0, 20.0 ],
+					"patching_rect" : [ 443.0, 192.0, 46.0, 20.0 ],
 					"text" : "noise~"
 				}
 
@@ -62,11 +62,10 @@
 					"fontsize" : 12.0,
 					"frgb" : 0.0,
 					"id" : "obj-14",
-					"linecount" : 2,
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 78.0, 260.5, 202.0, 33.0 ],
+					"patching_rect" : [ 76.0, 269.5, 384.0, 20.0 ],
 					"text" : "outputs 1 when connected, 0 when disconnected (or connection failed)"
 				}
 
@@ -121,7 +120,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 422.0, 255.0, 179.0, 20.0 ],
+					"patching_rect" : [ 488.0, 255.0, 179.0, 20.0 ],
 					"text" : "# channels to stream (default 1)"
 				}
 
@@ -135,7 +134,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 404.0, 235.0, 144.0, 20.0 ],
+					"patching_rect" : [ 470.0, 235.0, 144.0, 20.0 ],
 					"text" : "OPTIONAL ARGUMENT:"
 				}
 
@@ -155,11 +154,11 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 5,
 							"architecture" : "x64"
 						}
 ,
-						"rect" : [ 526.0, 49.0, 517.0, 367.0 ],
+						"rect" : [ 526.0, 49.0, 552.0, 356.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -183,12 +182,57 @@
 									"fontname" : "Arial",
 									"fontsize" : 12.0,
 									"frgb" : 0.0,
+									"id" : "obj-32",
+									"maxclass" : "comment",
+									"numinlets" : 1,
+									"numoutlets" : 0,
+									"patching_rect" : [ 420.0, 85.0, 122.0, 20.0 ],
+									"presentation_rect" : [ 391.5, 88.0, 0.0, 0.0 ],
+									"text" : "SAM renderer preset"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontname" : "Arial",
+									"fontsize" : 12.0,
+									"id" : "obj-35",
+									"maxclass" : "number",
+									"minimum" : 0,
+									"numinlets" : 1,
+									"numoutlets" : 2,
+									"outlettype" : [ "int", "bang" ],
+									"parameter_enable" : 0,
+									"patching_rect" : [ 425.5, 104.5, 50.0, 20.0 ],
+									"presentation_rect" : [ 397.0, 107.5, 0.0, 0.0 ]
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontname" : "Arial",
+									"fontsize" : 12.0,
+									"id" : "obj-38",
+									"maxclass" : "message",
+									"numinlets" : 2,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 425.5, 161.5, 61.0, 18.0 ],
+									"presentation_rect" : [ 397.0, 164.5, 0.0, 0.0 ],
+									"text" : "preset $1"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontname" : "Arial",
+									"fontsize" : 12.0,
+									"frgb" : 0.0,
 									"id" : "obj-23",
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
 									"patching_rect" : [ 390.0, 212.0, 107.0, 20.0 ],
-									"presentation_rect" : [ 406.0, 212.0, 0.0, 0.0 ],
 									"text" : "packet queue size"
 								}
 
@@ -203,8 +247,7 @@
 									"numoutlets" : 2,
 									"outlettype" : [ "int", "bang" ],
 									"parameter_enable" : 0,
-									"patching_rect" : [ 412.5, 231.5, 50.0, 20.0 ],
-									"presentation_rect" : [ 401.5, 231.5, 0.0, 0.0 ]
+									"patching_rect" : [ 412.5, 231.5, 50.0, 20.0 ]
 								}
 
 							}
@@ -218,7 +261,6 @@
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
 									"patching_rect" : [ 412.5, 261.5, 62.0, 18.0 ],
-									"presentation_rect" : [ 401.5, 261.5, 0.0, 0.0 ],
 									"text" : "pqsize $1"
 								}
 
@@ -821,6 +863,15 @@
 							}
 , 							{
 								"patchline" : 								{
+									"destination" : [ "obj-38", 0 ],
+									"disabled" : 0,
+									"hidden" : 0,
+									"source" : [ "obj-35", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
 									"destination" : [ "obj-24", 0 ],
 									"disabled" : 0,
 									"hidden" : 0,
@@ -834,6 +885,16 @@
 									"disabled" : 0,
 									"hidden" : 0,
 									"source" : [ "obj-37", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-34", 0 ],
+									"disabled" : 0,
+									"hidden" : 0,
+									"midpoints" : [ 435.0, 193.5, 33.5, 193.5 ],
+									"source" : [ "obj-38", 0 ]
 								}
 
 							}
@@ -914,7 +975,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 404.0, 282.0, 151.0, 20.0 ],
+					"patching_rect" : [ 470.0, 282.0, 151.0, 20.0 ],
 					"text" : "OPTIONAL ATTRIBUTES:"
 				}
 
@@ -925,12 +986,12 @@
 					"fontsize" : 12.0,
 					"frgb" : 0.0,
 					"id" : "obj-5",
-					"linecount" : 10,
+					"linecount" : 11,
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 422.0, 302.0, 276.0, 141.0 ],
-					"text" : "@name [name of client] (default \"samclient\")\n@ip [SAM ip address] (default \"127.0.0.1\")\n@port [SAM port] (default 7770)\n@type [SAM renderer type] (default 0)\n@x_pos [initial x position coordinate] (default 0)\n@y_pos [initial y position coordinate] (default 0)\n@width [initial width for SAM stream] (default 0)\n@height [initial height for SAM stream] (default 0)\n@depth [initial depth for SAM stream] (default 0)\n@pqsize [initial packet queue size] (default -1)"
+					"patching_rect" : [ 488.0, 302.0, 276.0, 154.0 ],
+					"text" : "@name [name of client] (default \"samclient\")\n@ip [SAM ip address] (default \"127.0.0.1\")\n@port [SAM port] (default 7770)\n@type [SAM renderer type] (default 0)\n@preset [SAM renderer preset] (default 0)\n@x_pos [initial x position coordinate] (default 0)\n@y_pos [initial y position coordinate] (default 0)\n@width [initial width for SAM stream] (default 0)\n@height [initial height for SAM stream] (default 0)\n@depth [initial depth for SAM stream] (default 0)\n@pqsize [initial packet queue size] (default -1)"
 				}
 
 			}
@@ -1023,8 +1084,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 64.0, 235.0, 339.0, 20.0 ],
-					"text" : "samclient~ 2 @name test @ip 127.0.0.1 @port 7770 @type 0"
+					"patching_rect" : [ 64.0, 235.0, 398.0, 20.0 ],
+					"text" : "samclient~ 2 @name test @ip 127.0.0.1 @port 7770 @type 0 @preset 0"
 				}
 
 			}
