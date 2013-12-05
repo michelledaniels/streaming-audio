@@ -1,31 +1,31 @@
-#N canvas 327 22 1165 614 12;
+#N canvas 43 22 1314 626 12;
 #X text 15 13 samclient~ - SAM client for Pd;
-#X obj 118 490 print sac;
-#X text 127 437 outputs 1 when connected \, 0 when disconnected (or
+#X obj 118 509 print sac;
+#X text 127 456 outputs 1 when connected \, 0 when disconnected (or
 connection failed);
-#X obj 118 400 samclient~ 1;
+#X obj 118 419 samclient~ 1;
 #X msg 118 99 connect;
 #X msg 128 137 disconnect;
 #X msg 149 309 name test;
 #X msg 244 309 ip 127.0.0.1;
 #X msg 367 309 port \$1;
 #X floatatom 367 276 5 0 20000 0 - - -;
-#X floatatom 467 276 5 0 20000 0 - - -;
-#X msg 467 309 type \$1;
-#X floatatom 601 276 5 0 0 0 - - -;
-#X msg 601 309 x_pos \$1;
-#X floatatom 678 276 5 0 0 0 - - -;
-#X msg 678 309 y_pos \$1;
-#X floatatom 771 276 5 0 0 0 - - -;
-#X msg 771 309 width \$1;
-#X floatatom 849 276 5 0 0 0 - - -;
-#X msg 849 309 height \$1;
-#X floatatom 936 276 5 0 0 0 - - -;
-#X msg 936 309 depth \$1;
-#X text 224 400 Optional Argument: # channels to stream (default 1)
+#X floatatom 468 276 5 0 20000 0 - - -;
+#X msg 468 309 type \$1;
+#X floatatom 756 276 5 0 0 0 - - -;
+#X msg 756 309 x_pos \$1;
+#X floatatom 833 276 5 0 0 0 - - -;
+#X msg 833 309 y_pos \$1;
+#X floatatom 926 276 5 0 0 0 - - -;
+#X msg 926 309 width \$1;
+#X floatatom 1004 276 5 0 0 0 - - -;
+#X msg 1004 309 height \$1;
+#X floatatom 1091 276 5 0 0 0 - - -;
+#X msg 1091 309 depth \$1;
+#X text 224 419 Optional Argument: # channels to stream (default 1)
 ;
-#X msg 118 549 \; pd dsp \$1;
-#X obj 118 522 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+#X msg 118 568 \; pd dsp \$1;
+#X obj 118 541 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
 1;
 #X text 181 213 NOTE: Changes will only take effect upon a new SAM
 Client connection.;
@@ -33,16 +33,19 @@ Client connection.;
 #X text 188 93 connect SAM client;
 #X text 222 138 disconnect SAM client;
 #X obj 45 309 noise~;
-#X floatatom 1041 276 5 0 0 0 - - -;
-#X msg 1041 309 pqsize \$1;
+#X floatatom 1196 276 5 0 0 0 - - -;
+#X msg 1196 309 pqsize \$1;
 #X text 105 60 CLIENT STATUS;
 #X text 143 285 client name;
 #X text 266 284 SAM ip;
-#X text 354 255 SAM port;
-#X text 430 255 SAM renderer type;
-#X text 583 255 SAM initial position;
-#X text 802 255 SAM initial size;
-#X text 990 255 packet queue size;
+#X text 354 253 SAM port;
+#X text 738 255 SAM initial position;
+#X text 957 255 SAM initial size;
+#X text 1145 255 packet queue size;
+#X msg 608 309 preset \$1;
+#X floatatom 608 276 5 0 20000 0 - - -;
+#X text 428 254 SAM renderer type;
+#X text 574 255 SAM renderer preset;
 #X connect 3 0 1 0;
 #X connect 4 0 3 0;
 #X connect 5 0 3 0;
@@ -66,3 +69,5 @@ Client connection.;
 #X connect 29 0 3 0;
 #X connect 30 0 31 0;
 #X connect 31 0 3 0;
+#X connect 39 0 3 0;
+#X connect 40 0 39 0;

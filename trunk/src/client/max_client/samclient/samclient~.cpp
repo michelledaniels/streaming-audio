@@ -19,7 +19,6 @@ extern "C"
 {
     #include "m_pd.h"   // standard Pd include, always require
 }
-typedef void SacWrapper;
 #endif
 
 #ifdef error
@@ -39,7 +38,8 @@ typedef struct _samclient
     t_symbol *ip;       // SAM ip
     int port;           // SAM port
     int channels;       // number of channels to stream
-    int type;           // type of SAM stream
+    int type;           // renderer type for SAM client
+    int preset;         // renderer preset for SAM client
     int x_pos;          // initial x position coordinate
     int y_pos;          // initial y position coordinate
     int width;          // initial width for SAM stream
@@ -74,6 +74,8 @@ t_max_err samclient_port_get(t_samclient *x, void *attr, long *argc, t_atom **ar
 t_max_err samclient_port_set(t_samclient *x, void *attr, long argc, t_atom *argv);
 t_max_err samclient_type_get(t_samclient *x, void *attr, long *argc, t_atom **argv);
 t_max_err samclient_type_set(t_samclient *x, void *attr, long argc, t_atom *argv);
+t_max_err samclient_preset_get(t_samclient *x, void *attr, long *argc, t_atom **argv);
+t_max_err samclient_preset_set(t_samclient *x, void *attr, long argc, t_atom *argv);
 t_max_err samclient_x_pos_get(t_samclient *x, void *attr, long *argc, t_atom **argv);
 t_max_err samclient_x_pos_set(t_samclient *x, void *attr, long argc, t_atom *argv);
 t_max_err samclient_y_pos_get(t_samclient *x, void *attr, long *argc, t_atom **argv);
@@ -100,7 +102,8 @@ extern "C"
         t_symbol *ip;       // SAM ip
         int port;           // SAM port
         int channels;       // number of channels to stream
-        int type;           // type of SAM stream
+        int type;           // renderer type for SAM client
+        int preset;         // renderer preset for SAM client
         int x_pos;          // initial x position coordinate
         int y_pos;          // initial y position coordinate
         int width;          // initial width for SAM stream
@@ -129,6 +132,7 @@ extern "C"
     void samclient_ip(t_samclient *x, t_symbol *s);
     void samclient_port(t_samclient *x, t_floatarg f);
     void samclient_type(t_samclient *x, t_floatarg f);
+    void samclient_preset(t_samclient *x, t_floatarg f);
     void samclient_x_pos(t_samclient *x, t_floatarg f);
     void samclient_y_pos(t_samclient *x, t_floatarg f);
     void samclient_width(t_samclient *x, t_floatarg f);
@@ -162,6 +166,7 @@ int C74_EXPORT main(int argc, char **argv)
 	CLASS_ATTR_SYM(c, "ip", 0, t_samclient, ip); // define "ip" attribute
 	CLASS_ATTR_LONG(c, "port", 0, t_samclient, port); // define "port" attribute
     CLASS_ATTR_LONG(c, "type", 0, t_samclient, type); // define "type" attribute
+    CLASS_ATTR_LONG(c, "preset", 0, t_samclient, preset); // define "preset" attribute
     CLASS_ATTR_LONG(c, "x_pos", 0, t_samclient, x_pos); // define "x_pos" attribute
     CLASS_ATTR_LONG(c, "y_pos", 0, t_samclient, y_pos); // define "y_pos" attribute
     CLASS_ATTR_LONG(c, "width", 0, t_samclient, width); // define "width" attribute
@@ -172,6 +177,7 @@ int C74_EXPORT main(int argc, char **argv)
     // override default accessors
     CLASS_ATTR_ACCESSORS(c, "port", (method)samclient_port_get, (method)samclient_port_set);
     CLASS_ATTR_ACCESSORS(c, "type", (method)samclient_type_get, (method)samclient_type_set);
+    CLASS_ATTR_ACCESSORS(c, "preset", (method)samclient_preset_get, (method)samclient_preset_set);
     CLASS_ATTR_ACCESSORS(c, "x_pos", (method)samclient_x_pos_get, (method)samclient_x_pos_set);
     CLASS_ATTR_ACCESSORS(c, "y_pos", (method)samclient_y_pos_get, (method)samclient_y_pos_set);
     CLASS_ATTR_ACCESSORS(c, "width", (method)samclient_width_get, (method)samclient_width_set);
@@ -204,6 +210,7 @@ void *samclient_new(t_symbol *s, int argc, t_atom *argv)
         x->port = 7770;
         x->channels = 1;
         x->type = 0;
+        x->preset = 0;
         x->x_pos = 0;
         x->y_pos = 0;
         x->width = 0;
@@ -317,6 +324,33 @@ t_max_err samclient_type_set(t_samclient *x, void *attr, long argc, t_atom *argv
             }
             else {
                 x->type = 0;
+            }
+        }
+	}
+	return MAX_ERR_NONE;
+}
+
+t_max_err samclient_preset_get(t_samclient *x, void *attr, long *argc, t_atom **argv)
+{
+	if (argc && argv) {
+		char alloc;
+		if (atom_alloc(argc, argv, &alloc)) {
+			return MAX_ERR_GENERIC;
+		}
+		atom_setlong(*argv, x->preset);
+	}
+	return MAX_ERR_NONE;
+}
+
+t_max_err samclient_preset_set(t_samclient *x, void *attr, long argc, t_atom *argv)
+{
+	if (argc && argv) {
+        if (atom_getlong(argv) != x->preset) {
+            if (atom_getlong(argv) >= 0) {
+                x->preset = atom_getlong(argv);
+            }
+            else {
+                x->preset = 0;
             }
         }
 	}
@@ -459,34 +493,35 @@ void sac_create(t_samclient *x)
 {
     int i;
     int err = sam::SAC_ERROR;
+    sam::SacParams params;
+    params.numChannels = (unsigned int)(x->channels);
+    params.type = (sam::StreamingAudioType)(x->type);
+    params.preset = x->preset;
+    params.name = x->name->s_name;
+    params.samIP = x->ip->s_name;
+    params.samPort = (unsigned short)(x->port);
+    params.payloadType = sam::PAYLOAD_PCM_16;
+    params.packetQueueSize = x->pqsize;
+    params.driveExternally = true;
     
     // SAC creation and initialization
     if (x->sac == NULL) {
         // default constructor (recommended)
         x->sac = new sam::StreamingAudioClient();
         // initialize SAC
-        err = x->sac->init((unsigned int)(x->channels), (sam::StreamingAudioType)(x->type), x->name->s_name, x->ip->s_name, (unsigned short)(x->port), 0, sam::PAYLOAD_PCM_16, true);
-    }
-    
-    // set packet queue size
-    if (err == sam::SAC_SUCCESS) {
-        //object_post((t_object *)x, "Initialized SAC.");
-        err = x->sac->setPacketQueueSize(x->pqsize);
-        if (err != sam::SAC_SUCCESS) {
-            object_error((t_object *)x, "Couldn't set packet queue size. Error: %d", err);
-        }
-    }
-    else {
-        object_error((t_object *)x, "Couldn't initialize SAC. Error: %d", err);
+        err = x->sac->init(params);
     }
     
     // start SAC
     if (err == sam::SAC_SUCCESS) {
-        //object_post((t_object *)x, "Initialized packet queue size for SAC.");
+        //object_post((t_object *)x, "Initialized SAC.");
         err = x->sac->start(x->x_pos, x->y_pos, x->width, x->height, x->depth, sam::SAC_DEFAULT_TIMEOUT);
         if (err != sam::SAC_SUCCESS) {
             object_error((t_object *)x, "Couldn't start SAC. Error: %d", err);
         }
+    }
+    else {
+        object_error((t_object *)x, "Couldn't initialize SAC. Error: %d", err);
     }
     
     // check SAC sample rate and buffer size against Max/Pd
@@ -749,6 +784,7 @@ extern "C" void samclient_tilde_setup(void)
     class_addmethod(samclient_class, (t_method)samclient_ip, gensym("ip"), A_SYMBOL, 0);
     class_addmethod(samclient_class, (t_method)samclient_port, gensym("port"), A_FLOAT, 0);
     class_addmethod(samclient_class, (t_method)samclient_type, gensym("type"), A_FLOAT, 0);
+    class_addmethod(samclient_class, (t_method)samclient_preset, gensym("preset"), A_FLOAT, 0);
     class_addmethod(samclient_class, (t_method)samclient_x_pos, gensym("x_pos"), A_FLOAT, 0);
     class_addmethod(samclient_class, (t_method)samclient_y_pos, gensym("y_pos"), A_FLOAT, 0);
     class_addmethod(samclient_class, (t_method)samclient_width, gensym("width"), A_FLOAT, 0);
@@ -775,6 +811,7 @@ void *samclient_new(t_symbol *s, int argc, t_atom *argv)
         x->port = 7770;
         x->channels = 1;
         x->type = 0;
+        x->preset = 0;
         x->x_pos = 0;
         x->y_pos = 0;
         x->width = 0;
@@ -829,34 +866,35 @@ void sac_create(t_samclient *x)
 {
     int i;
     int err = sam::SAC_ERROR;
+    sam::SacParams params;
+    params.numChannels = (unsigned int)(x->channels);
+    params.type = (sam::StreamingAudioType)(x->type);
+    params.preset = x->preset;
+    params.name = x->name->s_name;
+    params.samIP = x->ip->s_name;
+    params.samPort = (unsigned short)(x->port);
+    params.payloadType = sam::PAYLOAD_PCM_16;
+    params.packetQueueSize = x->pqsize;
+    params.driveExternally = true;
     
     // SAC creation and initialization
     if (x->sac == NULL) {
         // default constructor (recommended)
         x->sac = new sam::StreamingAudioClient();
         // initialize SAC
-        err = x->sac->init((unsigned int)(x->channels), (sam::StreamingAudioType)(x->type), x->name->s_name, x->ip->s_name, (unsigned short)(x->port), 0, sam::PAYLOAD_PCM_16, true);
-    }
-
-    // set packet queue size
-    if (err == sam::SAC_SUCCESS) {
-        //post("Initialized SAC.");
-        err = x->sac->setPacketQueueSize(x->pqsize);
-        if (err != sam::SAC_SUCCESS) {
-            pd_error((t_object *)x, "Couldn't set packet queue size. Error: %d", err);
-        }
-    }
-    else {
-        pd_error((t_object *)x, "Couldn't initialize SAC. Error: %d", err);
+        err = x->sac->init(params);
     }
     
     // start SAC
     if (err == sam::SAC_SUCCESS) {
-        //post("Initialized packet queue size for SAC.");
+        //post("Initialized SAC.");
         err = x->sac->start(x->x_pos, x->y_pos, x->width, x->height, x->depth, sam::SAC_DEFAULT_TIMEOUT);
         if (err != sam::SAC_SUCCESS) {
             pd_error((t_object *)x, "Couldn't start SAC. Error: %d", err);
         }
+    }
+    else {
+        pd_error((t_object *)x, "Couldn't initialize SAC. Error: %d", err);
     }
     
     // check SAC sample rate and buffer size against Max/Pd
@@ -938,6 +976,16 @@ void samclient_type(t_samclient *x, t_floatarg f)
     }
     else {
         x->type = 0;
+    }
+}
+
+void samclient_preset(t_samclient *x, t_floatarg f)
+{
+    if (f >= 0) {
+        x->preset = (int)f;
+    }
+    else {
+        x->preset = 0;
     }
 }
 
