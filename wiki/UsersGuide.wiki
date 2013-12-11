@@ -96,9 +96,10 @@ Command-line parameters to SAM can be used to override some config file paramete
 || `-r` || `--samplerate` || sample rate ||
 || `-p` || `--period` || audio period/buffer size ||
 || `-d` || `--driver` || driver to use for JACK (coreaudio, alsa, etc.) ||
-|| `-o` || `--oscport`  || port where SAM listen for OSC messages ||
+|| `-o` || `--oscport`  || port where SAM listens for OSC messages ||
 || `-j` || `--jtport` || base RTP port ||
 || `-m` || `--maxout` || maximum number of output channels to use, including basic channels ||
+|| `-g` || `--gui` || run in GUI mode || 
 || `-h` || `--help` || print help info and exit ||
 
 Linux example usage:
