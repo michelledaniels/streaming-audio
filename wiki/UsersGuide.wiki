@@ -33,6 +33,7 @@ Note: On most Linux systems some configuration is necessary to allow JACK to run
 
 
 === Config File Parameters ===
+SAM can be customized using the following configuration file parameters in sam.conf.  SAM currently only searches for sam.conf _in the directory from which SAM is run_, so if it looks like your configuration is being recognized, double-check the location of sam.conf.
 
 || Parameter || Description || Possible Values || Default || Comments || 
 || `BasicChannels` || string specifying which channels to use for basic output || format: "1-2,4,6-8,10-16" etc. || "" || ||
@@ -108,6 +109,8 @@ OS X example usage:
 
 == Using Clients ==
 === saminput ===
+The `saminput` client captures audio from the specified input channels of your sound card and streams it to SAM.
+
 Required parameters:
 || Short || Long || Description ||
 || `-n` || `--name` || client name ||
@@ -117,17 +120,21 @@ Required parameters:
 || `-t` || `--type` || type of SAM stream to use (basic = 0) ||
 
 Optional parameters:
-|| Short || Long || Description ||
-|| `-x` || `--x` || initial x position ||
-|| `-y` || `--y` || initial y position ||
-|| `-w` || `--width` || initial width ||
-|| `-h` || `--height` || initial height ||
-|| `-d` || `--depth` || initial depth ||
+|| Short || Long || Description || Default || 
+|| `-x` || `--x` || initial x position || 0 ||
+|| `-y` || `--y` || initial y position || 0 ||
+|| `-w` || `--width` || initial width || 0 ||
+|| `-h` || `--height` || initial height || 0 ||
+|| `-d` || `--depth` || initial depth || 0 ||
+|| `-q` || `--queue` || desired receiver packet queue length || -1 (causes SAM to use its default queue length) ||
+|| `-p`  || `--preset` || rendering type preset || 0 ||
 
 Example saminput usage:
 <code>saminput -n "Example Client" -i "127.0.0.1" -p 7770 -c "1-2" -t 0</code>
 
 === samugen ===
+The `samugen` client streams the specified number of channels of white noise to SAM.  It is primarily useful for testing purposes.
+
 Required parameters:
 || Short || Long || Description ||
 || `-n` || `--name` || client name ||
@@ -137,12 +144,14 @@ Required parameters:
 || `-t` || `--type` || type of SAM stream to use (basic = 0) ||
 
 Optional parameters:
-|| Short || Long || Description ||
-|| `-x` || `--x` || initial x position ||
-|| `-y` || `--y` || initial y position ||
-|| `-w` || `--width` || initial width ||
-|| `-h` || `--height` || initial height ||
-|| `-d` || `--depth` || initial depth ||
+|| Short || Long || Description || Default ||
+|| `-x` || `--x` || initial x position || 0 ||
+|| `-y` || `--y` || initial y position || 0 ||
+|| `-w` || `--width` || initial width || 0 ||
+|| `-h` || `--height` || initial height || 0 ||
+|| `-d` || `--depth` || initial depth || 0 ||
+|| `-p`  || `--preset` || rendering type preset || 0 ||
+
 
 Example samugen usage:
 <code>samugen -n "Example Client" -i "127.0.0.1" -p 7770 -c 2 -t 0</code>
