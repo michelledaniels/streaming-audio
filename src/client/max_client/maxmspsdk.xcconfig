@@ -24,7 +24,7 @@ ARCHS = i386 x86_64
 
 // Leave these alone
 HEADER_SEARCH_PATHS = "$(C74SUPPORT)/max-includes" "$(C74SUPPORT)/msp-includes" "$(C74SUPPORT)/jit-includes" "$(SA_DIR)/src" "$(QTSDK_DIR)/mkspecs/macx-g++" "$(QTSDK_DIR)/lib/QtCore.framework/Versions/4/Headers" "$(QTSDK_DIR)/lib/QtNetwork.framework/Versions/4/Headers" "$(SA_DIR)/src/**"
-FRAMEWORK_SEARCH_PATHS = "$(C74SUPPORT)/max-includes" "$(C74SUPPORT)/msp-includes" "$(C74SUPPORT)/jit-includes" "$(C74SUPPORT)/max-includes/MaxAPI.framework" "$(C74SUPPORT)/msp-includes/MaxAudioAPI.framework" "$(C74SUPPORT)/jit-includes/JitterAPI.framework" "$(QTSDK_DIR)/lib/QtCore.framework" "$(QTSDK_DIR)/lib/QtNetwork.framework" "$(QTSDK_DIR)/lib"
+FRAMEWORK_SEARCH_PATHS = "$(C74SUPPORT)/max-includes" "$(C74SUPPORT)/msp-includes" "$(C74SUPPORT)/jit-includes" "$(QTSDK_DIR)/lib/QtCore.framework" "$(QTSDK_DIR)/lib/QtNetwork.framework" "$(QTSDK_DIR)/lib"
 LIBRARY_SEARCH_PATHS = "$(SA_DIR)/lib"
 DSTROOT = $(SRCROOT)/../externals
 // (This next path is relative to DSTROOT)
@@ -76,7 +76,7 @@ DEPLOYMENT_LOCATION = YES
 GENERATE_PKGINFO_FILE = YES
 
 // Flags for SAC library Qt framework dependencies
-SAC_LINKER_FLAGS = -framework MaxAPI -framework MaxAudioAPI -framework QtCore -framework QtNetwork -lsac
+SAC_LINKER_FLAGS = -framework MaxAudioAPI -framework QtCore -framework QtNetwork -lsac
 
 // Flags to enforce some build-time checks for the symbols used while not actually performing a hard link
 C74_SYM_LINKER_FLAGS = @$(C74SUPPORT)/max-includes/c74_linker_flags.txt
