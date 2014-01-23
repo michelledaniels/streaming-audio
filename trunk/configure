@@ -48,6 +48,11 @@ mkdir build/libsac
 cd ./src/client && $QMAKE -spec $QSPEC CONFIG+=release && make clean
 cd $ret
 
+# configure libsamrender
+mkdir build/libsamrender
+cd ./src/render && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
+
 # configure saminput client
 mkdir build/saminput
 cd ./src/client/examples/saminput && $QMAKE -spec $QSPEC CONFIG+=release && make clean
@@ -63,6 +68,10 @@ mkdir build/samugen-gui
 cd ./src/client/examples/samugen-gui && $QMAKE -spec $QSPEC CONFIG+=release && make clean
 cd $ret
 
+# configure testrenderer
+mkdir build/testrenderer
+cd ./src/render/examples/testrenderer && $QMAKE -spec $QSPEC CONFIG+=release && make clean
+cd $ret
 
 echo ""
 echo "Done"
