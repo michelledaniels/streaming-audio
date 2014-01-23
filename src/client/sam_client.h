@@ -444,7 +444,6 @@ private:
     char* m_replyIP;
     quint16 m_replyPort;              ///< OSC port for this client
     QTcpSocket m_socket;              ///< Socket for sending and receiving OSC messages
-    QByteArray m_data;                ///< temporary storage for received data
     bool m_responseReceived;          ///< whether or not SAM responded to register request
     OscTcpSocketReader* m_oscReader;  ///< OSC-reading helper
 
