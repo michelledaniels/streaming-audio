@@ -107,7 +107,11 @@ int main(int argc, char* argv[])
         QObject::connect(&app, SIGNAL(aboutToQuit()), &sam, SLOT(doBeforeQuit()));
         QObject::connect(&sam, SIGNAL(startupError()), &app, SLOT(quit()));
 
-        sam.start();
+        if (!sam.start())
+        {
+            qCritical("Could not start SAM!");
+            exit(EXIT_FAILURE);
+        }
 
         app.exec();
     }

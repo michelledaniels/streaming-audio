@@ -210,13 +210,13 @@ StreamingAudioManager::~StreamingAudioManager()
     }
 }
 
-void StreamingAudioManager::start()
+int StreamingAudioManager::start()
 {
     //qWarning("StreamingAudioManager::start()");
     if (m_isRunning)
     {
         qWarning("StreamingAudioManager::start() SAM is already running");
-        return;
+        return true;
     }
 
     m_udpSocket = new QUdpSocket(this);
@@ -229,7 +229,7 @@ void StreamingAudioManager::start()
     {
         qWarning("StreamingAudioManager::start() TCP server couldn't listen on port %d", m_oscServerPort);
         emit startupError();
-        return;
+        return false;
     }
     if (!m_udpSocket->bind(m_hostAddress, m_oscServerPort))
     {
@@ -237,7 +237,7 @@ void StreamingAudioManager::start()
         QByteArray errArray = errString.toLocal8Bit();
         qWarning("StreamingAudioManager::run() UDP socket couldn't bind to port %d: %s", m_oscServerPort, errArray.constData());
         emit startupError();
-        return;
+        return false;
     }
 
     // check for an already-running JACK server
@@ -253,7 +253,7 @@ void StreamingAudioManager::start()
         {
             qWarning("Couldn't start JACK server process");
             emit startupError();
-            return;
+            return false;
         }
     }
 
@@ -261,7 +261,7 @@ void StreamingAudioManager::start()
     if (!open_jack_client())
     {
         emit startupError();
-        return;
+        return false;
     }
 
     // verify that JACK is running at correct sample rate and buffer size
@@ -271,13 +271,13 @@ void StreamingAudioManager::start()
     {
         qWarning("Expected JACK running with buffer size %d, but actual buffer size is %d", m_bufferSize, bufferSize);
         emit startupError();
-        return;
+        return false;
     }
     if (sampleRate != (unsigned int)m_sampleRate)
     {
         qWarning("Expected JACK running with sample rate %d, but actual sample rate is %d", m_sampleRate, sampleRate);
         emit startupError();
-        return;
+        return false;
     }
 
     // register jack callbacks
@@ -292,13 +292,13 @@ void StreamingAudioManager::start()
     {
         qWarning("Couldn't activate JACK client");
         emit startupError();
-        return;
+        return false;
     }
 
     if (!init_output_ports())
     {
         emit startupError();
-        return;
+        return false;
     }
     
     m_oscDirections.clear();
@@ -333,6 +333,7 @@ void StreamingAudioManager::start()
 
     m_isRunning = true;
     emit started();
+    return true;
 }
 
 void StreamingAudioManager::stop()

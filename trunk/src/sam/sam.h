@@ -278,7 +278,7 @@ public slots:
     /**
      * Start this StreamingAudioManager
      */
-    void start();
+    int start();
 
     /**
      * Stop this StreamingAudioManager.
