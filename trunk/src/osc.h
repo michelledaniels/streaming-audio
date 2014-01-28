@@ -189,6 +189,13 @@ public:
     bool typeMatches(const char* type);
 
     /**
+     * Check if this OscMessage's type string starts with a given string.
+     * @param type the type string to compare against
+     * @return true if this message's type string starts with the given string, false otherwise.
+     */
+    bool typeStartsWith(const char* type);
+
+    /**
      * Encodes a byte array using double-ended SLIP (RFC 1055).
      * SLIP is used to signify the end of a serially-transmitted message
      * @param data the data to be encoded and replaced

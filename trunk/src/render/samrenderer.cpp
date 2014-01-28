@@ -207,6 +207,32 @@ int SamRenderer::start(unsigned int timeout)
     return SAMRENDER_SUCCESS;
 }
 
+int SamRenderer::subscribeToPosition(int id)
+{
+    OscMessage msg;
+    msg.init("/sam/subscribe/position", "ii", id, m_replyPort);
+
+    if (!OscClient::sendFromSocket(&msg, &m_socket))
+    {
+        qWarning("SamRenderer::subscribeToPosition() Couldn't send OSC message");
+        return SAMRENDER_OSC_ERROR;
+    }
+    return SAMRENDER_SUCCESS;
+}
+
+int SamRenderer::unsubscribeToPosition(int id)
+{
+    OscMessage msg;
+    msg.init("/sam/unsubscribe/position", "ii", id, m_replyPort);
+
+    if (!OscClient::sendFromSocket(&msg, &m_socket))
+    {
+        qWarning("SamRenderer::unsubscribeToPosition() Couldn't send OSC message");
+        return SAMRENDER_OSC_ERROR;
+    }
+    return SAMRENDER_SUCCESS;
+}
+
 int SamRenderer::setStreamAddedCallback(StreamAddedCallback callback, void* arg)
 {
     if (m_streamAddedCallback) return SAMRENDER_ERROR; // callback already set
@@ -261,12 +287,11 @@ void SamRenderer::samDisconnected()
     }
 }
 
-void SamRenderer::handleOscMessage(OscMessage* msg, const char* sender, QAbstractSocket* socket)
+void SamRenderer::handleOscMessage(OscMessage* msg, const char*, QAbstractSocket*)
 {
     // check prefix
     int prefixLen = 5; // prefix is "/sam/"
     const char* address = msg->getAddress();
-    qDebug("address = %s", address);
     if (qstrncmp(address, "/sam/", prefixLen) != 0)
     {
         printf("Unknown OSC message:\n");
@@ -301,6 +326,89 @@ void SamRenderer::handleOscMessage(OscMessage* msg, const char* sender, QAbstrac
                 int errorCode = arg.val.i;
                 qWarning("Renderer SAM registration DENIED: error code = %d", errorCode);
                 handle_regdeny(errorCode);
+            }
+            else
+            {
+                printf("Unknown OSC message:\n");
+                msg->print();
+            }
+        }
+        else
+        {
+            printf("Unknown OSC message:\n");
+            msg->print();
+        }
+    }
+    else if (qstrncmp(address + prefixLen, "stream", 6) == 0)
+    {
+        // check third level of address
+        if (qstrcmp(address + prefixLen + 6, "/add") == 0) // /sam/stream/add
+        {
+            if (msg->typeStartsWith("iiii"))
+            {
+                SamRenderStream stream;
+                OscArg arg;
+                msg->getArg(0, arg);
+                stream.id = arg.val.i;
+                msg->getArg(1, arg);
+                stream.renderType = arg.val.i;
+                msg->getArg(2, arg);
+                stream.renderPreset = arg.val.i;
+                msg->getArg(3, arg);
+                stream.numChannels = arg.val.i;
+                stream.channels = new int[stream.numChannels];
+                for (int ch = 0; ch < stream.numChannels; ch++)
+                {
+                    if (!msg->getArg(ch + 4, arg))
+                    {
+                        qWarning("Couldn't parse channel %d from stream added OSC message:", ch);
+                        msg->print();
+                        delete msg;
+                        return;
+                    }
+                    else if (arg.type != 'i')
+                    {
+                        qWarning("Channel %d from stream added OSC message had type %c instead of i", ch, arg.type);
+                        msg->print();
+                        delete msg;
+                        return;
+                    }
+                    stream.channels[ch] = arg.val.i;
+                }
+                qDebug("Received request to add stream with id = %d, type = %d, preset = %d, numChannels = %d", stream.id, stream.renderType, stream.renderPreset, stream.numChannels);
+
+                // call stream added callback
+                if (m_streamAddedCallback)
+                {
+                    m_streamAddedCallback(stream, m_streamAddedCallbackArg);
+                }
+
+                if (stream.channels)
+                {
+                    delete[] stream.channels;
+                    stream.channels = NULL;
+                }
+            }
+            else
+            {
+                printf("Unknown OSC message:\n");
+                msg->print();
+            }
+        }
+        else if (qstrcmp(address + prefixLen + 6, "/remove") == 0) // /sam/stream/remove)
+        {
+            if (msg->typeMatches("i"))
+            {
+                OscArg arg;
+                msg->getArg(0, arg);
+                int id = arg.val.i;
+                qDebug("Received request to remove stream with id = %d", id);
+
+                // call stream removed callback
+                if (m_streamRemovedCallback)
+                {
+                    m_streamRemovedCallback(id, m_streamRemovedCallbackArg);
+                }
             }
             else
             {

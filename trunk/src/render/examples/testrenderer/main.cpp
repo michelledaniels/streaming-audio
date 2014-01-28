@@ -37,27 +37,28 @@ void signalhandler(int sig)
         QCoreApplication::exit(0);
     }
 }
-void stream_added_callback(SamRenderStream& stream, void* arg)
+void stream_added_callback(SamRenderStream& stream, void* renderer)
 {
     qWarning("testrenderer: stream added with ID = %d, %d channels", stream.id, stream.numChannels);
+    ((SamRenderer*)renderer)->subscribeToPosition(stream.id);
 }
 
-void stream_removed_callback(int id, void* arg)
+void stream_removed_callback(int id, void* renderer)
 {
     qWarning("testrenderer: stream with ID = %d removed", id);
 }
 
-void position_changed_callback(int id, int x, int y, int width, int height, int depth, void* arg)
+void position_changed_callback(int id, int x, int y, int width, int height, int depth, void* renderer)
 {
     qWarning("testrenderer: stream with ID = %d position changed to x = %d, y = %d, width = %d, height = %d, depth = %d", id, x, y, width, height, depth);
 }
 
-void type_changed_callback(int id, int type, int preset, void* arg)
+void type_changed_callback(int id, int type, int preset, void* renderer)
 {
     qWarning("testrenderer: stream with ID = %d type changed to %d, preset = %d", id, type, preset);
 }
 
-void render_disconnect_callback(void*)
+void render_disconnect_callback(void* renderer)
 {
     qWarning("testrenderer: lost connection with SAM, shutting down...");
     QCoreApplication::quit();
@@ -174,11 +175,11 @@ int main(int argc, char *argv[])
     }
 
     // register callbacks
-    renderer.setStreamAddedCallback(stream_added_callback, NULL);
-    renderer.setStreamRemovedCallback(stream_removed_callback, NULL);
-    renderer.setPositionCallback(position_changed_callback, NULL);
-    renderer.setTypeCallback(type_changed_callback, NULL);
-    renderer.setDisconnectCallback(render_disconnect_callback, NULL);
+    renderer.setStreamAddedCallback(stream_added_callback, &renderer);
+    renderer.setStreamRemovedCallback(stream_removed_callback, &renderer);
+    renderer.setPositionCallback(position_changed_callback, &renderer);
+    renderer.setTypeCallback(type_changed_callback, &renderer);
+    renderer.setDisconnectCallback(render_disconnect_callback, &renderer);
 
     return a.exec();
 }
