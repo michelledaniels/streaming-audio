@@ -199,9 +199,10 @@ public:
      * Register a new renderer.
      * @param hostname the hostname of the renderer
      * @param port the OSC port of the renderer
+     * @param renderSocket the TCP socket for connection to renderer (or NULL if using UDP)
      * @return true on success, false on failure
      */
-    bool registerRenderer(const char* hostname, quint16 port);
+    bool registerRenderer(const char* hostname, quint16 port, QTcpSocket* renderSocket);
 
     /**
      * Unregister a renderer.
@@ -486,8 +487,9 @@ private:
      * @param address the part of the OSC address string following "/sam/render"
      * @param msg the OSC message to handle
      * @param sender the name of the host that sent the message
+     * @param socket the socket the message was received through
      */
-    void handle_render_message(const char* address, OscMessage* msg, const char* sender);
+    void handle_render_message(const char* address, OscMessage* msg, const char* sender, QAbstractSocket* socket);
 
     /**
      * Handle requests to set parameter values.
@@ -655,10 +657,9 @@ private:
     /** 
      * send a /sam/stream/add message.
      * @param app the app representing the stream to be added
-     * @param address the address to send the message to
      * @return true if sending is successful, false otherwise
      */
-    bool send_stream_added(StreamingAudioApp* app, OscAddress* address);
+    bool send_stream_added(StreamingAudioApp* app);
     
     /**
      * send a /sam/type/add message.
@@ -756,6 +757,7 @@ private:
     QTcpServer* m_tcpServer;        ///< The server listening for incoming TCP connections
     QHostAddress m_hostAddress;     ///< Local host address where OSC messages should be sent
     QString m_oscDirections;        ///< string that explains where to send OSC messages for SAM
+    QTcpSocket* m_renderSocket;     ///< TCP socket for sending and listening to OSC messages to/from the renderer
 
     // for version checking
     bool m_verifyPatchVersion;      ///< Whether the patch version must match for version checking

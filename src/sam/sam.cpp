@@ -74,6 +74,7 @@ StreamingAudioManager::StreamingAudioManager(const SamParams& params) :
     m_oscServerPort(params.oscPort),
     m_udpSocket(NULL),
     m_tcpServer(NULL),
+    m_renderSocket(NULL),
     m_verifyPatchVersion(params.verifyPatchVersion)
 {
     m_apps = new StreamingAudioApp*[m_maxClients];
@@ -363,7 +364,14 @@ void StreamingAudioManager::stop()
         }
     }
 
+    // disconnect renderer
     unregisterRenderer();
+    if (m_renderSocket)
+    {
+        m_renderSocket->close();
+        m_renderSocket->deleteLater(); // TODO: need this, or can delete on this thread??
+        m_renderSocket = NULL;
+    }
     
     // unregister UIs
     for (int i = 0; i < m_uiSubscribers.size(); i++)
@@ -557,7 +565,7 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
     // notify renderer
     if (m_renderer)
     {
-        send_stream_added(m_apps[port], m_renderer);
+        send_stream_added(m_apps[port]);
     }
 
     emit appAdded(port);
@@ -681,7 +689,7 @@ bool StreamingAudioManager::unregisterUI(const char* host, quint16 port)
     return StreamingAudioApp::unsubscribe(m_uiSubscribers, host, port);
 }
 
-bool StreamingAudioManager::registerRenderer(const char* hostname, quint16 port)
+bool StreamingAudioManager::registerRenderer(const char* hostname, quint16 port, QTcpSocket* renderSocket)
 {
     if (m_renderer)
     {
@@ -693,11 +701,19 @@ bool StreamingAudioManager::registerRenderer(const char* hostname, quint16 port)
     address->host.setAddress(hostname);
     address->port = port;
     m_renderer = address;
+    m_renderSocket = renderSocket;
     
     // send regconfirm message to renderer
     OscMessage msg;
     msg.init("/sam/render/regconfirm", "");
-    if (!OscClient::sendUdp(&msg, m_renderer))
+    if (m_renderSocket) // respond with TCP
+    {
+        if (!OscClient::sendFromSocket(&msg, m_renderSocket))
+        {
+            qWarning("Couldn't send OSC message");
+        }
+    }
+    else if (!OscClient::sendUdp(&msg, m_renderer)) // respond with UDP
     {
         qWarning("Couldn't send OSC message");
     }
@@ -707,7 +723,7 @@ bool StreamingAudioManager::registerRenderer(const char* hostname, quint16 port)
     {
         if (m_apps[i])
         {
-            send_stream_added(m_apps[i], m_renderer);
+            send_stream_added(m_apps[i]);
         }       
     }
     
@@ -721,6 +737,13 @@ bool StreamingAudioManager::unregisterRenderer()
     {
         delete m_renderer;
         m_renderer = NULL;
+
+        if (m_renderSocket)
+        {
+            m_renderSocket->close();
+            m_renderSocket->deleteLater();
+            m_renderSocket = NULL;
+        }
         return true;
     }
     
@@ -979,19 +1002,33 @@ bool StreamingAudioManager::set_app_type(int port, StreamingAudioType type, int 
             qDebug("StreamingAudioManager::setAppType removing app with old type from renderer");
             OscMessage msg;
             msg.init("/sam/stream/remove", "i", port);
-            if (!OscClient::sendUdp(&msg, m_renderer))
+            if (m_renderSocket) // respond with TCP
+            {
+                if (!OscClient::sendFromSocket(&msg, m_renderSocket))
+                {
+                    qWarning("Couldn't send OSC message");
+                }
+            }
+            else if (!OscClient::sendUdp(&msg, m_renderer))
             {
                 qWarning("Couldn't send OSC message");
             }
             qDebug("StreamingAudioManager::SetAppType adding app with new type to renderer");
-            send_stream_added(m_apps[port], m_renderer);
+            send_stream_added(m_apps[port]);
         }
         else
         {
             // only preset changed
             OscMessage msg;
             msg.init("/sam/val/type", "iii", port, type, preset);
-            if (!OscClient::sendUdp(&msg, m_renderer))
+            if (m_renderSocket) // respond with TCP
+            {
+                if (!OscClient::sendFromSocket(&msg, m_renderSocket))
+                {
+                    qWarning("Couldn't send OSC message");
+                }
+            }
+            else if (!OscClient::sendUdp(&msg, m_renderer))
             {
                 qWarning("Couldn't send OSC message");
             }
@@ -1120,7 +1157,7 @@ void StreamingAudioManager::handleOscMessage(OscMessage* msg, const char* sender
     }
     else if (qstrncmp(address + prefixLen, "render", 6) == 0)
     {
-        handle_render_message(address + prefixLen + 6, msg, sender);
+        handle_render_message(address + prefixLen + 6, msg, sender, socket);
     }
     else if (qstrncmp(address + prefixLen, "set", 3) == 0)
     {
@@ -1157,6 +1194,7 @@ void StreamingAudioManager::handle_app_message(const char* address, OscMessage* 
         if (socket->socketType() != QAbstractSocket::TcpSocket)
         {
             qWarning("StreamingAudioManager::handle_app_message ERROR: app register message must be sent using TCP!");
+            socket->deleteLater();
             return;
         }
     
@@ -1275,7 +1313,7 @@ void StreamingAudioManager::handle_ui_message(const char* address, OscMessage* m
     }
 }
 
-void StreamingAudioManager::handle_render_message(const char* address, OscMessage* msg, const char* sender)
+void StreamingAudioManager::handle_render_message(const char* address, OscMessage* msg, const char* sender, QAbstractSocket* socket)
 {
     // check third level of address
     if (qstrcmp(address, "/register") == 0) // /sam/render/register
@@ -1294,11 +1332,17 @@ void StreamingAudioManager::handle_render_message(const char* address, OscMessag
             msg->getArg(3, arg);
             quint16 replyPort = arg.val.i;
 
+            if (socket->socketType() != QAbstractSocket::TcpSocket)
+            {
+                qWarning("StreamingAudioManager::handle_render_message registering renderer with UDP.");
+                socket = NULL;
+            }
+
             bool success = false;
             sam::SamErrorCode code = sam::SAM_ERR_DEFAULT;
             if (version_check(majorVersion, minorVersion, patchVersion))
             {
-                success = registerRenderer(sender, replyPort);
+                success = registerRenderer(sender, replyPort, dynamic_cast<QTcpSocket*>(socket));
             }
             else
             {
@@ -2296,9 +2340,9 @@ bool StreamingAudioManager::init_output_ports()
     return true;
 }
 
-bool StreamingAudioManager::send_stream_added(StreamingAudioApp* app, OscAddress* address)
+bool StreamingAudioManager::send_stream_added(StreamingAudioApp* app)
 {
-    if (!address) return false;
+    if (!m_renderer) return false;
     
     OscMessage msg;
     msg.init("/sam/stream/add", NULL);
@@ -2329,7 +2373,14 @@ bool StreamingAudioManager::send_stream_added(StreamingAudioApp* app, OscAddress
         }
     }
 
-    if (!OscClient::sendUdp(&msg, address))
+    if (m_renderSocket) // send with TCP
+    {
+        if (!OscClient::sendFromSocket(&msg, m_renderSocket))
+        {
+            qWarning("Couldn't send OSC message");
+        }
+    }
+    else if (!OscClient::sendUdp(&msg, m_renderer)) // send with UDP
     {
         qWarning("Couldn't send OSC message");
         return false;
@@ -2583,13 +2634,22 @@ void StreamingAudioManager::cleanupApp(int port, int type)
             }
         }
         // notify renderer
-        OscMessage replyMsg;
-        replyMsg.init("/sam/stream/remove", "i", port);
-        if (m_renderer && !OscClient::sendUdp(&replyMsg, m_renderer))
+        if (m_renderer)
         {
-            qWarning("Couldn't send OSC message");
+            OscMessage replyMsg;
+            replyMsg.init("/sam/stream/remove", "i", port);
+            if (m_renderSocket) // respond with TCP
+            {
+                if (!OscClient::sendFromSocket(&replyMsg, m_renderSocket))
+                {
+                    qWarning("Couldn't send OSC message");
+                }
+            }
+            else if (!OscClient::sendUdp(&replyMsg, m_renderer))
+            {
+                qWarning("Couldn't send OSC message");
+            }
         }
-
     }
 
     m_appState[port] = AVAILABLE;

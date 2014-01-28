@@ -159,14 +159,14 @@ public:
      * Init this SamRenderer.
      * This must be called before registering.
      * @param params SamRenderParams struct of parameters
-     * @return 0 on success, a non-zero ::SamRenderReturn code on failure
+     * @return SAMRENDER_SUCCESS on success, a non-zero ::SamRenderReturn code on failure
      */
     int init(const SamRenderParams& params);
 
     /**
      * Register this renderer with SAM and block until response is received.
      * @param timeout response timeout time in milliseconds
-     * @return 0 on success, a non-zero ::SamRenderReturn code on failure
+     * @return SAMRENDER_SUCCESS on success, a non-zero ::SamRenderReturn code on failure
      */
     int start(unsigned int timeout = SAMRENDER_DEFAULT_TIMEOUT);
 
@@ -177,10 +177,24 @@ public:
     void stop();
 
     /**
+     * Subscribe to changes in position information for the stream with given ID.
+     * @param id the unique identifier for the stream
+     * @return SAMRENDER_SUCCESS on success, a non-zero ::SamRenderReturn code on failure
+     */
+    int subscribeToPosition(int id);
+
+    /**
+     * Unsubscribe to changes in position information for the stream with given ID.
+     * @param id the unique identifier for the stream
+     * @return SAMRENDER_SUCCESS on success, a non-zero ::SamRenderReturn code on failure
+     */
+    int unsubscribeToPosition(int id);
+
+    /**
      * Set stream added callback.
      * @param callback the function this renderer will call when a stream is added
      * @param arg each time the callback is called it will pass this as an argument
-     * @return 0 on success, a non-zero ::SamRenderReturn code on failure (will fail if a callback has already been set)
+     * @return SAMRENDER_SUCCESS on success, a non-zero ::SamRenderReturn code on failure (will fail if a callback has already been set)
      */
     int setStreamAddedCallback(StreamAddedCallback callback, void* arg);
 
@@ -188,7 +202,7 @@ public:
      * Set stream removed callback.
      * @param callback the function this renderer will call when a stream is removed
      * @param arg each time the callback is called it will pass this as an argument
-     * @return 0 on success, a non-zero ::SamRenderReturn code on failure (will fail if a callback has already been set)
+     * @return SAMRENDER_SUCCESS on success, a non-zero ::SamRenderReturn code on failure (will fail if a callback has already been set)
      */
     int setStreamRemovedCallback(StreamRemovedCallback callback, void* arg);
 
@@ -196,7 +210,7 @@ public:
      * Set position change callback.
      * @param callback the function this renderer will call when a stream's position changes
      * @param arg each time the callback is called it will pass this as an argument
-     * @return 0 on success, a non-zero ::SamRenderReturn code on failure (will fail if a callback has already been set)
+     * @return SAMRENDER_SUCCESS on success, a non-zero ::SamRenderReturn code on failure (will fail if a callback has already been set)
      */
     int setPositionCallback(RenderPositionCallback callback, void* arg);
 
@@ -204,7 +218,7 @@ public:
      * Set type change callback.
      * @param callback the function this renderer will call when a stream's type or preset changes
      * @param arg each time the callback is called it will pass this as an argument
-     * @return 0 on success, a non-zero ::SamRenderReturn code on failure (will fail if a callback has already been set)
+     * @return SAMRENDER_SUCCESS on success, a non-zero ::SamRenderReturn code on failure (will fail if a callback has already been set)
      */
     int setTypeCallback(RenderTypeCallback callback, void* arg);
 
@@ -212,7 +226,7 @@ public:
      * Set disconnect callback.
      * @param callback the function this renderer will call if the connection with SAM is lost
      * @param arg each time the callback is called it will pass this as an argument
-     * @return 0 on success, a non-zero ::SamRenderReturn code on failure (will fail if a callback has already been set)
+     * @return SAMRENDER_SUCCESS on success, a non-zero ::SamRenderReturn code on failure (will fail if a callback has already been set)
      */
     int setDisconnectCallback(RenderDisconnectCallback callback, void* arg);
 

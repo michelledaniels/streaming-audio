@@ -349,6 +349,11 @@ bool OscMessage::typeMatches(const char* type)
     return m_type.startsWith(type);
 }
 
+bool OscMessage::typeStartsWith(const char* type)
+{
+    return m_type.startsWith(type);
+}
+
 void OscMessage::slipEncode(QByteArray& data)
 {
     data.replace(&SLIP_ESC, 1, SLIP_ESC_ESC, 2);
