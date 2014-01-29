@@ -17,6 +17,21 @@
 
 namespace sam
 {
+/**
+ * @enum SamClientSubscription
+ * The possible client parameters to subscribe/unsubscribe to.
+ */
+enum SamClientSubscription
+{
+    SUBSCRIPTION_VOLUME = 0,
+    SUBSCRIPTION_MUTE,
+    SUBSCRIPTION_SOLO,
+    SUBSCRIPTION_DELAY,
+    SUBSCRIPTION_POSITION,
+    SUBSCRIPTION_TYPE,
+    SUBSCRIPTION_METER,
+    NUM_SUBSCRIPTIONS
+};
 
 /**
  * @class StreamingAudioApp
@@ -183,116 +198,38 @@ public:
     const int* getChannelAssignments() const { return m_channelAssign; }
     
     /**
-     * Subscribe to volume changes.
+     * Subscribe to changes for the given parameter.
+     * @param param the SamClientSubscription parameter to subscribe to
      * @param host the host to be subscribed
      * @param port the port on the host to be subscribed
      * @return true on success, false on failure
      */
-    bool subscribeVolume(const char* host, quint16 port);
+    bool subscribe(const char* host, quint16 port, int param);
 
     /**
-     * Unsubscribe from volume changes.
+     * Unsubscribe from changes for the given parameter.
+     * @param param the SamClientSubscription parameter to unsubscribe from
      * @param host the host to be unsubscribed
      * @param port the port on the host to be unsubscribed
      * @return true on success, false on failure
      */
-    bool unsubscribeVolume(const char* host, quint16 port);
+    bool unsubscribe(const char* host, quint16 port, int param);
 
     /**
-     * Subscribe to mute status changes.
-     * @param host the host to be subscribed
-     * @param port the port on the host to be subscribed
+     * Subscribe to changes for the given parameter using TCP.
+     * @param param the SamClientSubscription parameter to subscribe to
+     * @param socket the socket to be subscribed
      * @return true on success, false on failure
      */
-    bool subscribeMute(const char* host, quint16 port);
+    bool subscribeTcp(QTcpSocket* socket, int param);
 
     /**
-     * Unsubscribe from mute status changes.
-     * @param host the host to be unsubscribed
-     * @param port the port on the host to be unsubscribed
+     * Unsubscribe from changes for the given parameter using TCP.
+     * @param param the SamClientSubscription parameter to unsubscribe from
+     * @param socket the socket to be unsubscribed
      * @return true on success, false on failure
      */
-    bool unsubscribeMute(const char* host, quint16 port);
-
-    /**
-     * Subscribe to solo status changes.
-     * @param host the host to be subscribed
-     * @param port the port on the host to be subscribed
-     * @return true on success, false on failure
-     */
-    bool subscribeSolo(const char* host, quint16 port);
-
-    /**
-     * Unsubscribe from solo status changes.
-     * @param host the host to be unsubscribed
-     * @param port the port on the host to be unsubscribed
-     * @return true on success, false on failure
-     */
-    bool unsubscribeSolo(const char* host, quint16 port);
-
-    /**
-     * Subscribe to delay changes.
-     * @param host the host to be subscribed
-     * @param port the port on the host to be subscribed
-     * @return true on success, false on failure
-     */
-    bool subscribeDelay(const char* host, quint16 port);
-
-    /**
-     * Unsubscribe from delay changes.
-     * @param host the host to be unsubscribed
-     * @param port the port on the host to be unsubscribed
-     * @return true on success, false on failure
-     */
-    bool unsubscribeDelay(const char* host, quint16 port);
-
-    /**
-     * Subscribe to position changes.
-     * @param host the host to be subscribed
-     * @param port the port on the host to be subscribed
-     * @return true on success, false on failure
-     */
-    bool subscribePosition(const char* host, quint16 port);
-
-    /**
-     * Unsubscribe from position changes.
-     * @param host the host to be unsubscribed
-     * @param port the port on the host to be unsubscribed
-     * @return true on success, false on failure
-     */
-    bool unsubscribePosition(const char* host, quint16 port);
-
-    /**
-     * Subscribe to type status changes.
-     * @param host the host to be subscribed
-     * @param port the port on the host to be subscribed
-     * @return true on success, false on failure
-     */
-    bool subscribeType(const char* host, quint16 port);
-
-    /**
-     * Unsubscribe from type status changes.
-     * @param host the host to be unsubscribed
-     * @param port the port on the host to be unsubscribed
-     * @return true on success, false on failure
-     */
-    bool unsubscribeType(const char* host, quint16 port);
-    
-    /**
-     * Subscribe to metering stream.
-     * @param host the host to be subscribed
-     * @param port the port on the host to be subscribed
-     * @return true on success, false on failure
-     */
-    bool subscribeMeter(const char* host, quint16 port);
-
-    /**
-     * Unsubscribe from metering stream.
-     * @param host the host to be unsubscribed
-     * @param port the port on the host to be unsubscribed
-     * @return true on success, false on failure
-     */
-    bool unsubscribeMeter(const char* host, quint16 port);
+    bool unsubscribeTcp(QTcpSocket* socket, int param);
 
     /**
      * Subscribe to all changes.
@@ -309,6 +246,22 @@ public:
      * @return true on success, false on failure
      */
     bool unsubscribeAll(const char* host, quint16 port);
+
+    /**
+     * Subscribe to all changes using TCP.
+     * @param host the host to be subscribed
+     * @param port the port on the host to be subscribed
+     * @return true on success, false on failure
+     */
+    bool subscribeAllTcp(QTcpSocket* socket);
+
+    /**
+     * Unsubscribe from all changes using TCP.
+     * @param host the host to be unsubscribed
+     * @param port the port on the host to be unsubscribed
+     * @return true on success, false on failure
+     */
+    bool unsubscribeAllTcp(QTcpSocket* socket);
 
     /**
      * Notify subscribers of current meter levels.
@@ -374,7 +327,7 @@ public:
      * @param port the port to be subscribed
      * @return true on success, false on failure (address is already subscribed)
      */
-    static bool subscribe(QVector<OscAddress*> &subscribers, const char* host, quint16 port);
+    static bool subscribe_helper(QVector<OscAddress*> &subscribers, const char* host, quint16 port);
 
     /**
      * Unsubscribe from a parameter.
@@ -383,7 +336,23 @@ public:
      * @param port the port to be unsubscribed
      * @return true on success, false on failure (address was not subscribed in the first place)
      */
-    static bool unsubscribe(QVector<OscAddress*> &subscribers, const char* host, quint16 port);
+    static bool unsubscribe_helper(QVector<OscAddress*> &subscribers, const char* host, quint16 port);
+
+    /**
+     * Subscribe to a parameter.
+     * @param subscribers a vector of subscriber sockets to which the specified socket will be added
+     * @param socket the TCP socket to be subscribed
+     * @return true on success, false on failure (address is already subscribed)
+     */
+    static bool subscribe_tcp_helper(QVector<QTcpSocket*> &subscribers, QTcpSocket* socket);
+
+    /**
+     * Unsubscribe from a parameter.
+     * @param subscribers a vector of subscriber sockets from which to remove the specified socket
+     * @param socket the socket to be unsubscribed
+     * @return true on success, false on failure (address was not subscribed in the first place)
+     */
+    static bool unsubscribe_tcp_helper(QVector<QTcpSocket*> &subscribers, QTcpSocket* socket);
 
     /**
      * Flag this app for deletion.
@@ -451,7 +420,7 @@ private:
     float* m_rmsIn;         ///< input RMS levels for metering (per channel)
     float* m_peakIn;        ///< input peak levels for metering (per channel)
 
-    // subscribers
+    // UDP subscribers
     QVector<OscAddress*> m_volumeSubscribers;   ///< OSC addresses subscribed to volume changes
     QVector<OscAddress*> m_muteSubscribers;     ///< OSC addresses subscribed to mute changes
     QVector<OscAddress*> m_soloSubscribers;     ///< OSC addresses subscribed to solo changes
@@ -459,7 +428,16 @@ private:
     QVector<OscAddress*> m_positionSubscribers; ///< OSC addresses subscribed to position changes
     QVector<OscAddress*> m_typeSubscribers;     ///< OSC addresses subscribed to type changes
     QVector<OscAddress*> m_meterSubscribers;    ///< OSC addresses subscribed to meter updates
-    
+
+    // TCP subscribers
+    QVector<QTcpSocket*> m_volumeSubscribersTcp;   ///< TCP sockets subscribed to volume changes
+    QVector<QTcpSocket*> m_muteSubscribersTcp;     ///< TCP sockets subscribed to mute changes
+    QVector<QTcpSocket*> m_soloSubscribersTcp;     ///< TCP sockets subscribed to solo changes
+    QVector<QTcpSocket*> m_delaySubscribersTcp;    ///< TCP sockets subscribed to delay changes
+    QVector<QTcpSocket*> m_positionSubscribersTcp; ///< TCP sockets subscribed to position changes
+    QVector<QTcpSocket*> m_typeSubscribersTcp;     ///< TCP sockets subscribed to type changes
+    QVector<QTcpSocket*> m_meterSubscribersTcp;    ///< TCP sockets subscribed to meter updates
+
     // RTP-related parameters
     RtpReceiver* m_receiver;     ///< RTP receiver for this app/client
     float** m_audioData;         ///< temp buffer for received audio data

@@ -165,16 +165,11 @@ public:
 
     /**
      * Register this renderer with SAM and block until response is received.
+     * The renderer will stay registered with SAM until this SamRenderer object is deleted.
      * @param timeout response timeout time in milliseconds
      * @return SAMRENDER_SUCCESS on success, a non-zero ::SamRenderReturn code on failure
      */
     int start(unsigned int timeout = SAMRENDER_DEFAULT_TIMEOUT);
-
-    /**
-     * Unregister this renderer from SAM.
-     * @return none
-     */
-    void stop();
 
     /**
      * Subscribe to changes in position information for the stream with given ID.
@@ -185,6 +180,8 @@ public:
 
     /**
      * Unsubscribe to changes in position information for the stream with given ID.
+     * The renderer is automatically unsubscribed when a stream is removed, so this is only
+     * needed if the renderer wishes to unsubscribe while a stream is still active.
      * @param id the unique identifier for the stream
      * @return SAMRENDER_SUCCESS on success, a non-zero ::SamRenderReturn code on failure
      */
