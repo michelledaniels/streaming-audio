@@ -473,193 +473,54 @@ void StreamingAudioApp::setChannelAssignment(int appChannel, int assignChannel)
     m_channelAssign[appChannel] = assignChannel;
 }
 
-bool StreamingAudioApp::subscribeVolume(const char* host, quint16 port)
+bool StreamingAudioApp::subscribe(const char* host, quint16 port, int param)
 {
-    qDebug("StreamingAudioApp::subscribeVolume id = %d", m_port);
-    if (subscribe(m_volumeSubscribers, host, port))
+    OscMessage replyMsg;
+    OscAddress replyAddress;
+    replyAddress.host.setAddress(host);
+    replyAddress.port = port;
+
+    switch (param)
     {
-        // send the current volume
-        OscMessage replyMsg;
+    case SUBSCRIPTION_VOLUME:
+        qDebug("StreamingAudioApp::subscribe to Volume id = %d", m_port);
+        if (!subscribe_helper(m_volumeSubscribers, host, port)) return false;
         replyMsg.init("/sam/val/volume", "if", m_port, m_volumeNext);
-        OscAddress replyAddress;
-        replyAddress.host.setAddress(host);
-        replyAddress.port = port;
-        if (!OscClient::sendUdp(&replyMsg, &replyAddress))
-        {
-            qWarning("Couldn't send OSC message");
-            return false;
-        }
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
+        break;
 
-bool StreamingAudioApp::unsubscribeVolume(const char* host, quint16 port)
-{
-    qDebug("StreamingAudioApp::unsubscribeVolume id = %d", m_port);
-    return unsubscribe(m_volumeSubscribers, host, port);
-}
-
-bool StreamingAudioApp::subscribeMute(const char* host, quint16 port)
-{
-    qDebug("StreamingAudioApp::subscribeMute id = %d", m_port);
-    if (subscribe(m_muteSubscribers, host, port))
-    {
-        // send the current mute
-        OscMessage replyMsg;
+    case SUBSCRIPTION_MUTE:
+        qDebug("StreamingAudioApp::subscribe to Mute id = %d", m_port);
+        if (!subscribe_helper(m_muteSubscribers, host, port)) return false;
         replyMsg.init("/sam/val/mute", "ii", m_port, m_isMutedNext);
-        OscAddress replyAddress;
-        replyAddress.host.setAddress(host);
-        replyAddress.port = port;
-        if (!OscClient::sendUdp(&replyMsg, &replyAddress))
-        {
-            qWarning("Couldn't send OSC message");
-            return false;
-        }
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
+        break;
 
-bool StreamingAudioApp::unsubscribeMute(const char* host, quint16 port)
-{
-    qDebug("StreamingAudioApp::unsubscribeMute id = %d", m_port);
-    return unsubscribe(m_muteSubscribers, host, port);
-}
-
-bool StreamingAudioApp::subscribeSolo(const char* host, quint16 port)
-{
-    qDebug("StreamingAudioApp::subscribeSolo id = %d", m_port);
-    if (subscribe(m_soloSubscribers, host, port))
-    {
-        // send the current mute
-        OscMessage replyMsg;
+    case SUBSCRIPTION_SOLO:
+        qDebug("StreamingAudioApp::subscribe to Solo id = %d", m_port);
+        if (!subscribe_helper(m_soloSubscribers, host, port)) return false;
         replyMsg.init("/sam/val/solo", "ii", m_port, m_isSoloNext);
-        OscAddress replyAddress;
-        replyAddress.host.setAddress(host);
-        replyAddress.port = port;
-        if (!OscClient::sendUdp(&replyMsg, &replyAddress))
-        {
-            qWarning("Couldn't send OSC message");
-            return false;
-        }
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
+        break;
 
-bool StreamingAudioApp::unsubscribeSolo(const char* host, quint16 port)
-{
-    qDebug("StreamingAudioApp::unsubscribeSolo id = %d", m_port);
-    return unsubscribe(m_soloSubscribers, host, port);
-}
-
-bool StreamingAudioApp::subscribeDelay(const char* host, quint16 port)
-{
-    qDebug("StreamingAudioApp::subscribeDelay id = %d", m_port);
-    if (subscribe(m_delaySubscribers, host, port))
-    {
-        // send the current delay
-        OscMessage replyMsg;
+    case SUBSCRIPTION_DELAY:
+        qDebug("StreamingAudioApp::subscribe to Delay id = %d", m_port);
+        if (!subscribe_helper(m_delaySubscribers, host, port)) return false;
         replyMsg.init("/sam/val/delay", "if", m_port, getDelay());
-        OscAddress replyAddress;
-        replyAddress.host.setAddress(host);
-        replyAddress.port = port;
-        if (!OscClient::sendUdp(&replyMsg, &replyAddress))
-        {
-            qWarning("Couldn't send OSC message");
-            return false;
-        }
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
+        break;
 
-bool StreamingAudioApp::unsubscribeDelay(const char* host, quint16 port)
-{
-    qDebug("StreamingAudioApp::unsubscribeDelay id = %d", m_port);
-    return unsubscribe(m_delaySubscribers,host, port);
-}
-
-bool StreamingAudioApp::subscribePosition(const char* host, quint16 port)
-{
-    qDebug("StreamingAudioApp::subscribePosition id = %d", m_port);
-    if (subscribe(m_positionSubscribers, host, port))
-    {
-        // send the current position
-        OscMessage replyMsg;
+    case SUBSCRIPTION_POSITION:
+        qDebug("StreamingAudioApp::subscribe to Position id = %d", m_port);
+        if (!subscribe_helper(m_positionSubscribers, host, port)) return false;
         replyMsg.init("/sam/val/position", "iiiiii", m_port, m_position.x, m_position.y, m_position.width, m_position.height, m_position.depth);
-        OscAddress replyAddress;
-        replyAddress.host.setAddress(host);
-        replyAddress.port = port;
-        if (!OscClient::sendUdp(&replyMsg, &replyAddress))
-        {
-            qWarning("Couldn't send OSC message");
-            return false;
-        }
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
+    break;
 
-bool StreamingAudioApp::unsubscribePosition(const char* host, quint16 port)
-{
-    qDebug("StreamingAudioApp::unsubscribePosition id = %d", m_port);
-    return unsubscribe(m_positionSubscribers, host, port);
-}
-
-bool StreamingAudioApp::subscribeType(const char* host, quint16 port)
-{
-    qDebug("StreamingAudioApp::subscribeType id = %d", m_port);
-    if (subscribe(m_typeSubscribers, host, port))
-    {
-        // send the current type
-        OscMessage replyMsg;
+    case SUBSCRIPTION_TYPE:
+        qDebug("StreamingAudioApp::subscribe to Type id = %d", m_port);
+        if (!subscribe_helper(m_typeSubscribers, host, port)) return false;
         replyMsg.init("/sam/val/type", "iii", m_port, m_type, m_preset);
-        OscAddress replyAddress;
-        replyAddress.host.setAddress(host);
-        replyAddress.port = port;
-        if (!OscClient::sendUdp(&replyMsg, &replyAddress))
-        {
-            qWarning("Couldn't send OSC message");
-            return false;
-        }
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
+        break;
 
-bool StreamingAudioApp::unsubscribeType(const char* host, quint16 port)
-{
-    qDebug("StreamingAudioApp::unsubscribeType id = %d", m_port);
-    return unsubscribe(m_typeSubscribers, host, port);
-}
-
-bool StreamingAudioApp::subscribeMeter(const char* host, quint16 port)
-{
-    qDebug("StreamingAudioApp::subscribeMeter id = %d", m_port);
-    if (subscribe(m_meterSubscribers, host, port))
-    {
-        // send the current meter levels
-        OscMessage replyMsg;
+    case SUBSCRIPTION_METER:
+        qDebug("StreamingAudioApp::unsubscribe from Meter id = %d", m_port);
+        if (!subscribe_helper(m_meterSubscribers, host, port)) return false;
         replyMsg.init("/sam/val/meter", "ii", m_port, m_channels);
         for (int ch = 0; ch < m_channels; ch++)
         {
@@ -670,50 +531,212 @@ bool StreamingAudioApp::subscribeMeter(const char* host, quint16 port)
             m_peakIn[ch] = 0.0f; // reset peak levels for next interval
             m_peakOut[ch] = 0.0f; // reset peak levels for next interval
         }
-        OscAddress replyAddress;
-        replyAddress.host.setAddress(host);
-        replyAddress.port = port;
-        if (!OscClient::sendUdp(&replyMsg, &replyAddress))
-        {
-            qWarning("Couldn't send OSC message");
-            return false;
-        }
+        break;
+
+    default:
+        qWarning("StreamingAudioApp::subscribe unknown parameter %d", param);
+        return false;
     }
-    else
+
+    if (!OscClient::sendUdp(&replyMsg, &replyAddress))
     {
+        qWarning("Couldn't send OSC message");
         return false;
     }
     return true;
 }
 
-bool StreamingAudioApp::unsubscribeMeter(const char* host, quint16 port)
+bool StreamingAudioApp::subscribeTcp(QTcpSocket* socket, int param)
 {
-    qDebug("StreamingAudioApp::unsubscribeMeter id = %d", m_port);
-    return unsubscribe(m_meterSubscribers, host, port);
+    if (!socket)
+    {
+        qWarning("StreamingAudioApp::subscribeTcp can't subscribe a NULL socket!");
+        return false;
+    }
+
+    OscMessage replyMsg;
+
+    switch (param)
+    {
+    case SUBSCRIPTION_VOLUME:
+        qDebug("StreamingAudioApp::subscribe to Volume id = %d", m_port);
+        if (!subscribe_tcp_helper(m_volumeSubscribersTcp, socket)) return false;
+        replyMsg.init("/sam/val/volume", "if", m_port, m_volumeNext);
+        break;
+
+    case SUBSCRIPTION_MUTE:
+        qDebug("StreamingAudioApp::subscribe to Mute id = %d", m_port);
+        if (!subscribe_tcp_helper(m_muteSubscribersTcp, socket)) return false;
+        replyMsg.init("/sam/val/mute", "ii", m_port, m_isMutedNext);
+        break;
+
+    case SUBSCRIPTION_SOLO:
+        qDebug("StreamingAudioApp::subscribe to Solo id = %d", m_port);
+        if (!subscribe_tcp_helper(m_soloSubscribersTcp, socket)) return false;
+        replyMsg.init("/sam/val/solo", "ii", m_port, m_isSoloNext);
+        break;
+
+    case SUBSCRIPTION_DELAY:
+        qDebug("StreamingAudioApp::subscribe to Delay id = %d", m_port);
+        if (!subscribe_tcp_helper(m_delaySubscribersTcp, socket)) return false;
+        replyMsg.init("/sam/val/delay", "if", m_port, getDelay());
+        break;
+
+    case SUBSCRIPTION_POSITION:
+        qDebug("StreamingAudioApp::subscribe to Position id = %d", m_port);
+        if (!subscribe_tcp_helper(m_positionSubscribersTcp, socket)) return false;
+        replyMsg.init("/sam/val/position", "iiiiii", m_port, m_position.x, m_position.y, m_position.width, m_position.height, m_position.depth);
+        break;
+
+    case SUBSCRIPTION_TYPE:
+        qDebug("StreamingAudioApp::subscribe to Type id = %d", m_port);
+        if (!subscribe_tcp_helper(m_typeSubscribersTcp, socket)) return false;
+        replyMsg.init("/sam/val/type", "iii", m_port, m_type, m_preset);
+        break;
+
+    case SUBSCRIPTION_METER:
+        qDebug("StreamingAudioApp::unsubscribe from Meter id = %d", m_port);
+        if (!subscribe_tcp_helper(m_meterSubscribersTcp, socket)) return false;
+        replyMsg.init("/sam/val/meter", "ii", m_port, m_channels);
+        for (int ch = 0; ch < m_channels; ch++)
+        {
+            replyMsg.addFloatArg(m_rmsIn[ch]);
+            replyMsg.addFloatArg(sqrt(m_peakIn[ch])); // only take square root when peak is sent, not each time it changes, for efficiency
+            replyMsg.addFloatArg(m_rmsOut[ch]);
+            replyMsg.addFloatArg(sqrt(m_peakOut[ch])); // only take square root when peak is sent, not each time it changes, for efficiency
+            m_peakIn[ch] = 0.0f; // reset peak levels for next interval
+            m_peakOut[ch] = 0.0f; // reset peak levels for next interval
+        }
+        break;
+
+    default:
+        qWarning("StreamingAudioApp::subscribeTcp unknown parameter %d", param);
+        return false;
+    }
+
+    if (!OscClient::sendFromSocket(&replyMsg, socket))
+    {
+        qWarning("Couldn't send OSC message");
+    }
+    return true;
+}
+
+bool StreamingAudioApp::unsubscribe(const char* host, quint16 port, int param)
+{
+    switch (param)
+    {
+    case SUBSCRIPTION_VOLUME:
+        qDebug("StreamingAudioApp::unsubscribe from Volume id = %d", m_port);
+        return unsubscribe_helper(m_volumeSubscribers, host, port);
+
+    case SUBSCRIPTION_MUTE:
+        qDebug("StreamingAudioApp::unsubscribe from Mute id = %d", m_port);
+        return unsubscribe_helper(m_muteSubscribers, host, port);
+
+    case SUBSCRIPTION_SOLO:
+        qDebug("StreamingAudioApp::unsubscribe from Solo id = %d", m_port);
+        return unsubscribe_helper(m_soloSubscribers, host, port);
+
+    case SUBSCRIPTION_DELAY:
+        qDebug("StreamingAudioApp::unsubscribe from Delay id = %d", m_port);
+        return unsubscribe_helper(m_delaySubscribers,host, port);
+
+    case SUBSCRIPTION_POSITION:
+        qDebug("StreamingAudioApp::unsubscribe from Position id = %d", m_port);
+        return unsubscribe_helper(m_positionSubscribers, host, port);
+
+    case SUBSCRIPTION_TYPE:
+        qDebug("StreamingAudioApp::unsubscribe from Type id = %d", m_port);
+        return unsubscribe_helper(m_typeSubscribers, host, port);
+
+    case SUBSCRIPTION_METER:
+        qDebug("StreamingAudioApp::unsubscribe from Meter id = %d", m_port);
+        return unsubscribe_helper(m_meterSubscribers, host, port);
+
+    default:
+        qWarning("StreamingAudioApp::unsubscribe unknown parameter %d", param);
+        return false;
+    }
+    return false;
+}
+
+bool StreamingAudioApp::unsubscribeTcp(QTcpSocket* socket, int param)
+{
+    switch (param)
+    {
+    case SUBSCRIPTION_VOLUME:
+        qDebug("StreamingAudioApp::unsubscribeTcp from Volume id = %d", m_port);
+        return unsubscribe_tcp_helper(m_volumeSubscribersTcp, socket);
+
+    case SUBSCRIPTION_MUTE:
+        qDebug("StreamingAudioApp::unsubscribeTcp from Mute id = %d", m_port);
+        return unsubscribe_tcp_helper(m_muteSubscribersTcp, socket);
+
+    case SUBSCRIPTION_SOLO:
+        qDebug("StreamingAudioApp::unsubscribeTcp from Solo id = %d", m_port);
+        return unsubscribe_tcp_helper(m_soloSubscribersTcp, socket);
+
+    case SUBSCRIPTION_DELAY:
+        qDebug("StreamingAudioApp::unsubscribeTcp from Delay id = %d", m_port);
+        return unsubscribe_tcp_helper(m_delaySubscribersTcp, socket);
+
+    case SUBSCRIPTION_POSITION:
+        qDebug("StreamingAudioApp::unsubscribeTcp from Position id = %d", m_port);
+        return unsubscribe_tcp_helper(m_positionSubscribersTcp, socket);
+
+    case SUBSCRIPTION_TYPE:
+        qDebug("StreamingAudioApp::unsubscribeTcp from Type id = %d", m_port);
+        return unsubscribe_tcp_helper(m_typeSubscribersTcp, socket);
+
+    case SUBSCRIPTION_METER:
+        qDebug("StreamingAudioApp::unsubscribeTcp from Meter id = %d", m_port);
+        return unsubscribe_tcp_helper(m_meterSubscribersTcp, socket);
+
+    default:
+        qWarning("StreamingAudioApp::unsubscribeTcp unknown parameter %d", param);
+        return false;
+    }
+    return false;
 }
 
 bool StreamingAudioApp::subscribeAll(const char* host, quint16 port)
 {
-    bool success = subscribeVolume(host, port);
-    success &= subscribeMute(host, port);
-    success &= subscribeSolo(host, port);
-    success &= subscribeDelay(host, port);
-    success &= subscribePosition(host, port);
-    success &= subscribeType(host, port);
-    success &= subscribeMeter(host, port);
-    return success;
+    for (int i = 0; i < NUM_SUBSCRIPTIONS; i++)
+    {
+        if (!subscribe(host, port, i)) return false;
+    }
+
+    return true;
 }
 
 bool StreamingAudioApp::unsubscribeAll(const char* host, quint16 port)
 {
-    bool success = unsubscribeVolume(host, port);
-    success &= unsubscribeMute(host, port);
-    success &= unsubscribeSolo(host, port);
-    success &= unsubscribeDelay(host, port);
-    success &= unsubscribePosition(host, port);
-    success &= unsubscribeType(host, port);
-    success &= unsubscribeMeter(host, port);
-    return success;
+    for (int i = 0; i < NUM_SUBSCRIPTIONS; i++)
+    {
+        if (!unsubscribe(host, port, i)) return false;
+    }
+
+    return true;
+}
+
+bool StreamingAudioApp::subscribeAllTcp(QTcpSocket* socket)
+{
+    for (int i = 0; i < NUM_SUBSCRIPTIONS; i++)
+    {
+        if (!subscribeTcp(socket, i)) return false;
+    }
+
+    return true;
+}
+
+bool StreamingAudioApp::unsubscribeAllTcp(QTcpSocket* socket)
+{
+    for (int i = 0; i < NUM_SUBSCRIPTIONS; i++)
+    {
+        if (!unsubscribeTcp(socket, i)) return false;
+    }
+
+    return true;
 }
 
 bool StreamingAudioApp::notifyMeter()
@@ -920,7 +943,7 @@ bool StreamingAudioApp::getMeters(int ch, float& rmsIn, float& peakIn, float& rm
     return true;
 }
 
-bool StreamingAudioApp::subscribe(QVector<OscAddress*> &subscribers, const char* hostRef, quint16 portRef)
+bool StreamingAudioApp::subscribe_helper(QVector<OscAddress*> &subscribers, const char* hostRef, quint16 portRef)
 {
     for (int i = 0; i < subscribers.size(); i++)
     {
@@ -930,7 +953,7 @@ bool StreamingAudioApp::subscribe(QVector<OscAddress*> &subscribers, const char*
         if (strcmp(host, hostRef) == 0 && (subscribers[i]->port == portRef))
         {
             // duplicate found - don't add again
-            qWarning("StreamingAudioApp::Subscribe tried to add duplicate address: hostname = %s, port = %d", hostRef, portRef);
+            qWarning("StreamingAudioApp::subscribe tried to add duplicate address: hostname = %s, port = %d", hostRef, portRef);
             return true;
         }
     }
@@ -943,7 +966,7 @@ bool StreamingAudioApp::subscribe(QVector<OscAddress*> &subscribers, const char*
     return true;
 }
 
-bool StreamingAudioApp::unsubscribe(QVector<OscAddress*> &subscribers, const char* hostRef, quint16 portRef)
+bool StreamingAudioApp::unsubscribe_helper(QVector<OscAddress*> &subscribers, const char* hostRef, quint16 portRef)
 {
     QVector<OscAddress*>::iterator it;
     for (it = subscribers.begin(); it != subscribers.end(); it++)
@@ -961,7 +984,41 @@ bool StreamingAudioApp::unsubscribe(QVector<OscAddress*> &subscribers, const cha
         }
     }
 
-    qWarning("StreamingAudioApp::Unsubscribe address tried to unsubscribe address that was not already subscribed: hostname = %s, port = %d", hostRef, portRef);
+    qWarning("StreamingAudioApp::unsubscribe address tried to unsubscribe address that was not already subscribed: hostname = %s, port = %d", hostRef, portRef);
+    return false;
+}
+
+bool StreamingAudioApp::subscribe_tcp_helper(QVector<QTcpSocket*> &subscribers, QTcpSocket* socket)
+{
+    for (int i = 0; i < subscribers.size(); i++)
+    {
+        if (subscribers[i] == socket)
+        {
+            // duplicate found - don't add again
+            qWarning("StreamingAudioApp::subscribeTcp tried to add duplicate socket");
+            return true;
+        }
+    }
+
+    // add subscriber
+    subscribers.push_back(socket);
+    return true;
+}
+
+bool StreamingAudioApp::unsubscribe_tcp_helper(QVector<QTcpSocket*> &subscribers, QTcpSocket* socket)
+{
+    QVector<QTcpSocket*>::iterator it;
+    for (it = subscribers.begin(); it != subscribers.end(); it++)
+    {
+        QTcpSocket* itSocket = *it;
+        if (itSocket == socket)
+        {
+            subscribers.erase(it);
+            return true;
+        }
+    }
+
+    qWarning("StreamingAudioApp::unsubscribeTcp address tried to unsubscribe socket that was not already subscribed");
     return false;
 }
 
