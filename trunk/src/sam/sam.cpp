@@ -1169,11 +1169,11 @@ void StreamingAudioManager::handleOscMessage(OscMessage* msg, const char* sender
     }
     else if (qstrncmp(address + prefixLen, "subscribe", 9) == 0)
     {
-        handle_subscribe_message(address + prefixLen + 9, msg, sender);
+        handle_subscribe_message(address + prefixLen + 9, msg, sender, socket, false);
     }
     else if (qstrncmp(address + prefixLen, "unsubscribe", 11) == 0)
     {
-        handle_unsubscribe_message(address + prefixLen + 11, msg, sender);
+        handle_subscribe_message(address + prefixLen + 11, msg, sender, socket, true);
     }
     else if (qstrncmp(address + prefixLen, "type", 4) == 0)
     {
@@ -1568,7 +1568,7 @@ void StreamingAudioManager::handle_get_message(const char* address, OscMessage* 
     }
 }
 
-void StreamingAudioManager::handle_subscribe_message(const char* address, OscMessage* msg, const char* sender)
+void StreamingAudioManager::handle_subscribe_message(const char* address, OscMessage* msg, const char* sender, QAbstractSocket* socket, bool unsubscribe)
 {
     if (!msg->typeMatches("ii"))
     {
@@ -1584,127 +1584,115 @@ void StreamingAudioManager::handle_subscribe_message(const char* address, OscMes
     // check for out of range port
     if (!idIsValid(port)) return;
 
-    msg->getArg(1, arg);
-    quint16 replyPort = arg.val.i;
-
-    qDebug("SAM received subscribe message: source host = %s", sender);
-
-    // check third level of address
-    if (qstrcmp(address, "/volume") == 0) // /sam/subscribe/volume
+    if (socket->socketType() != QAbstractSocket::TcpSocket)
     {
-        printf("Subscribing host %s, port %d to volume for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->subscribe(sender, replyPort, SUBSCRIPTION_VOLUME);
+        socket = NULL;
     }
-    else if (qstrcmp(address, "/mute") == 0) // /sam/subscribe/mute
-    {
-        printf("Subscribing host %s, port %d to mute for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->subscribe(sender, replyPort, SUBSCRIPTION_MUTE);
-    }
-    else if (qstrcmp(address, "/solo") == 0) // /sam/subscribe/solo
-    {
-        printf("Subscribing host %s, port %d to solo for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->subscribe(sender, replyPort, SUBSCRIPTION_SOLO);
-    }
-    else if (qstrcmp(address, "/delay") == 0) // /sam/subscribe/delay
-    {
-        printf("Subscribing host %s, port %d to delay for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->subscribe(sender, replyPort, SUBSCRIPTION_DELAY);
-    }
-    else if (qstrcmp(address, "/position") == 0) // /sam/subscribe/position
-    {
-        printf("Subscribing host %s, port %d to position for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->subscribe(sender, replyPort, SUBSCRIPTION_POSITION);
-    }
-    else if (qstrcmp(address, "/type") == 0) // /sam/subscribe/type
-    {
-        printf("Subscribing host %s, port %d to type for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->subscribe(sender, replyPort, SUBSCRIPTION_TYPE);
-    }
-    else if (qstrcmp(address, "/meter") == 0) // /sam/subscribe/meter
-    {
-        printf("Subscribing host %s, port %d to meter for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->subscribe(sender, replyPort, SUBSCRIPTION_METER);
-    }
-    else if (qstrcmp(address, "/all") == 0) // /sam/subscribe/all
-    {
-        printf("Subscribing host %s, port %d to all parameters for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->subscribeAll(sender, replyPort);
-    }
-    else
-    {
-        printf("Unknown OSC message:\n");
-        msg->print();
-    }
-
-    // TODO: error handling (invalid port, etc.)
-}
-
-void StreamingAudioManager::handle_unsubscribe_message(const char* address, OscMessage* msg, const char* sender)
-{
-    if (!msg->typeMatches("ii"))
-    {
-        printf("Unknown OSC message:\n");
-        msg->print();
-        return;
-    }
-
-    OscArg arg;
-    msg->getArg(0, arg);
-    int port = arg.val.i;
-
-    // check for out of range port
-    if (!idIsValid(port)) return;
 
     msg->getArg(1, arg);
     quint16 replyPort = arg.val.i;
 
-    qDebug("SAM received unsubscribe message: source host = %s", sender);
+    int param = -1;
 
     // check third level of address
     if (qstrcmp(address, "/volume") == 0) // /sam/unsubscribe/volume
     {
-        printf("Unsubscribing host %s, port %d from volume for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->unsubscribe(sender, replyPort, SUBSCRIPTION_VOLUME);
+        if (unsubscribe) printf("Unsubscribing host %s, port %d from volume for app %d\n\n", sender, replyPort, port);
+        else printf("Subscribing host %s, port %d to volume for app %d\n\n", sender, replyPort, port);
+        param = SUBSCRIPTION_VOLUME;
     }
     else if (qstrcmp(address, "/mute") == 0) // /sam/unsubscribe/mute
     {
-        printf("Unsubscribing host %s, port %d from mute for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->unsubscribe(sender, replyPort, SUBSCRIPTION_MUTE);
+        if (unsubscribe) printf("Unsubscribing host %s, port %d from mute for app %d\n\n", sender, replyPort, port);
+        else printf("Subscribing host %s, port %d to mute for app %d\n\n", sender, replyPort, port);
+        param = SUBSCRIPTION_MUTE;
     }
     else if (qstrcmp(address, "/solo") == 0) // /sam/unsubscribe/solo
     {
-        printf("Unsubscribing host %s, port %d from solo for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->unsubscribe(sender, replyPort, SUBSCRIPTION_SOLO);
+        if (unsubscribe) printf("Unsubscribing host %s, port %d from solo for app %d\n\n", sender, replyPort, port);
+        else printf("Subscribing host %s, port %d to solo for app %d\n\n", sender, replyPort, port);
+        param = SUBSCRIPTION_SOLO;
     }
     else if (qstrcmp(address, "/delay") == 0) // /sam/unsubscribe/delay
     {
-        printf("Unsubscribing host %s, port %d from delay for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->unsubscribe(sender, replyPort, SUBSCRIPTION_DELAY);
+        if (unsubscribe) printf("Unsubscribing host %s, port %d from delay for app %d\n\n", sender, replyPort, port);
+        else printf("Subscribing host %s, port %d to delay for app %d\n\n", sender, replyPort, port);
+        param = SUBSCRIPTION_DELAY;
     }
     else if (qstrcmp(address, "/position") == 0) // /sam/unsubscribe/position
     {
-        printf("Unsubscribing host %s, port %d from position for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->unsubscribe(sender, replyPort, SUBSCRIPTION_POSITION);
+        if (unsubscribe) printf("Unsubscribing host %s, port %d from position for app %d\n\n", sender, replyPort, port);
+        else printf("Subscribing host %s, port %d to position for app %d\n\n", sender, replyPort, port);
+        param = SUBSCRIPTION_POSITION;
     }
     else if (qstrcmp(address, "/type") == 0) // /sam/unsubscribe/type
     {
-        printf("Unsubscribing host %s, port %d from type for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->unsubscribe(sender, replyPort, SUBSCRIPTION_TYPE);
+        if (unsubscribe) printf("Unsubscribing host %s, port %d from type for app %d\n\n", sender, replyPort, port);
+        else printf("Subscribing host %s, port %d to type for app %d\n\n", sender, replyPort, port);
+        param = SUBSCRIPTION_TYPE;
     }
     else if (qstrcmp(address, "/meter") == 0) // /sam/unsubscribe/meter
     {
-        printf("Unsubscribing host %s, port %d from meter for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->unsubscribe(sender, replyPort, SUBSCRIPTION_METER);
+        if (unsubscribe) printf("Unsubscribing host %s, port %d from meter for app %d\n\n", sender, replyPort, port);
+        else printf("Subscribing host %s, port %d to meter for app %d\n\n", sender, replyPort, port);
+        param = SUBSCRIPTION_METER;
     }
     else if (qstrcmp(address, "/all") == 0) // /sam/unsubscribe/all
     {
-        printf("Unsubscribing host %s, port %d from all parameters for app %d\n\n", sender, replyPort, port);
-        m_apps[port]->unsubscribeAll(sender, replyPort);
+        if (unsubscribe)
+        {
+            printf("Unsubscribing host %s, port %d from all parameters for app %d\n\n", sender, replyPort, port);
+            if (socket)
+            {
+                m_apps[port]->unsubscribeAllTcp(dynamic_cast<QTcpSocket*>(socket));
+            }
+            else
+            {
+                m_apps[port]->unsubscribeAll(sender, replyPort);
+            }
+        }
+        else
+        {
+            printf("Subscribing host %s, port %d to all parameters for app %d\n\n", sender, replyPort, port);
+            if (socket)
+            {
+                m_apps[port]->subscribeAllTcp(dynamic_cast<QTcpSocket*>(socket));
+            }
+            else
+            {
+                m_apps[port]->subscribeAll(sender, replyPort);
+            }
+        }
+        return;
     }
     else
     {
         printf("Unknown OSC message:\n");
         msg->print();
+        return;
+    }
+
+    if (unsubscribe)
+    {
+        if (socket)
+        {
+            m_apps[port]->unsubscribeTcp(dynamic_cast<QTcpSocket*>(socket), param);
+        }
+        else
+        {
+            m_apps[port]->unsubscribe(sender, replyPort, param);
+        }
+    }
+    else
+    {
+        if (socket)
+        {
+            m_apps[port]->subscribeTcp(dynamic_cast<QTcpSocket*>(socket), param);
+        }
+        else
+        {
+            m_apps[port]->subscribe(sender, replyPort, param);
+        }
     }
 
     // TODO: error handling (invalid port, etc.)

@@ -354,6 +354,14 @@ void StreamingAudioApp::setVolume(float volume)
             qWarning("Couldn't send OSC message");
         }
     }
+    QVector<QTcpSocket*>::iterator itTcp;
+    for (itTcp = m_volumeSubscribersTcp.begin(); itTcp != m_volumeSubscribersTcp.end(); itTcp++)
+    {
+        if (!OscClient::sendFromSocket(&replyMsg, (QTcpSocket*)*itTcp))
+        {
+            qWarning("Couldn't send OSC message");
+        }
+    }
 }
 
 void StreamingAudioApp::setMute(bool isMuted)
@@ -367,6 +375,14 @@ void StreamingAudioApp::setMute(bool isMuted)
     for (it = m_muteSubscribers.begin(); it != m_muteSubscribers.end(); it++)
     {
         if (!OscClient::sendUdp(&replyMsg, (OscAddress*)*it))
+        {
+            qWarning("Couldn't send OSC message");
+        }
+    }
+    QVector<QTcpSocket*>::iterator itTcp;
+    for (itTcp = m_muteSubscribersTcp.begin(); itTcp != m_muteSubscribersTcp.end(); itTcp++)
+    {
+        if (!OscClient::sendFromSocket(&replyMsg, (QTcpSocket*)*itTcp))
         {
             qWarning("Couldn't send OSC message");
         }
@@ -390,6 +406,14 @@ void StreamingAudioApp::setSolo(bool isSolo)
     for (it = m_soloSubscribers.begin(); it != m_soloSubscribers.end(); it++)
     {
         if (!OscClient::sendUdp(&replyMsg, (OscAddress*)*it))
+        {
+            qWarning("Couldn't send OSC message");
+        }
+    }
+    QVector<QTcpSocket*>::iterator itTcp;
+    for (itTcp = m_soloSubscribersTcp.begin(); itTcp != m_soloSubscribersTcp.end(); itTcp++)
+    {
+        if (!OscClient::sendFromSocket(&replyMsg, (QTcpSocket*)*itTcp))
         {
             qWarning("Couldn't send OSC message");
         }
@@ -423,6 +447,14 @@ void StreamingAudioApp::setDelay(float delay)
             qWarning("Couldn't send OSC message");
         }
     }
+    QVector<QTcpSocket*>::iterator itTcp;
+    for (itTcp = m_delaySubscribersTcp.begin(); itTcp != m_delaySubscribersTcp.end(); itTcp++)
+    {
+        if (!OscClient::sendFromSocket(&replyMsg, (QTcpSocket*)*itTcp))
+        {
+            qWarning("Couldn't send OSC message");
+        }
+    }
 }
 
 void StreamingAudioApp::setType(StreamingAudioType type, int preset)
@@ -438,6 +470,14 @@ void StreamingAudioApp::setType(StreamingAudioType type, int preset)
     for (it = m_typeSubscribers.begin(); it != m_typeSubscribers.end(); it++)
     {
         if (!OscClient::sendUdp(&replyMsg, (OscAddress*)*it))
+        {
+            qWarning("Couldn't send OSC message");
+        }
+    }
+    QVector<QTcpSocket*>::iterator itTcp;
+    for (itTcp = m_typeSubscribersTcp.begin(); itTcp != m_typeSubscribersTcp.end(); itTcp++)
+    {
+        if (!OscClient::sendFromSocket(&replyMsg, (QTcpSocket*)*itTcp))
         {
             qWarning("Couldn't send OSC message");
         }
@@ -461,6 +501,14 @@ void StreamingAudioApp::setPosition(const SamAppPosition& pos)
     for (it = m_positionSubscribers.begin(); it != m_positionSubscribers.end(); it++)
     {
         if (!OscClient::sendUdp(&replyMsg, (OscAddress*)*it))
+        {
+            qWarning("Couldn't send OSC message");
+        }
+    }
+    QVector<QTcpSocket*>::iterator itTcp;
+    for (itTcp = m_positionSubscribersTcp.begin(); itTcp != m_positionSubscribersTcp.end(); itTcp++)
+    {
+        if (!OscClient::sendFromSocket(&replyMsg, (QTcpSocket*)*itTcp))
         {
             qWarning("Couldn't send OSC message");
         }
@@ -765,6 +813,14 @@ bool StreamingAudioApp::notifyMeter()
         {
             qWarning("Couldn't send OSC message");
             return false;
+        }
+    }
+    QVector<QTcpSocket*>::iterator itTcp;
+    for (itTcp = m_meterSubscribersTcp.begin(); itTcp != m_meterSubscribersTcp.end(); itTcp++)
+    {
+        if (!OscClient::sendFromSocket(&replyMsg, (QTcpSocket*)*itTcp))
+        {
+            qWarning("Couldn't send OSC message");
         }
     }
 
