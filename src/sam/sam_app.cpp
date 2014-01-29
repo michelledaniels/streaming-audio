@@ -108,6 +108,10 @@ StreamingAudioApp::StreamingAudioApp(const char* name,
         m_channelAssign[ch] = -1;
     }
 
+    // subscribe to params
+    subscribe_tcp_helper(m_muteSubscribersTcp, m_socket);
+    subscribe_tcp_helper(m_soloSubscribersTcp, m_socket);
+
     connect(m_socket, SIGNAL(disconnected()), this, SLOT(disconnectApp()));
 }
 
@@ -387,12 +391,6 @@ void StreamingAudioApp::setMute(bool isMuted)
             qWarning("Couldn't send OSC message");
         }
     }
-
-    // notify the client
-    if (!OscClient::sendFromSocket(&replyMsg, m_socket))
-    {
-        qWarning("Couldn't send OSC message");
-    }
 }
 
 void StreamingAudioApp::setSolo(bool isSolo)
@@ -417,12 +415,6 @@ void StreamingAudioApp::setSolo(bool isSolo)
         {
             qWarning("Couldn't send OSC message");
         }
-    }
-
-    // notify the client
-    if (!OscClient::sendFromSocket(&replyMsg, m_socket))
-    {
-        qWarning("Couldn't send OSC message");
     }
 }
 
