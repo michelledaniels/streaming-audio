@@ -513,16 +513,10 @@ private:
      * @param address the part of the OSC address string following "/sam/subscribe"
      * @param msg the OSC message to handle
      * @param sender the name of the host that sent the message
+     * @param socket the socket the message was received through
+     * @param unsubscribe true to unsubscribe, false to subscribe
      */
-    void handle_subscribe_message(const char* address, OscMessage* msg, const char* sender);
-
-    /**
-     * Handle requests to unsubscribe from parameters.
-     * @param address the part of the OSC address string following "/sam/unsubscribe"
-     * @param msg the OSC message to handle
-     * @param sender the name of the host that sent the message
-     */
-    void handle_unsubscribe_message(const char* address, OscMessage* msg, const char* sender);
+    void handle_subscribe_message(const char* address, OscMessage* msg, const char* sender, QAbstractSocket* socket, bool unsubscribe);
 
     /**
      * Handle requests about rendering types.
