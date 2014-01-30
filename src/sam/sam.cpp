@@ -733,6 +733,9 @@ bool StreamingAudioManager::registerRenderer(const char* hostname, quint16 port,
 bool StreamingAudioManager::unregisterRenderer()
 {
     // TODO: need error checking to make sure the request is for this renderer??
+
+    // TODO: need to remove non-basic rendering types when renderer goes offline
+
     if (m_renderer)
     {
         delete m_renderer;

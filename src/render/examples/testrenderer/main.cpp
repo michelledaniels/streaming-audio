@@ -174,6 +174,10 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    int presetIds[2] = {0, 2};
+    const char* presetNames[2] = {"default", "preset 2"};
+    renderer.addType(1, "Type 1", 2, presetIds, presetNames);
+
     // register callbacks
     renderer.setStreamAddedCallback(stream_added_callback, &renderer);
     renderer.setStreamRemovedCallback(stream_removed_callback, &renderer);

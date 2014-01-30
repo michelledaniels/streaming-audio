@@ -172,6 +172,19 @@ public:
     int start(unsigned int timeout = SAMRENDER_DEFAULT_TIMEOUT);
 
     /**
+     * Add a rendering type and its presets.
+     * This method informs SAM that the type and preset are available for use.
+     * The "basic" type (id 0) with "default" preset (id 0) are always available
+     * and therefore do not need to be added explcitly.
+     * @param id the unique ID for the rendering type being added
+     * @param name the user-readable name for the type
+     * @param numPresets the number of presets this type has (including the required default)
+     * @param presetIds an array of length numPresets containing the unique ID for each preset (including the required default)
+     * @param presetNames an array of length numPresets containing the user-readable name for each preset (including the required default)
+     */
+    int addType(int id, const char* name, int numPresets, int* presetIds, const char** presetNames);
+
+    /**
      * Subscribe to changes in position information for the stream with given ID.
      * @param id the unique identifier for the stream
      * @return SAMRENDER_SUCCESS on success, a non-zero ::SamRenderReturn code on failure
@@ -227,7 +240,14 @@ public:
      */
     int setDisconnectCallback(RenderDisconnectCallback callback, void* arg);
 
-public slots:
+signals:
+    /**
+     * Emitted when a response from SAM is received.
+     * This signal is for use internal to the SamRenderer library, and users don't need to (and shouldn't) connect it to any slots.
+     */
+    void responseReceived();
+
+private slots:
     /**
      * Handle an OSC message.
      * @param msg the OSC message to handle
@@ -240,13 +260,6 @@ public slots:
      * Handle the case where we get disconnected from SAM.
      */
     void samDisconnected();
-
-signals:
-    /**
-     * Emitted when a response from SAM is received.
-     * This signal is for use internal to the SAC library, and clients don't need to (and shouldn't) connect it to any slots.
-     */
-    void responseReceived();
 
 private:
 
