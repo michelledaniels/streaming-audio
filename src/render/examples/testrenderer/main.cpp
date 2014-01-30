@@ -12,7 +12,7 @@
 
 #include <QtCore/QCoreApplication>
 
-#include "samrenderer.h"
+#include "testrenderer.h"
 
 using namespace sam;
 
@@ -37,32 +37,6 @@ void signalhandler(int sig)
         QCoreApplication::exit(0);
     }
 }
-void stream_added_callback(SamRenderStream& stream, void* renderer)
-{
-    qWarning("testrenderer: stream added with ID = %d, %d channels", stream.id, stream.numChannels);
-    ((SamRenderer*)renderer)->subscribeToPosition(stream.id);
-}
-
-void stream_removed_callback(int id, void* renderer)
-{
-    qWarning("testrenderer: stream with ID = %d removed", id);
-}
-
-void position_changed_callback(int id, int x, int y, int width, int height, int depth, void* renderer)
-{
-    qWarning("testrenderer: stream with ID = %d position changed to x = %d, y = %d, width = %d, height = %d, depth = %d", id, x, y, width, height, depth);
-}
-
-void type_changed_callback(int id, int type, int preset, void* renderer)
-{
-    qWarning("testrenderer: stream with ID = %d type changed to %d, preset = %d", id, type, preset);
-}
-
-void render_disconnect_callback(void* renderer)
-{
-    qWarning("testrenderer: lost connection with SAM, shutting down...");
-    QCoreApplication::quit();
-}
 
 int main(int argc, char *argv[])
 {
@@ -73,8 +47,6 @@ int main(int argc, char *argv[])
     }
 
     QCoreApplication a(argc, argv);
-
-    SamRenderer renderer;
 
     SamRenderParams params;
     params.samIP = NULL;
@@ -157,33 +129,17 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    printf("finished parsing args");
+    qDebug("finished parsing args");
 
     signal(SIGINT, signalhandler);
     signal(SIGTERM, signalhandler);
 
-    if (renderer.init(params) != SAMRENDER_SUCCESS)
+    TestRenderer renderer(params, jackClientName, numChannels);
+    if (!renderer.init())
     {
-        qWarning("Couldn't initialize SamRenderer");
+        qWarning("Couldn't initialize TestRenderer");
         exit(EXIT_FAILURE);
     }
-
-    if (renderer.start() != SAMRENDER_SUCCESS)
-    {
-        qWarning("Couldn't start SamRenderer");
-        exit(EXIT_FAILURE);
-    }
-
-    int presetIds[2] = {0, 2};
-    const char* presetNames[2] = {"default", "preset 2"};
-    renderer.addType(1, "Type 1", 2, presetIds, presetNames);
-
-    // register callbacks
-    renderer.setStreamAddedCallback(stream_added_callback, &renderer);
-    renderer.setStreamRemovedCallback(stream_removed_callback, &renderer);
-    renderer.setPositionCallback(position_changed_callback, &renderer);
-    renderer.setTypeCallback(type_changed_callback, &renderer);
-    renderer.setDisconnectCallback(render_disconnect_callback, &renderer);
 
     return a.exec();
 }

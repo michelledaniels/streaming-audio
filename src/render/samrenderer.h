@@ -49,10 +49,10 @@ struct SamRenderParams
         replyPort(0)
     {}
 
-    const char* samIP;          ///< IP address of SAM to connect to
-    quint16 samPort;            ///< Port on which SAM receives OSC messages
-    const char* replyIP;        ///< local IP address from which to send and receive OSC messages
-    quint16 replyPort;          ///< Local port for receiving OSC message replies (or 0 to have port assigned internally)
+    char* samIP;          ///< IP address of SAM to connect to
+    quint16 samPort;      ///< Port on which SAM receives OSC messages
+    char* replyIP;        ///< local IP address from which to send and receive OSC messages
+    quint16 replyPort;    ///< Local port for receiving OSC message replies (or 0 to have port assigned internally)
 };
 
 /**
