@@ -207,6 +207,24 @@ int SamRenderer::start(unsigned int timeout)
     return SAMRENDER_SUCCESS;
 }
 
+int SamRenderer::addType(int id, const char* name, int numPresets, int* presetIds, const char** presetNames)
+{
+    OscMessage msg;
+    msg.init("/sam/type/add", "isi", id, name, numPresets);
+    for (int preset = 0; preset < numPresets; preset++)
+    {
+        msg.addIntArg(presetIds[preset]);
+        msg.addStringArg(presetNames[preset]);
+    }
+
+    if (!OscClient::sendFromSocket(&msg, &m_socket))
+    {
+        qWarning("SamRenderer::addType() Couldn't send OSC message");
+        return SAMRENDER_OSC_ERROR;
+    }
+    return SAMRENDER_SUCCESS;
+}
+
 int SamRenderer::subscribeToPosition(int id)
 {
     OscMessage msg;
