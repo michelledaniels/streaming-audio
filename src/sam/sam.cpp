@@ -1014,22 +1014,28 @@ bool StreamingAudioManager::set_app_type(int port, StreamingAudioType type, int 
         if (typeOld != type)
         {
             // type changed: first remove app with the old type and re-add with the new type
-            qDebug("StreamingAudioManager::setAppType removing app with old type from renderer");
-            OscMessage msg;
-            msg.init("/sam/stream/remove", "i", port);
-            if (m_renderSocket) // respond with TCP
+            if (typeOld > TYPE_BASIC)
             {
-                if (!OscClient::sendFromSocket(&msg, m_renderSocket))
+                qDebug("StreamingAudioManager::setAppType removing app with old type from renderer");
+                OscMessage msg;
+                msg.init("/sam/stream/remove", "i", port);
+                if (m_renderSocket) // respond with TCP
+                {
+                    if (!OscClient::sendFromSocket(&msg, m_renderSocket))
+                    {
+                        qWarning("Couldn't send OSC message");
+                    }
+                }
+                else if (!OscClient::sendUdp(&msg, m_renderer))
                 {
                     qWarning("Couldn't send OSC message");
                 }
             }
-            else if (!OscClient::sendUdp(&msg, m_renderer))
+            if (type > TYPE_BASIC)
             {
-                qWarning("Couldn't send OSC message");
+                qDebug("StreamingAudioManager::SetAppType adding app with new type to renderer");
+                send_stream_added(m_apps[port]);
             }
-            qDebug("StreamingAudioManager::SetAppType adding app with new type to renderer");
-            send_stream_added(m_apps[port]);
         }
         else
         {
@@ -2350,6 +2356,7 @@ bool StreamingAudioManager::init_discrete_output_ports()
 
 bool StreamingAudioManager::send_stream_added(StreamingAudioApp* app)
 {
+    if (app->getType() == TYPE_BASIC) return true; // nothing to do
     if (!m_renderer) return false;
     
     OscMessage msg;
@@ -2626,21 +2633,7 @@ void StreamingAudioManager::cleanupApp(int port, int type)
                 m_discreteOutputUsed[i] = OUTPUT_ENABLED_DISCRETE;
             }
         }
-    }
 
-    if (m_appState[port] == ACTIVE || m_appState[port] == CLOSING)
-    {
-        // notify UI subscribers of app unregistering
-        for (int i = 0; i < m_uiSubscribers.size(); i++)
-        {
-            OscAddress* replyAddr = m_uiSubscribers.at(i);
-            OscMessage replyMsg;
-            replyMsg.init("/sam/app/unregistered", "i", port);
-            if (!OscClient::sendUdp(&replyMsg, replyAddr))
-            {
-                qWarning("Couldn't send OSC message");
-            }
-        }
         // notify renderer
         if (m_renderer)
         {
@@ -2654,6 +2647,21 @@ void StreamingAudioManager::cleanupApp(int port, int type)
                 }
             }
             else if (!OscClient::sendUdp(&replyMsg, m_renderer))
+            {
+                qWarning("Couldn't send OSC message");
+            }
+        }
+    }
+
+    if (m_appState[port] == ACTIVE || m_appState[port] == CLOSING)
+    {
+        // notify UI subscribers of app unregistering
+        for (int i = 0; i < m_uiSubscribers.size(); i++)
+        {
+            OscAddress* replyAddr = m_uiSubscribers.at(i);
+            OscMessage replyMsg;
+            replyMsg.init("/sam/app/unregistered", "i", port);
+            if (!OscClient::sendUdp(&replyMsg, replyAddr))
             {
                 qWarning("Couldn't send OSC message");
             }
