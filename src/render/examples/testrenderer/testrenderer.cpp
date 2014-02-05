@@ -21,7 +21,7 @@ static const int MAX_PORT_NAME = 64;
 TestRenderer::TestRenderer(SamRenderParams& params, const char* jackClientName, int numChannels) :
     m_jackClientName(NULL),
     m_numInputChannels(numChannels),
-    m_numOutputChannels(2),
+    m_numOutputChannels(1),
     m_client(NULL),
     m_inputPorts(NULL),
     m_outputPorts(NULL)
@@ -131,17 +131,6 @@ bool TestRenderer::init()
         return false;
     }
 
-    if (m_renderer.start() != SAMRENDER_SUCCESS)
-    {
-        qWarning("Couldn't start SamRenderer");
-        return false;
-    }
-
-    // add a rendering type with two presets
-    int presetIds[2] = {0, 1};
-    const char* presetNames[2] = {"Mono", "Stereo"};
-    m_renderer.addType(1, "Simple Mix-Down", 2, presetIds, presetNames);
-
     // register renderer callbacks
     m_renderer.setStreamAddedCallback(stream_added_callback, this);
     m_renderer.setStreamRemovedCallback(stream_removed_callback, this);
@@ -191,6 +180,17 @@ bool TestRenderer::init()
         qWarning("TestRenderer::init couldn't initialize output JACK ports");
         return false;
     }
+
+    if (m_renderer.start() != SAMRENDER_SUCCESS)
+    {
+        qWarning("Couldn't start SamRenderer");
+        return false;
+    }
+
+    // add a rendering type with the default preset
+    int presetIds[] = {0};
+    const char* presetNames[1] = {"Default"};
+    m_renderer.addType(1, "Mono Mix-Down", 1, presetIds, presetNames);
 
     return true;
 }
@@ -254,7 +254,7 @@ bool TestRenderer::init_input_ports()
         m_inputPorts[ch] = NULL;
     }
 
-    // register JACK input ports and connect physical inputs to client inputs
+    // register JACK input ports
     char portName[MAX_PORT_NAME];
     for (int i = 0; i < m_numInputChannels; i++)
     {
@@ -264,20 +264,6 @@ bool TestRenderer::init_input_ports()
         if (!m_inputPorts[i])
         {
             qWarning("TestRenderer::init_input_ports() ERROR: couldn't register input port for channel %d", i + 1);
-            jack_free(inputPorts);
-            return false;
-        }
-
-        // connect the specified physical input to the newly-created input port
-        const char* inputPortName = jack_port_name(m_inputPorts[i]);
-        int result = jack_connect(m_client, inputPorts[i], inputPortName);
-        if (result == EEXIST)
-        {
-            qWarning("TestRenderer::init_input_ports() WARNING: %s and %s were already connected", inputPorts[i], inputPortName);
-        }
-        else if (result != 0)
-        {
-            qWarning("TestRenderer::init_input_ports() ERROR: couldn't connect %s to %s", inputPorts[i], inputPortName);
             jack_free(inputPorts);
             return false;
         }
@@ -311,14 +297,14 @@ bool TestRenderer::init_output_ports()
         return false; // requested more output ports than actually exist
     }
 
-    // allocate array of input port pointers
+    // allocate array of output port pointers
     m_outputPorts = new jack_port_t*[m_numOutputChannels];
     for (int ch = 0; ch < m_numOutputChannels; ch++)
     {
         m_outputPorts[ch] = NULL;
     }
 
-    // register JACK input ports and connect physical inputs to client inputs
+    // register JACK output ports and connect physical outputs to client outputs
     char portName[MAX_PORT_NAME];
     for (int i = 0; i < m_numOutputChannels; i++)
     {
