@@ -111,10 +111,10 @@ int main(int argc, char *argv[])
             int temp = atoi(optarg);
             if (temp <=0)
             {
-                qCritical("Number of channels must be at least 1");
+                qCritical("Number of input channels must be at least 1");
             }
             numChannels = temp;
-            qWarning("setting number of channels = %u", numChannels);
+            qWarning("setting number of input channels = %u", numChannels);
             break;
         }
         default:

@@ -643,12 +643,18 @@ private:
     int jack_process(jack_nframes_t nframes);
     
     /**
-     * initialize output ports
+     * initialize basic output ports
      * @return true on success, false on failure
      */
-    bool init_output_ports();
+    bool init_basic_output_ports();
     
-    /** 
+    /**
+     * initialize discrete output ports
+     * @return true on success, false on failure
+     */
+    bool init_discrete_output_ports();
+
+    /**
      * send a /sam/stream/add message.
      * @param app the app representing the stream to be added
      * @return true if sending is successful, false otherwise
@@ -676,9 +682,10 @@ private:
      * Connect app ports to physical outputs.
      * @param port the unique port for the app to be connected
      * @param outputPorts an array of the output ports to connect this app to (one for each app channel)
+     * @param type the rendering type for the app to be connected (basic type treated differently from discrete types)
      * @return true on success, false on failure
      */
-    bool connect_app_ports(int port, const int* outputPorts);
+    bool connect_app_ports(int port, const int* outputPorts, int type);
     
     /**
      * Disconnect app ports from physical outputs.

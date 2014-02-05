@@ -296,11 +296,17 @@ int StreamingAudioManager::start()
         return false;
     }
 
-    if (!init_output_ports())
+    if (!init_basic_output_ports())
     {
         emit startupError();
         return false;
     }
+
+    if (m_renderer && !init_discrete_output_ports())
+    {
+        emit startupError();
+        return false;
+    } // if no renderer registered yet, we will init discrete outputs when renderer registers
     
     m_oscDirections.clear();
     if (m_hostAddress == QHostAddress::Any)
@@ -531,7 +537,7 @@ int StreamingAudioManager::registerApp(const char* name, int channels, int x, in
         return -1;
     }
     
-    if (!connect_app_ports(port, m_apps[port]->getChannelAssignments()))
+    if (!connect_app_ports(port, m_apps[port]->getChannelAssignments(), type))
     {
         m_apps[port]->flagForDelete();
         errCode = sam::SAM_ERR_DEFAULT;
@@ -702,6 +708,12 @@ bool StreamingAudioManager::registerRenderer(const char* hostname, quint16 port,
     address->port = port;
     m_renderer = address;
     m_renderSocket = renderSocket;
+
+    if (m_client && !init_discrete_output_ports())
+    {
+        qWarning("StreamingAudioManager::registerRenderer couldn't enable discrete output ports");
+        return false;
+    } // if no jack client then we haven't started yet and will instead init discrete outputs during startup
     
     // send regconfirm message to renderer
     OscMessage msg;
@@ -952,7 +964,7 @@ bool StreamingAudioManager::set_app_type(int port, StreamingAudioType type, int 
         }
 
         // connect to new output ports
-        if (!connect_app_ports(port, m_apps[port]->getChannelAssignments()))
+        if (!connect_app_ports(port, m_apps[port]->getChannelAssignments(), type))
         {
             errorCode = sam::SAM_ERR_DEFAULT;
             return false;
@@ -983,7 +995,7 @@ bool StreamingAudioManager::set_app_type(int port, StreamingAudioType type, int 
         }
         
         // connect to new output ports
-        if (!connect_app_ports(port, m_apps[port]->getChannelAssignments()))
+        if (!connect_app_ports(port, m_apps[port]->getChannelAssignments(), type))
         {
             errorCode = sam::SAM_ERR_DEFAULT;
             return false;
@@ -1356,7 +1368,7 @@ void StreamingAudioManager::handle_render_message(const char* address, OscMessag
 
             if (success)
             {
-                printf("Registering a renderer at host %s, port %d\n\n", sender, replyPort);
+                printf("Registered a renderer at host %s, port %d\n\n", sender, replyPort);
             }
             else
             {
@@ -2255,7 +2267,7 @@ int StreamingAudioManager::jack_process(jack_nframes_t nframes)
     return 0;
 }
 
-bool StreamingAudioManager::init_output_ports()
+bool StreamingAudioManager::init_basic_output_ports()
 {
     // get all jack ports that correspond to the basic client
     const char** outputPortsBasic = jack_get_ports(m_client, m_outJackClientNameBasic, NULL, JackPortIsInput);
@@ -2271,12 +2283,28 @@ bool StreamingAudioManager::init_output_ports()
     while (*currentPortBasic != NULL)
     {
         m_maxBasicOutputs++;
-        qDebug("StreamingAudioManager::init_output_ports() counted basic port %s", *currentPortBasic);
+        qDebug("StreamingAudioManager::init_basic_output_ports() counted basic port %s", *currentPortBasic);
         currentPortBasic++;
     }
-    qDebug("StreamingAudioManager::init_output_ports() counted %d possible basic outputs", m_maxBasicOutputs);
+    qDebug("StreamingAudioManager::init_basic_output_ports() counted %d possible basic outputs", m_maxBasicOutputs);
     jack_free(outputPortsBasic);
     
+    for (int i = 0; i < m_basicChannels.size(); i++)
+    {
+        if (m_basicChannels[i] <= m_maxBasicOutputs)
+        {
+            qDebug("StreamingAudioManager::init_basic_output_ports() enabling basic channel %u", m_basicChannels[i]);
+        }
+        else
+        {
+            qWarning("StreamingAudioManager::init_basic_output_ports() couldn't enable basic channel %u", m_basicChannels[i]);
+        }
+    }
+    return true;
+}
+
+bool StreamingAudioManager::init_discrete_output_ports()
+{
     // get all jack ports that correspond to the discrete client
     const char** outputPortsDiscrete = jack_get_ports(m_client, m_outJackClientNameDiscrete, NULL, JackPortIsInput);
     if (!outputPortsDiscrete)
@@ -2291,28 +2319,16 @@ bool StreamingAudioManager::init_output_ports()
     while (*currentPortDiscrete != NULL)
     {
         m_maxDiscreteOutputs++;
-        qDebug("StreamingAudioManager::init_output_ports() counted discrete port %s", *currentPortDiscrete);
+        qDebug("StreamingAudioManager::init_discrete_output_ports() counted discrete port %s", *currentPortDiscrete);
         currentPortDiscrete++;
     }
-    qDebug("StreamingAudioManager::init_output_ports() counted %d possible discrete outputs", m_maxDiscreteOutputs);
+    qDebug("StreamingAudioManager::init_discrete_output_ports() counted %d possible discrete outputs", m_maxDiscreteOutputs);
     jack_free(outputPortsDiscrete);
-    
+
     m_discreteOutputUsed = new int[m_maxDiscreteOutputs];
     for (unsigned int i = 0; i < m_maxDiscreteOutputs; i++)
     {
         m_discreteOutputUsed[i] = OUTPUT_DISABLED;
-    }
-
-    for (int i = 0; i < m_basicChannels.size(); i++)
-    {
-        if (m_basicChannels[i] <= m_maxBasicOutputs)
-        {
-            qDebug("StreamingAudioManager::init_output_ports() enabling basic channel %u", m_basicChannels[i]);
-        }
-        else
-        {
-            qWarning("StreamingAudioManager::init_output_ports() couldn't enable basic channel %u", m_basicChannels[i]);
-        }
     }
 
     for (int i = 0; i < m_discreteChannels.size(); i++)
@@ -2320,11 +2336,12 @@ bool StreamingAudioManager::init_output_ports()
         if (m_discreteChannels[i] <= m_maxDiscreteOutputs)
         {
             m_discreteOutputUsed[m_discreteChannels[i]-1] = OUTPUT_ENABLED_DISCRETE; // outputUsed is 0-indexed, while channel lists are 1-indexed
-            qDebug("StreamingAudioManager::init_output_ports() enabling discrete channel: m_discreteOutputUsed[%d] = %d", m_discreteChannels[i]-1, m_discreteOutputUsed[m_discreteChannels[i]-1]);
+            qDebug("StreamingAudioManager::init_discrete_output_ports() enabling discrete channel: m_discreteOutputUsed[%d] = %d", m_discreteChannels[i]-1, m_discreteOutputUsed[m_discreteChannels[i]-1]);
         }
         else
         {
-            qWarning("StreamingAudioManager::init_output_ports() couldn't enable discrete channel %u", m_discreteChannels[i]);
+            qWarning("StreamingAudioManager::init_discrete_output_ports() couldn't enable discrete channel %u", m_discreteChannels[i]);
+            return false;
         }
     }
 
@@ -2452,7 +2469,7 @@ bool StreamingAudioManager::allocate_output_ports(int port, int channels, Stream
     return true;
 }
 
-bool StreamingAudioManager::connect_app_ports(int port, const int* outputPorts)
+bool StreamingAudioManager::connect_app_ports(int port, const int* outputPorts, int type)
 {
     qDebug("StreamingAudioManager::connect_app_ports starting");
     
@@ -2470,7 +2487,7 @@ bool StreamingAudioManager::connect_app_ports(int port, const int* outputPorts)
 
         // connect the app's output port to the specified physical output
         char systemOut[MAX_PORT_NAME];
-        if (m_apps[port]->getType() == TYPE_BASIC)
+        if (type == TYPE_BASIC)
         {
             snprintf(systemOut, MAX_PORT_NAME, "%s:%s%d", m_outJackClientNameBasic, m_outJackPortBaseBasic, outputPorts[ch]);
         }
