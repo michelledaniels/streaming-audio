@@ -218,7 +218,46 @@ void TestRenderer::changeType(int id, int type, int preset)
 
 int TestRenderer::processAudio(jack_nframes_t nframes)
 {
-    // TODO: process audio here
+    if (!m_outputPorts || !m_outputPorts[0])
+    {
+        qWarning("TestRenderer::processAudio no output ports!");
+        return 0;
+    }
+
+    if (!m_inputPorts)
+    {
+        qWarning("TestRenderer::processAudio no input ports!");
+        return 0;
+    }
+
+    // init mono output channel to silence
+    jack_default_audio_sample_t* out = (jack_default_audio_sample_t*) jack_port_get_buffer(m_outputPorts[0], nframes);
+    memset(out, 0, nframes * sizeof(float));
+
+    // mix all input channels down to one mono output channel
+    for (unsigned int ch = 0; ch < m_numInputChannels; ch++)
+    {
+        jack_port_t* inPort = m_inputPorts[ch];
+        if (inPort)
+        {
+            jack_default_audio_sample_t* in = (jack_default_audio_sample_t*) jack_port_get_buffer(inPort, nframes);
+            for (unsigned int n = 0; n < nframes; n++)
+            {
+                out[n] += in[n];
+            }
+        }
+        else
+        {
+            qWarning("JackAudioInterface::process_audio input buffer was null!");
+            return 0;
+        }
+    }
+
+    // scaling
+    for (unsigned int n = 0; n < nframes; n++)
+    {
+        out[n] /= m_numInputChannels;
+    }
 
     return 0;
 }
