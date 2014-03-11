@@ -137,6 +137,8 @@ To stop a client, simply destroy the `StreamingAudioClient` object.  This will c
 Note that unregistering a client with SAM causes the client's unique ID to be released for reuse by another client and loses information about parameters set for that client in SAM (volume, mute, delay, etc.).  SAM currently has no concept of "pausing" a client, so if you don't wish to unregister your client but simply have no audio data to send, you should have your audio callback send silence to SAM until more audio data is available.
 
 == Developing Renderers ==
+[DevelopingRenderers Guide for developing renderers in versions 0.7+ using the `samrender` library]
+
 Renderers provide advanced rendering modes to extend SAM functionality. For example, when using SAM to provide audio for large-scale tiled display environments such as SAGE, a renderer can be used to spatially align audio with a client's visual image.  
 
 Internally, SAM understands two types of output: basic and discrete.  Clients using basic output (always rendering type 0) are all mixed down to the basic output channels specified in the SAM config file (typically two channels).  Clients using discrete output (non-zero rendering type) are allocated output channels and sent discretely to the renderer with no mixing in SAM.
