@@ -81,6 +81,16 @@ Starting the renderer initiates the process of registering with SAM using OSC ov
 To stop a renderer, simply destroy the `SamRenderer` object.  This will cause the renderer to unregister with SAM and clean itself up neatly.  If your application crashes and the `SamRenderer` destructor is never called, your renderer may remain registered with SAM.  However, SAM should detect that its TCP connection with the renderer has been disconnected and correctly unregister the renderer.  
 
 === Rendering Types and Presets ===
+SAM internally supports basic rendering (type 0) with a default preset (preset 0), and streams with type 0 are never sent to the renderer.  To receive streams, the renderer must tell SAM what types (and associated presets) it supports.  For example, `TestRenderer` supports one type (type 1 with name "Mono Mix-Down"), with one preset (preset 0 with name "Default").
+{{{
+int presetIds[] = {0};
+const char* presetNames[1] = {"Default"};
+renderer.addType(1, "Mono Mix-Down", 1, presetIds, presetNames);
+}}}
+
+Until rendering types have been added by the renderer, no clients can choose an advanced rendering type.
+
+Note that each rendering type must support at least one preset (the default).
 
 === Callbacks ===
 
@@ -113,9 +123,42 @@ renderer.setStreamRemovedCallback(stream_removed_callback, this);
 }}}
 
 ==== Type ====
-
+To be notified when a stream's type or preset changes, you must write a `RenderTypeCallback` (example from `TestRenderer`):
+{{{
+void TestRenderer::type_changed_callback(int id, int type, int preset, void* renderer)
+{
+    ((TestRenderer*)renderer)->changeType(id, type, preset);
+}
+}}}
+and register that callback:
+{{{
+renderer.setTypeCallback(type_changed_callback, this);
+}}}
 
 ==== Position ====
+To be notified when a stream's position changes, you must write a `RenderPositionCallback` (example from `TestRenderer`):
+{{{
+void TestRenderer::position_changed_callback(int id, int x, int y, int width, int height, int depth, void* renderer)
+{
+    ((TestRenderer*)renderer)->changePosition(id, x, y, width, height, depth);
+}
 
+}}}
+and register that callback:
+{{{
+renderer.setPositionCallback(position_changed_callback, this);
+}}} 
 
 ==== Lost Connection ====
+To be notified when the TCP connection with SAM is broken, you must write a `RenderDisconnectCallback` (example from `TestRenderer`):
+{{{
+void TestRenderer::render_disconnect_callback(void*)
+{
+    qWarning("TestRenderer::render_disconnect_callback lost connection with SAM, shutting down...");
+    QCoreApplication::quit();
+}
+}}}
+and register that callback:
+{{{
+renderer.setDisconnectCallback(render_disconnect_callback, this);
+}}}
