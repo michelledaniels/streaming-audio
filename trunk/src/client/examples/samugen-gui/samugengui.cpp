@@ -8,6 +8,7 @@
  */
 
 #include <QGroupBox>
+#include <QHostAddress>
 #include <QMessageBox>
 #include <QVBoxLayout>
 

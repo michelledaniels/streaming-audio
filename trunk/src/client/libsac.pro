@@ -61,7 +61,7 @@ HEADERS +=\
     ../rtcp.h \
     ../osc.h
 
-INCLUDEPATH += /usr/local/include ../
+INCLUDEPATH += /usr/local/include
 
 #target.path = /usr/local/lib
 #INSTALLS += target

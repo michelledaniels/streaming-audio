@@ -29,7 +29,7 @@ CONFIG(release, debug|release) {
 
 SOURCES += main.cpp
 
-INCLUDEPATH += /usr/local/include $$ParentDirectory/src $$ParentDirectory/src/client
+INCLUDEPATH += /usr/local/include $$ParentDirectory/src/client
 LIBS += -L$$ParentDirectory/lib -lsac -ljack
 QT += network
 

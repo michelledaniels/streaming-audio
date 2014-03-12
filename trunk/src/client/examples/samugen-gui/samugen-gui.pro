@@ -30,7 +30,7 @@ SOURCES += main.cpp \
 HEADERS += \
     samugengui.h
 
-INCLUDEPATH += /usr/local/include $$ParentDirectory/src $$ParentDirectory/src/client
+INCLUDEPATH += /usr/local/include $$ParentDirectory/src/client
 LIBS += -L$$ParentDirectory/lib -lsac
 QT += network
 

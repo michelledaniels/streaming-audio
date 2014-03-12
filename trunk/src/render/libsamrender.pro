@@ -41,7 +41,7 @@ HEADERS += samrenderer.h\
         libsamrender_global.h \
         ../osc.h
 
-INCLUDEPATH += /usr/local/include ../
+INCLUDEPATH += /usr/local/include
 
 #target.path = /usr/local/lib
 #INSTALLS += target

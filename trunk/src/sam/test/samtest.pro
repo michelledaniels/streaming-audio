@@ -32,7 +32,7 @@ SOURCES += samtest_main.cpp
 HEADERS += \
     samtester.h
 
-INCLUDEPATH += $$ParentDirectory/src $$ParentDirectory/src/client
+INCLUDEPATH += $$ParentDirectory/src/client
 LIBS += -L$$ParentDirectory/lib -lsac -ljack
 
 message(samtest.pro complete)
