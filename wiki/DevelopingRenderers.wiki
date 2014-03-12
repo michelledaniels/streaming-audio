@@ -16,6 +16,8 @@ The renderer may run on a separate machine from SAM, in which case the two machi
 
 == The Rendering Library ==
 
+[http://streaming-audio.googlecode.com/svn/trunk/doc/html/index.html Doxygen-generated documentation of samrender library (for trunk)]
+
 A rendering library is now available to facilitate the development of third-party renderers for SAM.  This library encapsulates the OSC message-based communication between SAM and the renderer.  OSC messages are exchanged using a TCP connection which is maintained as long as the renderer is registered with SAM.  This connection allows both SAM and the renderer to know if the other goes offline.
 
 === Example Renderer ===
