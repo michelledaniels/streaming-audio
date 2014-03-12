@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['init',['init',['../classsam_1_1_streaming_audio_client.html#aa3fa0ae889dcb0c86c646d5940a79719',1,'sam::StreamingAudioClient::init(const SacParams &amp;params)'],['../classsam_1_1_streaming_audio_client.html#a0e8ec4d88591cff1ecd26b51c318984e',1,'sam::StreamingAudioClient::init(unsigned int numChannels, StreamingAudioType type, const char *name, const char *samIP, quint16 samPort, quint16 replyPort=0, quint8 payloadType=PAYLOAD_PCM_16, bool driveExternally=false)']]],
+  ['id',['id',['../structsam_1_1_sam_render_stream.html#acbf376f6eb724f64396c76f3b18bc0cd',1,'sam::SamRenderStream']]],
+  ['init',['init',['../classsam_1_1_streaming_audio_client.html#aa3fa0ae889dcb0c86c646d5940a79719',1,'sam::StreamingAudioClient::init(const SacParams &amp;params)'],['../classsam_1_1_streaming_audio_client.html#a0e8ec4d88591cff1ecd26b51c318984e',1,'sam::StreamingAudioClient::init(unsigned int numChannels, StreamingAudioType type, const char *name, const char *samIP, quint16 samPort, quint16 replyPort=0, quint8 payloadType=PAYLOAD_PCM_16, bool driveExternally=false)'],['../classsam_1_1_sam_renderer.html#ac98887f2738147181cff6148e35a1811',1,'sam::SamRenderer::init()']]],
   ['isrunning',['isRunning',['../classsam_1_1_streaming_audio_client.html#a26bb9b43f637ba6890af395f4e6442ef',1,'sam::StreamingAudioClient']]]
 ];
