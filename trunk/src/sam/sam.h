@@ -16,8 +16,8 @@
 #include <QVector>
 
 #include "jack/jack.h"
-#include "sam_client.h"
 #include "osc.h"
+#include "sam_shared.h"
 
 namespace sam
 {

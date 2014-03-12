@@ -13,6 +13,7 @@
 #include <QObject>
 #include <QTcpSocket>
 #include "../rtp.h" // for PAYLOAD_PCM_16
+#include "../sam_shared.h"
 
 /**
  * @namespace sam
@@ -20,34 +21,8 @@
  */
 namespace sam
 {
-    
-static const int VERSION_MAJOR = 0;
-static const int VERSION_MINOR = 7;
-static const int VERSION_PATCH = 1;
+
 static const unsigned int SAC_DEFAULT_TIMEOUT = 10000; // in milliseconds
-
-/**
- * @enum SamErrorCode
- * Possible error codes returned by SAM in OSC messages to clients, renderers, and UIs.
- */
-enum SamErrorCode
-{
-    SAM_ERR_DEFAULT = 0,        ///< non-specific error
-    SAM_ERR_VERSION_MISMATCH,   ///< the client, renderer, or UI version didn't match SAM's version
-    SAM_ERR_MAX_CLIENTS,        ///< the maximum number of clients has been reached
-    SAM_ERR_NO_FREE_OUTPUT,     ///< there are no more output channels (JACK ports) available in SAM
-    SAM_ERR_INVALID_ID,         ///< invalid client id
-    SAM_ERR_INVALID_TYPE        ///< invalid rendering type
-};
-
-/**
- * @enum StreamingAudioType
- * The possible types of audio streams for an app.
- */
-enum StreamingAudioType
-{
-    TYPE_BASIC = 0
-};
 
 /**
  * @enum SACReturn

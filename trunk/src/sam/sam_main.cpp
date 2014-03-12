@@ -16,6 +16,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 
+#include "../sam_shared.h" // for version
 #include "samui.h"
 #include "sam.h"
 #include "samparams.h"

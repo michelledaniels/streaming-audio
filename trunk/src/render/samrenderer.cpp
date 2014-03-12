@@ -11,7 +11,7 @@
 #include <QTimer>
 
 #include "samrenderer.h"
-#include "../client/sam_client.h" // for version numbers
+#include "../sam_shared.h" // for version numbers
 
 namespace sam
 {

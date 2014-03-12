@@ -59,7 +59,8 @@ HEADERS +=\
     rtpsender.h \
     ../rtp.h \
     ../rtcp.h \
-    ../osc.h
+    ../osc.h \
+    ../sam_shared.h
 
 INCLUDEPATH += /usr/local/include
 
