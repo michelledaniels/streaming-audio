@@ -39,7 +39,8 @@ SOURCES += samrenderer.cpp \
 
 HEADERS += samrenderer.h\
         libsamrender_global.h \
-        ../osc.h
+        ../osc.h \
+    ../sam_shared.h
 
 INCLUDEPATH += /usr/local/include
 

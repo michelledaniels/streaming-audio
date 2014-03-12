@@ -22,6 +22,7 @@
 
 #include "sam.h"
 #include "sam_app.h"
+#include "sam_shared.h"
 #include "samparams.h"
 #include "jack_util.h"
 #include "osc.h"

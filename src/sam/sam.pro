@@ -35,7 +35,8 @@ HEADERS += sam.h \
     samui.h \
     clientwidget.h \
     masterwidget.h \
-    samparams.h
+    samparams.h \
+    ../sam_shared.h
 
 FORMS += \
     samui.ui

@@ -16,6 +16,7 @@
 #include "rtpsender.h"
 #include "sac_audio_interface.h"
 #include "sam_client.h"
+#include "../sam_shared.h"
 
 namespace sam
 {
