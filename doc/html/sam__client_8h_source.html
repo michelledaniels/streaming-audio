@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.4"/>
-<title>Streaming Audio Client: client/sam_client.h Source File</title>
+<title>Streaming Audio: client/sam_client.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td id="projectlogo"><img alt="Logo" src="sam.png"/></td>
   <td style="padding-left: 0.5em;">
-   <div id="projectname">Streaming Audio Client
+   <div id="projectname">Streaming Audio
    &#160;<span id="projectnumber">0.7</span>
    </div>
   </td>
@@ -103,7 +103,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    </div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> VERSION_MAJOR = 0;</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> VERSION_MINOR = 7;</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> VERSION_PATCH = 0;</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> VERSION_PATCH = 1;</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> SAC_DEFAULT_TIMEOUT = 10000; <span class="comment">// in milliseconds</span></div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;</div>
 <div class="line"><a name="l00034"></a><span class="lineno"><a class="code" href="namespacesam.html#aaaf18c96090e2f3dda803fb694a3ea00">   34</a></span>&#160;<span class="keyword">enum</span> <a class="code" href="namespacesam.html#aaaf18c96090e2f3dda803fb694a3ea00" title="Possible error codes returned by SAM in OSC messages to clients, renderers, and UIs. ">SamErrorCode</a></div>
@@ -132,9 +132,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    SAC_NUM_RETURN_CODES</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;};</div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;</div>
-<div class="line"><a name="l00072"></a><span class="lineno"><a class="code" href="structsam_1_1_sac_params.html">   72</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structsam_1_1_sac_params.html" title="This struct contains the parameters needed to intialize a SAC. ">SacParams</a></div>
+<div class="line"><a name="l00072"></a><span class="lineno"><a class="code" href="structsam_1_1_sac_params.html">   72</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structsam_1_1_sac_params.html" title="This struct contains the parameters needed to intialize a StreamingAudioClient (SAC) ...">SacParams</a></div>
 <div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;{</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    <a class="code" href="structsam_1_1_sac_params.html" title="This struct contains the parameters needed to intialize a SAC. ">SacParams</a>() :</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    <a class="code" href="structsam_1_1_sac_params.html" title="This struct contains the parameters needed to intialize a StreamingAudioClient (SAC) ...">SacParams</a>() :</div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;        <a class="code" href="structsam_1_1_sac_params.html#a93896df3064ca405b2567a8516642efa" title="number of channels of audio to send to SAM ">numChannels</a>(0),</div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        <a class="code" href="structsam_1_1_sac_params.html#ac351c6ab3e70862046b8c39596283071" title="rendering type ">type</a>(TYPE_BASIC),</div>
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;        <a class="code" href="structsam_1_1_sac_params.html#ae0ecc31d376fc6d40e2254ab1e20cc6b" title="rendering preset ">preset</a>(0),</div>
@@ -182,7 +182,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;</div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    <a class="code" href="classsam_1_1_streaming_audio_client.html">StreamingAudioClient</a>&amp; <a class="code" href="classsam_1_1_streaming_audio_client.html#abec0f61e46279c070221553240fd9239" title="Assignment operator (not used). ">operator=</a>(<span class="keyword">const</span> <a class="code" href="classsam_1_1_streaming_audio_client.html">StreamingAudioClient</a>);</div>
 <div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;</div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classsam_1_1_streaming_audio_client.html#aa3fa0ae889dcb0c86c646d5940a79719" title="Init this StreamingAudioClient. ">init</a>(<span class="keyword">const</span> <a class="code" href="structsam_1_1_sac_params.html" title="This struct contains the parameters needed to intialize a SAC. ">SacParams</a>&amp; params);</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classsam_1_1_streaming_audio_client.html#aa3fa0ae889dcb0c86c646d5940a79719" title="Init this StreamingAudioClient. ">init</a>(<span class="keyword">const</span> <a class="code" href="structsam_1_1_sac_params.html" title="This struct contains the parameters needed to intialize a StreamingAudioClient (SAC) ...">SacParams</a>&amp; params);</div>
 <div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;</div>
 <div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;    <span class="keywordtype">int</span> <a class="code" href="classsam_1_1_streaming_audio_client.html#aa3fa0ae889dcb0c86c646d5940a79719" title="Init this StreamingAudioClient. ">init</a>(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> numChannels,</div>
 <div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;             <a class="code" href="namespacesam.html#adca8d887e2be77b57726ce192a986dff" title="The possible types of audio streams for an app. ">StreamingAudioType</a> type,</div>
@@ -271,40 +271,39 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;    <span class="keywordtype">char</span>* m_replyIP;</div>
 <div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;    quint16 m_replyPort;              </div>
 <div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;    QTcpSocket m_socket;              </div>
-<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;    QByteArray m_data;                </div>
-<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;    <span class="keywordtype">bool</span> m_responseReceived;          </div>
-<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;    OscTcpSocketReader* m_oscReader;  </div>
-<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;</div>
-<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;    <span class="comment">// for audio interface</span></div>
-<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;    <span class="keywordtype">bool</span> m_driveExternally;           </div>
-<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;    SacAudioInterface* m_interface;   </div>
-<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;    </div>
-<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;    <span class="comment">// for RTP</span></div>
-<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;    RtpSender* m_sender;              </div>
-<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;</div>
-<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;    <span class="comment">// for audio callback</span></div>
-<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;    <a class="code" href="namespacesam.html#acab0161a8ef6e594daea21ff4dc02820" title="Prototype for a StreamingAudioClient audio callback function. ">SACAudioCallback</a> m_audioCallback; </div>
-<div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;    <span class="keywordtype">void</span>* m_audioCallbackArg;         </div>
-<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;    <span class="keywordtype">float</span>** m_audioOut;               </div>
-<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;</div>
-<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;    <span class="comment">// for other callbacks</span></div>
-<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;    <a class="code" href="namespacesam.html#a246ea21f7d93d8b9787d025eed264d8c" title="Prototype for a StreamingAudioClient mute callback function. ">SACMuteCallback</a> m_muteCallback;             </div>
-<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;    <span class="keywordtype">void</span>* m_muteCallbackArg;                    </div>
-<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;    <a class="code" href="namespacesam.html#ab03f9d6d12a822fd104c3eac304e8d1e" title="Prototype for a StreamingAudioClient solo callback function. ">SACSoloCallback</a> m_soloCallback;             </div>
-<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;    <span class="keywordtype">void</span>* m_soloCallbackArg;                    </div>
-<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;    <a class="code" href="namespacesam.html#aa2da2ac69a5d187dbfbad3bec17eb29d" title="Prototype for a StreamingAudioClient disconect callback function. ">SACDisconnectCallback</a> m_disconnectCallback; </div>
-<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;    <span class="keywordtype">void</span>* m_disconnectCallbackArg;              </div>
-<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;</div>
-<div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;};</div>
-<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;</div>
-<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;} <span class="comment">// end of namespace sam</span></div>
-<div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160;</div>
-<div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160;<span class="preprocessor">#endif // SAM_CLIENT_H</span></div>
-<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;<span class="preprocessor"></span></div>
+<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;    <span class="keywordtype">bool</span> m_responseReceived;          </div>
+<div class="line"><a name="l00448"></a><span class="lineno">  448</span>&#160;    OscTcpSocketReader* m_oscReader;  </div>
+<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;</div>
+<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;    <span class="comment">// for audio interface</span></div>
+<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;    <span class="keywordtype">bool</span> m_driveExternally;           </div>
+<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;    SacAudioInterface* m_interface;   </div>
+<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;    </div>
+<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;    <span class="comment">// for RTP</span></div>
+<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;    RtpSender* m_sender;              </div>
+<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;</div>
+<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;    <span class="comment">// for audio callback</span></div>
+<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;    <a class="code" href="namespacesam.html#acab0161a8ef6e594daea21ff4dc02820" title="Prototype for a StreamingAudioClient audio callback function. ">SACAudioCallback</a> m_audioCallback; </div>
+<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;    <span class="keywordtype">void</span>* m_audioCallbackArg;         </div>
+<div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;    <span class="keywordtype">float</span>** m_audioOut;               </div>
+<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;</div>
+<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;    <span class="comment">// for other callbacks</span></div>
+<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;    <a class="code" href="namespacesam.html#a246ea21f7d93d8b9787d025eed264d8c" title="Prototype for a StreamingAudioClient mute callback function. ">SACMuteCallback</a> m_muteCallback;             </div>
+<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;    <span class="keywordtype">void</span>* m_muteCallbackArg;                    </div>
+<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;    <a class="code" href="namespacesam.html#ab03f9d6d12a822fd104c3eac304e8d1e" title="Prototype for a StreamingAudioClient solo callback function. ">SACSoloCallback</a> m_soloCallback;             </div>
+<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;    <span class="keywordtype">void</span>* m_soloCallbackArg;                    </div>
+<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;    <a class="code" href="namespacesam.html#aa2da2ac69a5d187dbfbad3bec17eb29d" title="Prototype for a StreamingAudioClient disconect callback function. ">SACDisconnectCallback</a> m_disconnectCallback; </div>
+<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;    <span class="keywordtype">void</span>* m_disconnectCallbackArg;              </div>
+<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;</div>
+<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;};</div>
+<div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;</div>
+<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;} <span class="comment">// end of namespace sam</span></div>
+<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;</div>
+<div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160;<span class="preprocessor">#endif // SAM_CLIENT_H</span></div>
+<div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160;<span class="preprocessor"></span></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Sep 18 2013 17:13:55 for Streaming Audio Client by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Mar 12 2014 11:00:35 for Streaming Audio by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.4
 </small></address>

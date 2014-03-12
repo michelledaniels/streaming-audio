@@ -1,6 +1,6 @@
 /**
  * @file sam_client.cpp
- * Implementation for applications connecting to the Streaming Audio Manager
+ * SAM client library implementation
  * @author Michelle Daniels
  * @date 2012-2013
  * @copyright UCSD 2012-2013

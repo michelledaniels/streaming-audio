@@ -1,6 +1,6 @@
 /**
  * @file samrenderer.h
- * SAM renderer library header
+ * SAM renderer library interface
  * @author Michelle Daniels
  * @copyright UCSD 2014
  * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
@@ -127,6 +127,13 @@ typedef void(*RenderTypeCallback)(int id, int type, int preset, void* arg);
  */
 typedef void(*RenderDisconnectCallback)(void* arg);
 
+/**
+ * @class SamRenderer
+ * @author Michelle Daniels
+ * @date 2014
+ * This class encapsulates the OSC message-based communication between a
+ * Streaming Audio Manager (SAM) and a third-party renderer.
+ */
 class SamRenderer : public QObject
 {
     Q_OBJECT

@@ -11,5 +11,11 @@ var searchData=
   ['sam_5ferr_5finvalid_5ftype',['SAM_ERR_INVALID_TYPE',['../namespacesam.html#aaaf18c96090e2f3dda803fb694a3ea00a43d20d56980c3ad3352c58490d3dbb94',1,'sam']]],
   ['sam_5ferr_5fmax_5fclients',['SAM_ERR_MAX_CLIENTS',['../namespacesam.html#aaaf18c96090e2f3dda803fb694a3ea00a0872cf8f83acbfd746548c181a1592ab',1,'sam']]],
   ['sam_5ferr_5fno_5ffree_5foutput',['SAM_ERR_NO_FREE_OUTPUT',['../namespacesam.html#aaaf18c96090e2f3dda803fb694a3ea00ae303a41568d4d691ec0d7a4e15aa1b80',1,'sam']]],
-  ['sam_5ferr_5fversion_5fmismatch',['SAM_ERR_VERSION_MISMATCH',['../namespacesam.html#aaaf18c96090e2f3dda803fb694a3ea00a96e9ec536beff0d134028c2ed2f1dbd2',1,'sam']]]
+  ['sam_5ferr_5fversion_5fmismatch',['SAM_ERR_VERSION_MISMATCH',['../namespacesam.html#aaaf18c96090e2f3dda803fb694a3ea00a96e9ec536beff0d134028c2ed2f1dbd2',1,'sam']]],
+  ['samrender_5ferror',['SAMRENDER_ERROR',['../namespacesam.html#a799cc766933130825febe09269ccdc53a7065bad0e2f02b6400c8d5429f61ca8b',1,'sam']]],
+  ['samrender_5fnot_5fregistered',['SAMRENDER_NOT_REGISTERED',['../namespacesam.html#a799cc766933130825febe09269ccdc53aef1d71d5879799783eebf67f5fa5ce8b',1,'sam']]],
+  ['samrender_5fosc_5ferror',['SAMRENDER_OSC_ERROR',['../namespacesam.html#a799cc766933130825febe09269ccdc53aaf1be7efb44d8fa4a67eb61e7d46e167',1,'sam']]],
+  ['samrender_5frequest_5fdenied',['SAMRENDER_REQUEST_DENIED',['../namespacesam.html#a799cc766933130825febe09269ccdc53a6ea2db00403508f2749083aa5b09c59b',1,'sam']]],
+  ['samrender_5fsuccess',['SAMRENDER_SUCCESS',['../namespacesam.html#a799cc766933130825febe09269ccdc53a8b5a2cfc790d9c5799ba2baa0d1afbdb',1,'sam']]],
+  ['samrender_5ftimeout',['SAMRENDER_TIMEOUT',['../namespacesam.html#a799cc766933130825febe09269ccdc53a104cb733f50236c914653adaa9e58ce1',1,'sam']]]
 ];

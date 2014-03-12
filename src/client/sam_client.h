@@ -1,6 +1,6 @@
 /**
  * @file sam_client.h
- * Interface for applications connecting to the Streaming Audio Manager
+ * SAM client library interface
  * @author Michelle Daniels
  * @date 2012-2013
  * @copyright UCSD 2012-2013
@@ -67,7 +67,7 @@ enum SACReturn
 
 /**
  * @struct SacParams
- * This struct contains the parameters needed to intialize a SAC
+ * This struct contains the parameters needed to intialize a StreamingAudioClient (SAC)
  */
 struct SacParams
 {
