@@ -34,7 +34,7 @@ CONFIG(release, debug|release) {
 SOURCES += main.cpp \
     testrenderer.cpp
 
-INCLUDEPATH += /usr/local/include $$ParentDirectory/src $$ParentDirectory/src/render
+INCLUDEPATH += /usr/local/include $$ParentDirectory/src/render
 LIBS += -L$$ParentDirectory/lib -lsamrender -ljack
 QT += network
 

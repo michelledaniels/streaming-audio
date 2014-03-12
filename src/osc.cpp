@@ -10,7 +10,7 @@
 #include <QDataStream>
 #include <QDebug>
 
-#include <osc.h>
+#include "osc.h"
 
 namespace sam
 {

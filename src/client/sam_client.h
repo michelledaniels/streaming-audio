@@ -2,7 +2,7 @@
  * @file sam_client.h
  * SAM client library interface
  * @author Michelle Daniels
- * @date 2012-2013
+ * @date 2012-2014
  * @copyright UCSD 2012-2013
  * @license New BSD License: http://opensource.org/licenses/BSD-3-Clause
  */
@@ -11,9 +11,8 @@
 #define	SAM_CLIENT_H
 
 #include <QObject>
-#include "osc.h"
-#include "rtpsender.h"
-#include "sac_audio_interface.h"
+#include <QTcpSocket>
+#include "../rtp.h" // for PAYLOAD_PCM_16
 
 /**
  * @namespace sam
@@ -139,6 +138,11 @@ typedef void(*SACSoloCallback)(bool solo, void* arg);
  * @param arg pointer to user-supplied data
  */
 typedef void(*SACDisconnectCallback)(void* arg);
+
+class OscMessage;
+class OscTcpSocketReader;
+class RtpSender;
+class SacAudioInterface;
 
 /**
  * @class StreamingAudioClient

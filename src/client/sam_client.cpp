@@ -12,6 +12,9 @@
 #include <QTcpSocket>
 #include <QTimer>
 
+#include "../osc.h"
+#include "rtpsender.h"
+#include "sac_audio_interface.h"
 #include "sam_client.h"
 
 namespace sam

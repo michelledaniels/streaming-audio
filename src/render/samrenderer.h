@@ -10,7 +10,7 @@
 #define SAMRENDERER_H
 
 #include "libsamrender_global.h"
-#include "osc.h"
+#include "../osc.h"
 
 /**
  * @namespace sam

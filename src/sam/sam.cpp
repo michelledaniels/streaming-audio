@@ -17,6 +17,7 @@
 
 #include <QDebug>
 #include <QHostInfo>
+#include <QThread>
 #include <QTimer>
 
 #include "sam.h"

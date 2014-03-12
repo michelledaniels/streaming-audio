@@ -9,8 +9,8 @@
 #ifndef RTPSENDER_H
 #define RTPSENDER_H
 
-#include "rtcp.h"
-#include "rtp.h"
+#include "../rtcp.h"
+#include "../rtp.h"
 
 class QUdpSocket;
 
