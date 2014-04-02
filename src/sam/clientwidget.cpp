@@ -98,7 +98,8 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, doubl
     clientLayout->addWidget(idLabel);
 
     QWidget *levelBox = new QWidget(clientBox);
-    QHBoxLayout* levelLayout = new QHBoxLayout(levelBox);
+    QGridLayout* levelLayout = new QGridLayout(levelBox);
+    levelLayout->setContentsMargins(0, 0, 0, 0);
 
     // add volume slider
     m_volumeSlider = new QSlider(Qt::Vertical, this);
@@ -106,7 +107,11 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, doubl
     m_volumeSlider->setMaximum(VOLUME_SLIDER_SCALE);
     m_volumeSlider->setValue(params.volume * VOLUME_SLIDER_SCALE);
     connect(m_volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(on_volumeSlider_valueChanged(int)));
-    levelLayout->addWidget(m_volumeSlider);
+    levelLayout->addWidget(m_volumeSlider, 1, 0, 1, 1, Qt::AlignCenter);
+
+    QString volumeString("Volume");
+    QLabel* volumeLabel = new QLabel(volumeString, this);
+    levelLayout->addWidget(volumeLabel, 0, 0, 1, 1, Qt::AlignCenter);
 
     // add meter widgets
     m_metersIn = new MeterWidget*[m_channels];
@@ -115,8 +120,11 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, doubl
         m_metersIn[i] = new MeterWidget(this);
         m_metersIn[i]->setMinimumSize(50,100);
         m_metersIn[i]->setLevel(0.0f, 0.0f);
-        levelLayout->addWidget(m_metersIn[i]);
+        levelLayout->addWidget(m_metersIn[i], 1, (i + 1), 1, 1, Qt::AlignCenter);
     }
+    QString inString("In");
+    QLabel* inLabel = new QLabel(inString, this);
+    levelLayout->addWidget(inLabel, 0, 1, 1, m_channels, Qt::AlignCenter);
 
     m_metersOut = new MeterWidget*[m_channels];
     for (int i = 0; i < m_channels; i++)
@@ -124,8 +132,11 @@ ClientWidget::ClientWidget(int id, const char* name, ClientParams& params, doubl
         m_metersOut[i] = new MeterWidget(this);
         m_metersOut[i]->setMinimumSize(50,100);
         m_metersOut[i]->setLevel(0.0f, 0.0f);
-        levelLayout->addWidget(m_metersOut[i]);
+        levelLayout->addWidget(m_metersOut[i], 1, (i + 1 + m_channels), 1, 1, Qt::AlignCenter);
     }
+    QString outString("Out");
+    QLabel* outLabel = new QLabel(outString, this);
+    levelLayout->addWidget(outLabel, 0, (1 + m_channels) , 1, m_channels, Qt::AlignCenter);
 
     levelBox->setLayout(levelLayout);
     clientLayout->addWidget(levelBox);
