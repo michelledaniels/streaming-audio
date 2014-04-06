@@ -46,7 +46,7 @@ void MeterWidget::paintEvent(QPaintEvent* event)
     gradient.setColorAt(0.0, Qt::red);
     painter.setBrush(gradient);
     painter.setPen(Qt::NoPen);
-    painter.drawRect(METER_TICK_LENGTH + METER_TICK_LABEL_LENGTH + 1, halfTick + (meterHeight - 3) * (1.0f - m_rms) + 1, meterWidth - 2, (meterHeight - 3) * m_rms + 1);
+    painter.drawRect(METER_TICK_LENGTH + METER_TICK_LABEL_LENGTH + 1, halfTick + (meterHeight - 3) * (1.0f - m_rms) + 1, meterWidth - 2, (meterHeight - 3) * m_rms);
 
     // draw tick marks
     painter.setPen(Qt::black);
