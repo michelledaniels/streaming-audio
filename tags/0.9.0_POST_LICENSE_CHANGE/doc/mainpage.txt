@@ -1,0 +1,47 @@
+/**
+ * @mainpage Streaming Audio
+ * @author Michelle Daniels, Sonic Arts R&D at Qualcomm Institute, University of California San Diego
+ * @date 2011-2014
+ * @version 0.9
+ * @license 
+ * This software is Copyright 2011-2014 The Regents of the University of California. <br>
+ * All Rights Reserved.
+ *
+ * Permission to copy, modify, and distribute this software and its documentation for <br>
+ * educational, research and non-profit purposes by non-profit entities, without fee, <br>
+ * and without a written agreement is hereby granted, provided that the above copyright<br>
+ * notice, this paragraph and the following three paragraphs appear in all copies.<br>
+ *
+ * Permission to make commercial use of this software may be obtained by contacting:<br>
+ * Technology Transfer Office<br>
+ * 9500 Gilman Drive, Mail Code 0910<br>
+ * University of California<br>
+ * La Jolla, CA 92093-0910<br>
+ * (858) 534-5815<br>
+ * invent@ucsd.edu
+ *
+ * This software program and documentation are copyrighted by The Regents of the <br>
+ * University of California. The software program and documentation are supplied <br>
+ * "as is", without any accompanying services from The Regents. The Regents does <br>
+ * not warrant that the operation of the program will be uninterrupted or error-free. <br>
+ * The end-user understands that the program was developed for research purposes and <br>
+ * is advised not to rely exclusively on the program for any reason.<br>
+ *
+ * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO<br>
+ * ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR<br>
+ * CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING<br>
+ * OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION,<br>
+ * EVEN IF THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF<br>
+ * THE POSSIBILITY OF SUCH DAMAGE. THE UNIVERSITY OF<br>
+ * CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,<br>
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF<br>
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.<br>
+ * THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, <br>
+ * AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATIONS TO<br>
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR<br>
+ * MODIFICATIONS.
+ * @section Dependencies
+ * The streaming-audio project depends on the following third-party software: JACK Audio Connection Kit (LGPL) and Qt version 4.7 or higher (LGPL).
+ * 
+ */
+
