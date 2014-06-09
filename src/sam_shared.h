@@ -13,8 +13,8 @@
 namespace sam
 {
 static const int VERSION_MAJOR = 0;
-static const int VERSION_MINOR = 7;
-static const int VERSION_PATCH = 2;
+static const int VERSION_MINOR = 9;
+static const int VERSION_PATCH = 0;
 
 /**
  * @enum SamErrorCode
